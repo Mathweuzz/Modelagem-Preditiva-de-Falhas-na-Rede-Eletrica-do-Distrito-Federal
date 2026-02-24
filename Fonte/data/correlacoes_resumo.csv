@@ -1,0 +1,8 @@
+nivel_temporal,variavel_x,variavel_y,pearson_r
+diario,interrupcoes,temperatura_media,0.10188507447614659
+diario,interrupcoes,precipitacao_total_mm,0.3474050273971871
+semanal,interrupcoes,precipitacao_total_mm,0.47684271998455
+mensal,interrupcoes,precipitacao_total_mm,0.5385577719045647
+mensal,interrupcoes,consumo_total_kwh,0.4763950046888337
+mensal,consumo_total_kwh,temperatura_media,0.5550313266443844
+mensal,interrupcoes,temperatura_media,0.3937289450527472

@@ -1,0 +1,36 @@
+# LaTeX Compilation Files
+*.aux
+*.bbl
+*.blg
+*.log
+*.toc
+*.lof
+*.lot
+*.out
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.ilg
+*.ind
+*.glo
+*.gls
+*.glg
+*.ist
+*.acr
+*.acn
+*.alg
+*.glsdefs
+*.upa
+*.upb
+
+# Python Files
+__pycache__/
+*.pyc
+.venv/
+env/
+venv/
+.env
+
+# OS Files
+.DS_Store
+Thumbs.db
