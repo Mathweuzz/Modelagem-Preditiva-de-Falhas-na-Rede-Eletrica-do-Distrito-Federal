@@ -1,0 +1,29 @@
+A capacidade de extrapolação matemática não linear de Redes Neurais Bi-direcionais reside, primordialmente, na topologia com a qual os tensores de treino são moldados. Diferente de algoritmos de correlação simples (como Regressão Linear Múltipla Euclidiana) ou Árvores estáticas, as sequências climatológicas apresentam características inerentes de \textit{Memória Temporal de Longo Alcance}. Neste capítulo, debruça-se tecnicamente sobre os fundamentos estocásticos justificadores da expansão dimensional do modelo para englobar os 14 dias precursores aos blecautes.
+
+\section{Autocorrelação Estatística Diária (ACF)}
+
+Fenômenos naturais, como massas ciclônicas de poeira e ciclos perenes de precipitação convectiva no Planalto Central, obedecem estritamente à dinâmica estocástica autorregressiva. Matematicamente, o calor latente de um dia chuvoso $t$ suprimirá estatisticamente a temperatura seca do dia vizinho $t+1$. Analogicamente, se a rede elétrica do Distrito Federal experimenta fadiga de estresse em seus condutores num período $t-2$, o risco residual de rompimento asintótico em $t$ torna-se não-nulo. 
+
+O decaimento natural das intercorrências foi verificado durante a Análise Exploratória (EDA) utilizando a Função de Autocorrelação Clássica (ACF), cuja modelagem para defasagem $k$ é fixada por:
+\begin{equation}
+    ACF(k) = \frac{\sum_{t=k+1}^{N} (Y_t - \bar{Y})(Y_{t-k} - \bar{Y})}{\sum_{t=1}^{N} (Y_t - \bar{Y})^2}
+\end{equation}
+
+A extração empírica revelou que blecautes generalizados da Neoenergia (Eventos Diários $> 1000$ Ocorrências) mantinham coeficientes positivos massivos até a defasagem $k=3$ (três dias retroativos). Essa descoberta forçou o arcabouço final da \textit{Engenharia de Atributos} a não ser míope. Um modelo fundamentado unicamente na tempestade de "hoje" ($t_0$) seria incapaz de assimilar galhos podres já pendurados por ventos de ontem ($t_{-1}$), que finalmente despencaram sem chuva aparente no dia de "hoje".
+
+\section{Retrovisor Climático (Lookback Windows de 14 Dias)}
+
+Embasado na necessidade de memória comprovada pela Função de Correlação Parcial (PACF), instituiu-se o parâmetro estrutural $\mathcal{L} = 14$ (\textit{Lookback Window}), instruindo a arquitetura PyTorch a fragmentar os vetores de \textit{input} em agrupamentos móveis.
+Para cada inferência pontual $\hat{Y}_{t}$, as células LSTMs foram instanciadas com:
+\begin{itemize}
+    \item Matriz de Precipitações Agregadas de $t-14$ a $t$.
+    \item Dinâmica Térmica (Arrastões de Frente Fria) monitorada no bloco $[t-14, t]$.
+    \item Defasagem Vetorial Simples da própria variável dependente (Exemplo: Interrupções ocorridas há exatos 7 dias $Y_{t-7}$).
+\end{itemize}
+
+O fenômeno da causalidade climática distante tornou-se incisivo durante o \textbf{El Niño (Novembro de 2023)}. As secas atípicas extremadas (temperaturas superando consistentemente $34^\circ \text{C}$) ocorridas na primeira quinzena do mês saturaram mecanicamente as junções dos transformadores elétricos da Neoenergia via Efeito Joule e degradação ôhmica. Quando as chuvas convectivas retornaram abruptamente em 20 de Novembro, as peças, enfraquecidas estocasticamente 14 dias antes, colapsaram simultaneamente gerando $picos > 600$ interrupções diárias. Sem a "Janela Deslizante" (\textit{Sliding Window}) englobando essas duas semanas pregressas de escaldamento letal, tanto o XGBoost quanto as Redes Neurais colapsariam preditivamente num Erro Quadrático Médio ($\mathcal{L}_{MSE}$) inaceitável.
+
+\section{O Risco da Maldição da Dimensionalidade na Escala Temporal}
+
+Ironicamente, expandir o tensor para $t-14$ de forma "força bruta" em $40+$ variáveis puras multiplicaria colossalmente as matrizes jacobianas das equações da LSTM, inflando para $\sim 560$ atributos por linha/amostra diária.
+É neste vácuo metodológico que as agregações estruturadas via SMA e Pearson (detalhadas no Capítulo~\ref{3_Metodologia}) demonstraram seu brilhantismo heurístico. Ao invés de alimentar os vetores diários esparsamente ao longo da quinzena pregressa, condensaram-se a "História do Clima e da Rede" em canais compactados estatisticamente de Longo Prazo, suprimindo o viés matricial (Colilinearidade) e acelerando assintoticamente a descida de gradiente por meio da eliminação pragmática de dimensões lineares perversas.

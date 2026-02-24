@@ -1,0 +1,76 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Classe do documento
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Opções:
+%  - Graduação: bacharelado|engenharia|licenciatura
+%  - Pós-graduação: [qualificacao], mestrado|doutorado, ppca|ppginf
+
+\documentclass[engenharia]{UnB-CIC}%
+% \documentclass[qualificacao,mestrado,ppca]{UnB-CIC}%
+
+\usepackage{lscape}
+\usepackage{pdflscape}
+
+\usepackage{pdfpages}% incluir PDFs, usado no apêndice
+\usepackage{booktabs}% para tabelas profissionais com \toprule e \midrule
+\usepackage{longtable}% para tabelas extensas que quebram página
+\usepackage{xurl}% quebra URLs agressivamente em qualquer caractere
+\usepackage{amsfonts}% for mathbb
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows, positioning, calc}
+
+\usepackage{listings}
+\lstset{
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  keywordstyle=\color{blue}\bfseries,
+  commentstyle=\color{darkgray}\itshape,
+  stringstyle=\color{red},
+  showstringspaces=false,
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  frame=lines
+}
+
+\makeglossaries
+\loadglsentries{tex/siglas}
+\glsaddall % Força a impressão de todas as siglas listadas
+% \AtBeginDocument{\renewcommand\contentsname{Índice}}%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Informações do Trabalho
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\orientador{\prof Jan Mendonça Corrêa}{CIC/UnB}%
+%\coorientador{\prof \dr José Ralha}{CIC/UnB}
+\coordenador[a]{\prof[a] \dr[a] Ada Lovelace}{Bibliothèque universelle de Genève}%
+\diamesano{23}{fevereiro}{2026}%
+
+\membrobanca{\prof \dr Donald Knuth}{Stanford University}%
+\membrobanca{\dr Leslie Lamport}{Microsoft Research}%
+
+\autor{Mateus Gomes de}{Araújo}%
+\coautor{Giovanni Minari}{Zanetti}%
+
+\titulo{Modelagem Preditiva de Falhas na Rede Elétrica do Distrito Federal: Um Estudo Comparativo entre XGBoost e Redes Neurais Recorrentes Bidirecionais}%
+
+\palavraschave{Aprendizado de Máquina, Inteligência Artificial, Redes Neurais Recorrentes, Interrupções de Energia, Climatologia, XGBoost, Séries Temporais}%
+\keywords{Machine Learning, Artificial Intelligence, Recurrent Neural Networks, Power Outages, Climatology, XGBoost, Time Series}%
+
+\newcommand{\unbcic}{\texttt{UnB-CIC}}%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Texto
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}%
+    \capitulo{1_Introducao}{Introdução}%
+    \capitulo{2_FundamentacaoTeorica}{Fundamentação Teórica}%
+    \capitulo{3_Metodologia}{Metodologia}%
+    \capitulo{4_Resultados}{Resultados}%
+    \capitulo{5_Discussao}{Engenharia de Features Temporais e Autocorrelação}%
+    \capitulo{6_Conclusao}{Conclusão}%
+
+% APÊNDICES
+\apendice{apendices}{Códigos-Fonte e Scripts em Python}
+
+\end{document}%

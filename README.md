@@ -90,14 +90,14 @@ Organização modular para replicabilidade matemática impecável por futuros pe
 ## 💻 Tecnologias Empregadas
 
 <div align="center">
-	<code><img width="50" src="https://user-images.githubusercontent.com/25181517/183423507-c056a6f9-1ba8-4312-a350-19bcbc5a8697.png" alt="Python" title="Python"/></code>
-	<code><img width="50" src="https://user-images.githubusercontent.com/25181517/183911546-d254f3eb-7956-43e6-ab10-72ee90b5a7db.png" alt="PyTorch" title="PyTorch"/></code>
-	<code><img width="50" src="https://user-images.githubusercontent.com/25181517/183423775-2b7e12e1-8072-47d3-bd3a-0968ca29c9c3.png" alt="Pandas" title="Pandas"/></code>
-	<code><img width="50" src="https://user-images.githubusercontent.com/25181517/183423793-13bb0ef4-6f9a-413c-af87-3914a1c5dbee.png" alt="NumPy" title="NumPy"/></code>
-    <code><img width="50" src="https://raw.githubusercontent.com/dmlc/dmlc.github.io/master/img/logo-m/xgboost.png" alt="XGBoost" title="XGBoost"/></code>
-    <br>
-    <code><img width="50" src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/LaTeX_logo.svg/1200px-LaTeX_logo.svg.png" alt="LaTeX" title="LaTeX"/></code>
-    <code><img width="50" src="https://user-images.githubusercontent.com/25181517/183423769-9abc4b34-45aa-43d9-95e5-39bc077ef796.png" alt="Scikit-Learn" title="Scikit-Learn"/></code>
+  <img width="55" src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" alt="Python" title="Python"/> &nbsp;&nbsp;
+  <img width="50" src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/pytorch/pytorch-original.svg" alt="PyTorch" title="PyTorch"/> &nbsp;&nbsp;
+  <img width="50" src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/pandas/pandas-original.svg" alt="Pandas" title="Pandas"/> &nbsp;&nbsp;
+  <img width="50" src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/numpy/numpy-original.svg" alt="NumPy" title="NumPy"/> &nbsp;&nbsp;
+  <img width="50" src="https://raw.githubusercontent.com/dmlc/dmlc.github.io/master/img/logo-m/xgboost.png" alt="XGBoost" title="XGBoost"/> &nbsp;&nbsp;
+  <br><br>
+  <img width="50" src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/latex/latex-original.svg" alt="LaTeX" title="LaTeX"/> &nbsp;&nbsp;
+  <img width="65" src="https://upload.wikimedia.org/wikipedia/commons/2/22/Scikit_learn_logo_small.svg" alt="Scikit-Learn" title="Scikit-Learn"/>
 </div>
 
 ---

@@ -1,0 +1,162 @@
+Este capítulo discorre sobre os alicerces estatísticos e arquitetônicos que fundamentam a intersecção entre o aprendizado profundo (\textit{Deep Learning}) e a previsão climática. Aborda-se a decomposição matemática de séries temporais, as adaptações necessárias no pré-processamento estocástico, e, por fim, a dissecação matricial das Redes Neurais Recorrentes (RNN) de portões longos (LSTM) e seus otimizadores.
+
+\section{Análise de Séries Temporais}
+Uma série temporal consiste num conjunto de observações indexadas cronologicamente, modeladas como uma sequência matemática $Y = \{y_1, y_2, \dots, y_t\}$. Segundo \cite{box2015time}, o comportamento inerente de qualquer amostra histórica pode ser particionado, via decomposição aditiva ou multiplicativa, em três esferas contínuas:
+\begin{enumerate}
+    \item \textbf{Tendência ($T_t$):} A componente de longa duração (crescimento ou decrescimento secular).
+    \item \textbf{Sazonalidade ($S_t$):} As oscilações cíclicas de comprimento previsível (ex: picos de interrupção elétrica nos verões chuvosos).
+    \item \textbf{Ruído/Estocástico ($R_t$):} A variação puramente aleatória não capturada pelas duas camadas anteriores.
+\end{enumerate}
+A decomposição clássica aditiva se concretiza, destarte, pela equação $y_t = T_t + S_t + R_t$ \cite{hyndman2018forecasting}. Na previsão preditiva da rede elétrica, o interesse reside em reduzir o espectro de $R_t$, através da adição de variáveis meteorológicas (covariáveis exógenas) que explicam as anomalias súbitas que afetam a estabilidade eletromecânica dos transformadores.
+
+\subsection{Estacionariedade e Testes de Autocorrelação}
+Para garantir a adimplência matemática de Modelos Autorregressivos ou de *Baseline*, a literatura exige a presença da estacionariedade na média e na variância. Avalia-se isso usualmente através do teste de \textit{Dickey-Fuller Aumentado} (ADF), que busca refutar a presença de *Raízes Unitárias* no polinômio característico da série \cite{shumway2017time}. Uma das técnicas mais comuns e essenciais no pré-processamento preditivo trata do uso da autocorrelação (ACF), que define a similaridade cruzada da amostra $y_t$ contra as próprias defasagens $y_{t-k}$:
+\begin{equation}
+    r_k = \frac{\sum_{t=k+1}^T (y_t - \bar{y})(y_{t-k} - \bar{y})}{\sum_{t=1}^T (y_t - \bar{y})^2}
+    \label{eq:acf}
+\end{equation}
+
+\section{Física Atmosférica e Impacto Termodinâmico na Infraestrutura}\label{sec:fisica_atmosferica}
+A operação contínua de malhas aéreas de distribuição de energia subordina-se à resiliência dos materiais condutores frente à agressividade do vetor climático tridimensional (Vento, Temperatura e Água). A modelagem puramente estocástica dessas covariáveis, despida de embasamento físico, omite as limitações mecânicas atreladas aos limites de escoamento dos metais expostos à intempérie do Cerrado.
+
+\subsection{Termodinâmica e Dilatação de Condutores (Efeito Joule)}
+O aquecimento global progressivo agrava substancialmente o estresse suportado por cabos de alumínio e cobre (CAA/CA). Durante as tardes brasilienses, o aquecimento térmico se sobrepõe ao próprio Efeito Joule subjacente da rede (potência dissipada sob a forma de calor $P = I^2 R$). Quando transpassam o patamar estipulado pelo projeto eletromecânico, a dilatação linear $\Delta L$ dos condutores é deflagrada matematicamente pela clássica equação termodinâmica:
+\begin{equation}
+    \Delta L = L_0 \cdot \alpha \cdot \Delta T
+    \label{eq:dilatacao}
+\end{equation}
+Onde $L_0$ representa o comprimento do vão do cabo, $\alpha$ configura o coeficiente de dilatação térmica do alumínio ($23 \times 10^{-6} \, °C^{-1}$), e $\Delta T$ denota a variação extrema da temperatura ambiente (frequentemente acentuada no Centro-Oeste). O aumento em $\Delta L$ gera a chamada "flecha" no cabeamento (flacidez excessiva), que, somada aos ventos contínuos, facilita o trancamento magnético (curto-circuito) perante o cruzamento das fases ativas oscilantes, configurando uma ignição matemática crucial à previsão de falhas de \textit{Blackout} em dias de insolação extrema.
+
+\subsection{Mecânica dos Fluidos: Força do Arrasto Aerodinâmico ($F_D$)}
+O impacto destrutivo de rajadas de vento ortogonais excede a mera vibração pendular. Em cenários de turbulência severa (velocidades ultrapassando $20 m/s$), a massa de ar fluida colidindo contra postes de concreto e transformadores impõe um \textit{Drag Force} (Arrasto Aerodinâmico) modelado pelo Princípio de Bernoulli generalizado sob corpos rombudos:
+\begin{equation}
+    F_D = \frac{1}{2} \cdot \rho \cdot C_D \cdot A \cdot v^2
+    \label{eq:forca_arrasto}
+\end{equation}
+Nesta modelagem vetorial, a densidade do ar ($\rho \approx 1.225 \, \text{kg/m}^3$) interage com a silhueta frontal do poste ($A$) e seu coeficiente de cisalhamento ($C_D$). Observa-se que a força destrutiva $F_D$ cresce pelo \textbf{quadrado da velocidade do vento} ($v^2$). Esta relação parabólica atesta a vulnerabilidade formidável das linhas expostas aos vendavais súbitos (rajadas localizadas). Qualquer incremento infinitesimal em $v$ duplica as exigências do momento de momento de inércia da base do poste, provocando fraturas radiculares responsáveis pelas interrupções generalizadas computadas na base de dados da ANEEL.
+
+\subsection{Anomalias Climáticas Globais: ENSO (El Niño-Oscilação Sul)}
+Para transcender as previsões locais diárias, as covariáveis matemáticas abraçam o *background* planetário. O El Niño-Oscilação Sul (ENSO) baliza assustadoramente a pluviometria tropical. Quando o Oceano Pacífico Equatorial aquece vertiginosamente ($> 0.5 °C$), instala-se o *El Niño*, deslocando a Célula de Walker responsável pelas correntes de jato da porção Sul da América do Sul.
+Para a Neoenergia em Brasília, a instalação física dessas ondas de calor (como no fatídico evento catastrófico mapeado na base em setembro-novembro de 2023) reduz a margem de resfriamento noturno dos isoladores, acamando sistemas inteiros sob secas avassaladoras seguidas de tempestades termo-convectivas pontuais fortíssimas, cuja previsibilidade linear se fragmenta, exigindo formalmente a implementação das memórias esparsas de redes tipo LSTM \cite{gomes2020impact}.
+
+\section{Engenharia de Recursos (Feature Engineering) e Dependência de Longo Prazo}
+Evidencia-se em \cite{roque2017weather} que os cabos e isoladores físicos de uma concessionária de energia sofrem desgaste acumulado sob estresse térmico prolongado. Assim, modelar a variável contínua "Chuva Ontem" como independente de "Vento Hoje" não expressa a realidade. As \textit{features} ou atributos preditivos devem ser desenhados visando não linearidade.
+
+\subsection{Médias Móveis Exponenciais (EMA)}
+A \textit{Exponential Moving Average} destina um peso ($\alpha$) assintoticamente decrescente para os dias pretéritos. Matemeticamente descrita em \ref{eq:ema}, ela emula uma janela decrescente onde tempestades ocorridas ontem pesam agressivamente mais na falha elétrica de hoje do que uma frente fria dissipada há duas semanas:
+\begin{equation}
+    EMA_t = \alpha \cdot x_t + (1 - \alpha) \cdot EMA_{t-1}
+    \label{eq:ema}
+\end{equation}
+Onde $x_t$ é o valor atmosférico basal (ex: total de precipitação em milímetros) e $\alpha$ representa a taxa de suavização temporal escolhida.
+
+\subsection{Defasagens (Lags)}
+Para que algoritmos embutam conceitos de memória de curto prazo (Memória Markoviana), a expansão dos dados com os lags temporais de dimensão $\textbf{X}_{t-1}, \textbf{X}_{t-2}, \dots, \textbf{X}_{t-n}$ garante ao otimizador assimilar empiricamente que uma perturbação no dia antecedente continuará ecoando em relatórios parciais das concessionárias no dia de ocorrência \cite{saha2019machine}.
+
+\section{Gradient Boosting e XGBoost}
+O *eXtreme Gradient Boosting* (XGBoost) proposto por \cite{chen2016xgboost} figura como o limiar de transição entre o Aprendizado de Máquina clássico estatístico e os tensores profundos. Baseando-se no paradigma de *Gradient Boosting Machines* (GBM) \cite{friedman2001greedy}, o XGBoost otimiza um *ensemble* de árvores de decisão (CART - *Classification and Regression Trees*).
+
+Dada um conjunto de dados multivariado contendo $n$ dias e $m$ amostras atmosféricas climáticas $\mathcal{D} = \{(\textbf{x}_i, y_i)\}$, a predição agrupada pela árvore é o somatório do poder contínuo de $K$ árvores preditivas:
+\begin{equation}
+    \hat{y}_i = \phi(\textbf{x}_i) = \sum_{k=1}^K f_k(\textbf{x}_i), \quad f_k \in \mathcal{F}
+    \label{eq:xgboost_pred}
+\end{equation}
+A otimização estrutural dessa arquitetura ocorre minimizando a Função Objetivo que combina a perda baseada nas predições iterativas ($l$) a um severo termo de regularização matemática ($\Omega$) punitivo. Ele inibe o \textit{overfitting} do polinômio sobre ruídos climáticos momentâneos:
+\begin{equation}
+    \mathcal{L}^{(t)} = \sum_{i=1}^n l(y_i, \hat{y}_i^{(t-1)} + f_t(\textbf{x}_i)) + \Omega(f_t)
+    \label{eq:xgboost_loss}
+\end{equation}
+Em que $\Omega(f_t) = \gamma T + \frac{1}{2} \lambda \sum_{j=1}^T w_j^2$. O hiperparâmetro restritivo $T$ representa o número de folhas (nós terminais), e $w_j$ o peso/escore analítico da folha $j$. 
+
+A inovação matemática elementar superando o GBM tradicional jaz no emprego de aproximações de ordem dois (via Polinômio da Série de Taylor) aplicadas à Função Objetivo $\mathcal{L}^{(t)}$, acelerando exponencialmente a convergência vetorial. A expansão formula-se intrinsecamente como:
+\begin{equation}
+    \mathcal{L}^{(t)} \simeq \sum_{i=1}^n \left[ l(y_i, \hat{y}_i^{(t-1)}) + g_i f_t(\textbf{x}_i) + \frac{1}{2} h_i f_t^2(\textbf{x}_i) \right] + \Omega(f_t)
+\end{equation}
+Sendo $g_i = \partial_{\hat{y}_i^{(t-1)}} l(y_i, \hat{y}_i^{(t-1)})$ a estatística de Gradiente de primeira ordem (exógena e perfeitamente diferenciável), e $h_i = \partial_{\hat{y}_i^{(t-1)}}^2 l(y_i, \hat{y}_i^{(t-1)})$ a respectiva matriz Hessiana diagonalizada de segunda ordem. Removendo as parcelas estritamente constantes, a pontuação basal ideal (\textit{optimal generic score}) e a métrica de impureza máxima final das folhas consolidam as alocações em:
+\begin{equation}
+    w_j^\ast = - \frac{\sum_{i \in I_j} g_i}{\sum_{i \in I_j} h_i + \lambda} \quad \text{e} \quad \tilde{\mathcal{L}}^{(t)} = -\frac{1}{2} \sum_{j=1}^T \frac{(\sum_{i \in I_j} g_i)^2}{\sum_{i \in I_j} h_i + \lambda} + \gamma T
+    \label{eq:xgboost_leaf}
+\end{equation}
+
+\section{Redes Neurais Artificiais (ANN)}
+As Redes Neurais Artificiais buscam mapear entradas não lineares $x \in \mathbb{R}^d$ diretamente nos vetores alvo $y$ \cite{goodfellow2016deep}. Um *Perceptron* Multicamadas modela funções através da passagem sequencial de matrizes multiplicadas por pesos parametrizáveis $W$ acrescidos de viesses $b$, intercalados por unidades de ativação que quebram a linearidade matemática da álgebra de matrizes. 
+
+De acordo com \cite{lecun2015deep}, a saída intermediária $h^{(l)}$ numa camada l é estabelecida por:
+\begin{equation}
+    h^{(l)} = g\left( W^{(l)} h^{(l-1)} + b^{(l)} \right)
+\end{equation}
+Onde $g(\cdot)$ simboliza funções não-lineares como a ReLU (\textit{Rectified Linear Unit}). A evolução sináptica das matrizes de pesos $W$ é orquestrada pela minimização formal empírica de uma Função Perda $\mathcal{L}$ iterada via Descida do Gradiente. A propagação reversa do erro (\textit{Backpropagation}) calcada na regra da cadeia contínua sobre a topologia multi-camadas Jacobiana instiga os vetores opostos minimizadores \cite{rumelhart1986learning}.
+
+\section{Transições em Redes Neurais Recorrentes (RNN) e BPTT}
+Diferentemente dos Perceptrons amnésicos, as arquiteturas Recorrentes introduzem um ciclo \textit{feedback}, retendo a propagação espectral \cite{mitchell1997machine}. Matematicamente, o Estado Oculto (\textit{Hidden State}) $\textbf{h}_t$ num instante sequencial $t$ atualiza-se pela convolução de vetores passados e presentes:
+\begin{equation}
+    \textbf{h}_t = \tanh(\textbf{W}_{hx} \textbf{x}_t + \textbf{W}_{hh} \textbf{h}_{t-1} + \textbf{b}_h)
+\end{equation}
+
+Para computar o gradiente matricial em tempo cronológico, transpassa-se a equação via Propagação Reversa Através do Tempo (BPTT - \textit{Backpropagation Through Time}). O BPTT extende a Regra da Cadeia desdobrando a rede passo temporal por passo temporal, acumulando os Jacobianos desde o horizonte temporal de inferência $T$ até o estado inicial nulo $t=1$:
+\begin{equation}
+    \frac{\partial \mathcal{L}}{\partial \textbf{W}_{hh}} = \sum_{t=1}^T \frac{\partial \mathcal{L}_t}{\partial \textbf{W}_{hh}} = \sum_{t=1}^T \sum_{k=1}^t \frac{\partial \mathcal{L}_t}{\partial \hat{\textbf{y}}_t} \frac{\partial \hat{\textbf{y}}_t}{\partial \textbf{h}_t} \frac{\partial \textbf{h}_t}{\partial \textbf{h}_k} \frac{\partial \textbf{h}_k}{\partial \textbf{W}_{hh}}
+    \label{eq:bptt_equation}
+\end{equation}
+
+Entretanto, as RNNs primitivas esbarram no patamar limite do Decaimento e Explosão de Gradientes (\textit{Vanishing/Exploding Gradient}). Operações matriciais recursivas do termo de sensibilidade intra-temporal $\prod_{j=k+1}^t \frac{\partial \textbf{h}_j}{\partial \textbf{h}_{j-1}}$ tenderão inexoravelmente a zero ou ao infinito dependendo do espectro da matriz de autovalores de $\textbf{W}_{hh}$ \cite{pascanu2013difficulty}. Consequentemente, o aprendizado cronológico longo (ex: assimilar a evapotranspiração climática de um mês atrás) é anulado matricialmente.
+
+\subsection{Matemática Long Short-Term Memory (LSTM)}
+Introduzida expressamente para curar a amnésia das RNNs por \cite{hochreiter1997long}, as engrenagens LSTM superaram os autovalores reescrevendo a dinâmica do gradiente por via aditiva. Instituiu-se uma constante informacional contínua chamada \textit{Cell State} ($\textbf{C}_t$). O fluxo da nuvem analítica é rigorosamente estrangulado por três portões sigmoidais não-lineares ($f_t, i_t, o_t$):
+
+\begin{enumerate}
+    \item \textbf{Forget Gate ($\mathbf{f}_t$):} É o guardião do expurgo mnêmico. Analisa a tupla transacional do passado $\textbf{h}_{t-1}$ com o evento meteorológico do dia $\textbf{x}_t$ e, via função logística sigmóide de probabilidade ($\sigma$), define qual proporção da informação passada perece.
+    \begin{equation} \mathbf{f}_t = \sigma(\mathbf{W}_f \cdot [\mathbf{h}_{t-1}, \mathbf{x}_t] + \mathbf{b}_f) \end{equation}
+    
+    \item \textbf{Input Gate ($\mathbf{i}_t$) e Vetor Candidato ($\tilde{\mathbf{C}}_t$):} Enquanto o $\tilde{\mathbf{C}}_t$ estipula matematicamente (via limite hiperbólico) toda a amplitude de conhecimento atmosférico recente digna de ser retida, o portão de entrada isola e purifica sua magnitude final magnética.
+    \begin{equation} \mathbf{i}_t = \sigma(\mathbf{W}_i \cdot [\mathbf{h}_{t-1}, \mathbf{x}_t] + \mathbf{b}_i) \end{equation}
+    \begin{equation} \tilde{\mathbf{C}}_t = \tanh(\mathbf{W}_C \cdot [\mathbf{h}_{t-1}, \mathbf{x}_t] + \mathbf{b}_C) \end{equation}
+    
+    \item \textbf{Atualização de Estado Lento ($\mathbf{C}_t$):} Trata-se da magia algorítmica imune à multiplicação densa retroativa do BPTT. Empregando produtos vetoriais de Hadamard (ponto-a-ponto, denotado por $\odot$), a atualização é linear e estanca o decaimento espectral; ela deleta explicitamente os resíduos inúteis e enxerta a nova chuva torrencial.
+    \begin{equation} \mathbf{C}_t = \mathbf{f}_t \odot \mathbf{C}_{t-1} + \mathbf{i}_t \odot \tilde{\mathbf{C}}_t \end{equation}
+    
+    \item \textbf{Output Gate ($\mathbf{o}_t$ e Estado Oculto $\mathbf{h}_t$):} O interior latente lapidado afere-se pelo seu extrato prático publicável. O portão formativo filtra e expõe unicamente o tensor valioso para a previsão iterativa local $\mathbf{h}_t$.
+    \begin{equation} \mathbf{o}_t = \sigma(\mathbf{W}_o \cdot [\mathbf{h}_{t-1}, \mathbf{x}_t] + \mathbf{b}_o) \end{equation}
+    \begin{equation} \mathbf{h}_t = \mathbf{o}_t \odot \tanh(\mathbf{C}_t) \end{equation}
+\end{enumerate}
+
+\subsection{Redes Bidirecionais (Bi-LSTM e Bi-GRU)}
+Postulado orginariamente por \cite{schuster1997bidirectional} e transposto às LSTM por \cite{graves2005framewise}, processar vetores bidirecionalmente infere que uma rede lerá o clima retroativamente (do passado ao futuro) em paralelo ao varrimento inverso (do futuro até o passado). Ambos as ativações secretas (*hidden representations*) interagem via concatenação ou adição resultando numa visão do contexto isolada. 
+
+\subsection{Gated Recurrent Unit (GRU)}
+Como a literatura contemporânea visa otimização vetorial computacional (*TFLOPS*), o modelo GRU originou-se para convergir resultados equivalentes a LSTM extraindo dois terços das balanças paramétricas envolvidas \cite{cho2014learning}. Abdicou-se do inóspito *Cell State*, transmutando-se na dependência estrita do *Hidden State* manipulado pelo par \textit{Update Gate} ($z_t$) e \textit{Reset Gate} ($r_t$):
+\begin{equation}
+    z_t = \sigma(W_z \cdot [h_{t-1}, x_t]) \quad \text{e} \quad r_t = \sigma(W_r \cdot [h_{t-1}, x_t])
+\end{equation}
+O *Update Gate* fusiona as prerrogativas clássicas do *Forget* e do *Input* Gate simulâaneamente \cite{brownlee2018machine}.
+
+\section{Métricas de Avaliação Numérica}\label{sec:metricas_avaliacao}
+A avaliação de modelos preditivos contínuos foge do escopo binário de "Verdadeiro/Falso" das matrizes de confusão. Para mensurar a acurácia com que a arquitetura neural mapeou o nexo causal climático, a literatura de \textit{Machine Learning} exige o delineamento de funções de penalidade contínuas empíricas \cite{goodfellow2016deep}. Para confrontar as predições iterativas do modelo ($y_t$) contra a veracidade absoluta registrada pela ANEEL ($\hat{y}_t$) num conjunto delimitado de dias ($N$), estipularam-se as seguintes heurísticas consagradas por \cite{hyndman2018forecasting}:
+
+\subsection{Mean Absolute Error (MAE)}
+O MAE expressa a magnitude média linear do erro sem balancear direções subestimadas ou superestimadas. Matematicamente, ele pune todas as anomalias climáticas homogeneamente:
+\begin{equation}
+    \text{MAE} = \frac{1}{N} \sum_{t=1}^N \left| y_t - \hat{y}_t \right|
+\end{equation}
+Devido à ausência de exponenciação, o MAE é interpretável diretamente na unidade basal (quantidade de interrupções de energia diárias) e revela extraordinária resistência aos \textit{outliers} massivos \cite{box2015time}.
+
+\subsection{Root Mean Squared Error (RMSE)}
+Contrastando diametralmente com o MAE, o RMSE quadratiza os resíduos antes de sua média, convertendo-se num rastreador impiedoso de erros inaceitáveis. 
+\begin{equation}
+    \text{RMSE} = \sqrt{\frac{1}{N} \sum_{t=1}^N (y_t - \hat{y}_t)^2}
+\end{equation}
+Segundo \cite{goodfellow2016deep}, sob o panorama da distribuição de energia, a quadratura do resíduo pune violentamente o modelo que errar a predição num dia de super-vendaval (ex: previu 10 interrupções num dia de caos com 150 faltas). Minimizar o RMSE significa erradicar os riscos operacionais catastróficos.
+
+\subsection{Mean Absolute Percentage Error (MAPE)}
+A escala do MAPE converte a magnitude do erro bruto numa abstração ratiocinada percentual livre de unidades (\%).
+\begin{equation}
+    \text{MAPE} = \frac{1}{N} \sum_{t=1}^N \left|\frac{y_t - \hat{y}_t}{y_t}\right| \times 100\%
+\end{equation}
+Apesar de sua fácil interlocução para diretores não-técnicos da ANEEL, o MAPE é matematicamente evitado em divisões por zero ou valores basais excessivamente pequenos \cite{hyndman2018forecasting}, situação factível em dias limpos de inverno no cerrado brasileiro, onde as quedas reais ($y_t$) aproximam-se do zero.
+
+\subsection{Coeficiente de Determinação ($R^2$)}
+Adotado como pilar do diagnóstico de covariância algorítmica, o Espectro $R^2$ pontua o percentual de variação da estabilidade elétrica (\textit{target}) que foi, de fato, predita linearmente pelo agrupamento meteorológico (vento temporal, ciclo chuvas, médias móveis) do modelo neural:
+\begin{equation}
+    R^2 = 1 - \frac{\sum_{t=1}^N (y_t - \hat{y}_t)^2}{\sum_{t=1}^N (y_t - \bar{y})^2}
+\end{equation}
+Onde o numerador ilustra a Variância Residual Estocástica do modelo neural e o denominador traduz a Variância Bruta (\textit{Baseline Mean}) do alvo na natureza \cite{box2015time}. Um $R^2$ aproximando a $1.0$ consolida a tese de que todo \textit{Blackout} possui nexo empírico decifrável pela Rede LSTM treinada.

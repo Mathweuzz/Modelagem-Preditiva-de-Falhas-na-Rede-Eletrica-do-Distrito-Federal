@@ -1,0 +1,26 @@
+Este apêndice documenta o código-fonte desenvolvido em \textit{Python} para o trâmite das engenharias de atributos e do processamento das arquiteturas de \textit{Deep Learning} baseadas na biblioteca \textit{PyTorch}. Os roteiros foram particionados conforme o ciclo do aprendizado.
+
+\section{Configuração do \textit{DataLoader} e Normalização (PyTorch)}
+A rotina \texttt{TimeSeriesDataset} engendra o formato de redimensionamento da janela temporal para acomodar o hiper-parâmetro $Lookback$, construindo o arcabouço para o *Backpropagation* sobre as 42 *Features*.
+
+\lstinputlisting[language=Python, caption={Extrato do Preparador de Dados (data\_loader\_dl.py)}, label={lst:dataloader}]{../Fonte/src/models/data_loader_dl.py}
+
+\section{Rede Recorrente Bidirecional (LSTM-Bi)}
+A implementação física da arquitetura baseada em canais duplos de memória (LSTM) e portas de esquecimento (Forget Gates), suprimindo ruídos atípicos de tempestades do DF mediante Dropout estático e \textit{Gradient Clipping}.
+
+\lstinputlisting[language=Python, caption={Modelo Completo LSTM (lstm\_bidirecional.py)}, label={lst:lstm}]{../Fonte/src/models/lstm_bidirecional.py}
+
+\section{Rede Gated Recurrent Unit Expandida (GRU)}
+Arquitetura paralela de \textit{Deep Learning} baseada em Gated Recurrent Units, focada em otimização do Gradiente Descendente através da eliminação da célula de estado ($C_t$), resultando numa convergência métrica ligeiramente mais instável perante El Niño, porém computacionalmente ágil.
+
+\lstinputlisting[language=Python, caption={Modelo Completo GRU (gru\_avancada.py)}, label={lst:gru}]{../Fonte/src/models/gru_avancada.py}
+
+\section{Motor de Árvores de Decisão Extremo (XGBoost)}
+O modelo *Baseline* orquestrado via \textit{eXtreme Gradient Boosting}, implementando nativamente a sintonia heurística (\textit{Grid Search}) no espaço parametrizado $\mathcal{H}_{xgb} = \{\eta \times \gamma \times \text{Depth} \times \text{ChildWeight}\}$.
+
+\lstinputlisting[language=Python, caption={Rotina do XGBoost (baseline\_xgboost.py)}, label={lst:xgboost}]{../Fonte/src/models/baseline_xgboost.py}
+
+\section{Gerador Estocástico de Gráficos de Diagnóstico}
+Algoritmo de *Data Science* puro responsável pela compilação visual do comportamento multivariado dos erros (*Density KDE* e Zoom de Anomalia), essencial para a exploração heteroscedástica das tempestades.
+
+\lstinputlisting[language=Python, caption={Gerador Dinâmico de Distribuições (advanced\_plots.py)}, label={lst:plots}]{../Fonte/src/models/advanced_plots.py}

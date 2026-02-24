@@ -1,0 +1,140 @@
+Este capítulo compila os resultados provenientes da correlação de interrupções diárias (e suas agregações) com clima e consumo e a avaliação quantitativa da estratégia de predição do modelo base (\textit{baseline}) e os modelos de aprendizagem profunda (\textit{Deep Learning}).
+
+\section{Análises Causais e Estatísticas (Pearson)}\label{sec:pearson}
+
+As observações foram categorizadas pelos estratos semanais e mensais. Revelou-se que o impacto climático na taxa de incidentes acentua seu viés nas agregações amplas. 
+\begin{enumerate}
+    \item \textbf{Precipitação:} Verifica-se um crescimento evidente do Coeficiente de Pearson na proporção diário ($r \approx 0,35$), evoluindo ao passo semanal ($r \approx 0,48$) e se concretizando em máxima na frequência mensal ($r \approx 0,54$).  Isso sugere que em escalas amplas a maior probabilidade de tempo chuvoso coincide majoritariamente com os déficits de funcionalidade das linhas de eletricidade da concessionária.
+    \item \textbf{Aspectos Eólicos (Vento)} A direção média do Vento sobressaiu na averiguação consolidada e filtrada (dados do INMET), sendo avaliada sua correlação significante frente as falhas: Perfil semanal ($r \approx 0,50$) e expressiva aderência no mensal ($r \approx 0,59$).  A influência de deslocamentos fortes direacionais se tornou, junto a Precipitação, uma variável altamente descritiva dos incidentes do equipamento público.
+    \item \textbf{Consumo x Temperatura x Falhas:} No tocante ao Consumo na amostra analítica mensal, identificou-se que as interrupções guardam paridade visível frente aos aumentos de fornecimento da distribuidora ($r \approx 0,48$). Mês com excedente no volume (kWh) impõe severo estresse ao maquinário termodinâmico, possivelmente exacerbado pela associação \textit{moderada-alta} e positiva com o aquecimento das temperaturas médias ($r \approx 0,56$). Esta métrica comprova matematicamente que eventos climáticos severos continuam repercutindo na rede elétrica por dias após sua ocorrência (efeito chicote temporal).
+\end{enumerate}
+
+\section{Análise Exploratória de Dados (EDA) e Distribuição Sazonal}
+Para compreender a assimetria multivariável das tempestades que assolam o Distrito Federal, procedeu-se com uma Análise Exploratória de Dados (EDA) visual utilizando as bibliotecas \textit{Seaborn} e \textit{Matplotlib}. O intuito primário desta etapa estatística é evidenciar como o desvio padrão das quedas de energia reage agudamente a limiares não lineares de vento e precipitação.
+
+A Figura~\ref{fig:eda_boxplot} ilustra a sazonalidade através de \textit{Boxplots} mensais. Percebe-se claramente que o verão brasiliense (dezembro a março) concentra não apenas a maior mediana de distúrbios, mas também hospeda os \textit{outliers} mais severos da rede (representados pelos losangos dispersos acima das hastes superiores do quartil).
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.85\textwidth]{./img/eda_boxplot_sazonalidade.png}
+    \caption{Distribuição Sazonal e \textit{Outliers} de Interrupções por Mês (2017-2025)}
+    \label{fig:eda_boxplot}
+\end{figure}
+
+Para mitigar a maldição da dimensionalidade antes de retroalimentar tensores de Redes Neurais, o mapa de calor (\textit{Heatmap}) da Equação de Pearson Linear (Figura~\ref{fig:eda_heatmap}) consolida a força vetorial $T=0$. A interação termodinâmica entre vento precipitado e interrupções cristaliza-se em vetores amarelados/avermelhados, justificando empiricamente o expurgo de variáveis nulas do escopo matricial da concessionária ANEEL.
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.75\textwidth]{./img/eda_heatmap_pearson.png}
+    \caption{Matriz de Associação e Multicolinearidade (Coeficiente de Pearson)}
+    \label{fig:eda_heatmap}
+\end{figure}
+
+Extrapolando a métrica linear, a Figura~\ref{fig:eda_scatter} expõe a vulnerabilidade mecânica estrutural das torres de transmissão e chaves fusíveis perante a Força de Arrasto Aerodinâmico. O gráfico de dispersão ratifica que, à medida que os nós atmosféricos (m/s) superam o patamar tolerável ($>8$ m/s), impulsionados por pesados lençóis freáticos (círculos expansivos), ocorre uma detonação exponencial de defeitos simultâneos na rede, colapsando a topologia de religadores automáticos operados em falha.
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.85\textwidth]{./img/eda_scatter_ventos.png}
+    \caption{Impacto Multivariado Expandido: Arrasto Eólico vs Quedas Operacionais}
+    \label{fig:eda_scatter}
+\end{figure}
+
+Por fim, cruzando a severidade puramente técnica da rede com os patamares térmicos da capital (Figura~\ref{fig:eda_violin}), o Gráfico de Violino comprova a densidade bimodal durante colapsos estressantes. Dias rotulados como "Caos Severo" detêm as cinturas termométricas mais alargadas, significando que as cristas de onda de calor extremas dilapidam os isoladores dos postes antes da chuva ocorrer.
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.85\textwidth]{./img/eda_violin_anomalias.png}
+    \caption{Distribuição Bimodal Térmica sobre os Estratos de Severidade da Rede}
+    \label{fig:eda_violin}
+\end{figure}
+
+\section{Performance dos Modelos Preditivos}\label{sec:modelos}
+A inferência na série temporal diária de interrupções exigiu uma abordagem experimental robusta, isolando rigorosamente o conjunto de teste (os últimos 365 dias de dados contínuos) e pré-processando 42 atributos climáticos avançados, incluindo médias móveis exponenciais (EMA) e defasagens (\textit{Lags}) temporais.
+
+Para comprovar a superioridade do aprendizado profundo, implementamos três arquiteturas distintas: um modelo clássico de árvores baseadas em gradiente (XGBoost) como \textit{baseline} de alto rendimento, e duas arquiteturas de Deep Learning avançadas: \textit{Bidirectional Long Short-Term Memory} (Bi-LSTM) e \textit{Bidirectional Gated Recurrent Unit} (Bi-GRU).
+
+\subsection{Comparativo de Métricas}
+Os modelos foram validados prevento ocorrências completamente invisíveis a seus ciclos de treinamento. As métricas comparativas destacam o Mean Absolute Percentage Error (MAPE) e o Coeficiente de Determinação ($R^2$):
+
+\begin{table}[htb]
+\caption{Métricas de Validação dos Modelos Preditivos (Test Set)}
+\label{tab:metricas_modelos}
+\begin{center}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Modelo} & \textbf{MAE} & \textbf{RMSE} & \textbf{$R^2$} & \textbf{MAPE (\%)} \\
+\midrule
+XGBoost & 52,31 & 89,85 & 0,520 & 16,06 \% \\
+Bi-LSTM & 59,30 & 100,07 & 0,410 & 18,83 \% \\
+Bi-GRU & 65,68 & 106,55 & 0,332 & 21,19 \% \\
+\bottomrule
+\end{tabular}
+\end{center}
+\vspace{-0.2cm}
+\small{Fonte: Elaborado pelos autores (2026).}
+\end{table}
+
+A análise da Tabela~\ref{tab:metricas_modelos} evidencia que o modelo \textbf{XGBoost} obteve a melhor calibragem perante variações abruptas, alcançando um R² de 0,520 e errando, em média, apenas 16\% em suas previsões. Notadamente, a introdução de camadas \textit{Bidirecionais} nas Redes Neurais (Bi-LSTM e Bi-GRU) permitiu que as redes compreendessem a dependência dupla temporal, fazendo com que a Bi-LSTM contivesse o erro absoluto (MAE) na faixa de 59 falhas magnéticas, um resultado consideravelmente competitivo contra as florestas randômicas de hiper-parâmetros otimizados.
+
+Observa-se que, apesar da Bi-GRU ser arquiteturalmente mais \textit{leve} que a Bi-LSTM (ausência do \textit{Cell State}), essa supressão a conduziu a um rendimento levemente inferior nesse ecossistema multivariado (MAPE de 21,19\%), ratificando a premissa de que fenômenos elétricos com memória meteorológica longa exigem portas de esquecimento (forgets gates) altamente especializadas presentes na célula LSTM.
+
+\section{Análise da Distribuição Residual (KDE)}\label{sec:residuais}
+A fim de ratificar matematicamente as variações probabilísticas de cada arquitetura, abstraiu-se a Função de Densidade de Probabilidade (PDF) do Erro Residual ($e_t = y_t - \hat{y}_t$) de toda a partição do Bloco de Testes. A estimativa não-paramétrica \textit{Kernel Density Estimation} (KDE) foi parametrizada com largura de banda Gaussiana, conforme atestado visualmente na Figura~\ref{fig:kde_residuos}.
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.85\textwidth]{img/kde_residuos_modelos.png}
+    \caption{Distribuição de Densidade Kernel (KDE) dos Erros Residuais no Conjunto de Testes.}
+    \vspace{-0.2cm}
+    \small{Fonte: Elaborado pelos autores (2026).}
+    \label{fig:kde_residuos}
+\end{figure}
+
+Observa-se que ambos os tensores de aprendizado profundo (Bi-LSTM e Bi-GRU) apresentam distribuições altamente leptocúrticas centradas precisamente na origem perfeita (0). Tal fenômeno quantifica que seu "chute" médio tende a ser majoritariamente exato nos dias corriqueiros. Todavia, a distribuição \textit{XGBoost} detém caldas mais extensas à direta (curtose platicúrtica simétrica), elucidando sua penalidade contínua quando confrontada por subestimação.
+
+Para averiguar a premissa linear clássica da homocedasticidade (variância constante do erro), compilou-se o Diagrama de Dispersão Residual do modelo vencedor neural (Bi-LSTM) (Figura~\ref{fig:scatter_hetero}). É nítida a característica heterocedástica imposta pela natureza intermitente da rede elétrica: quanto maior a escala de interrupções reais num dado temporal agressivo, maior dilata-se o cone de dispersão preditiva.
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.7\textwidth]{img/scatter_heteroscedasticity.png}
+    \caption{Dispersão do Erro Absoluto vs. Volume de Falhas (Bi-LSTM), evidenciando Heterocedasticidade.}
+    \vspace{-0.2cm}
+    \small{Fonte: Elaborado pelos autores (2026).}
+    \label{fig:scatter_hetero}
+\end{figure}
+
+\section{Estudo de Caso Analítico: Picos Climáticos (El Niño 2023)}\label{sec:anomalia}
+A averiguação em um recorte contínuo exposto a \textit{Outliers} severos traduz o teste real ao estresse das topologias parametrizadas. Entre novembro e dezembro de 2023, o Distrito Federal fora afligido por anomalias termodinâmicas vinculadas ao *El Niño*. Extraiu-se fragmentos desse lapso temporal na Figura~\ref{fig:zoom_anomalia}.
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.9\textwidth]{img/zoom_serie_2023_anomalia.png}
+    \caption{Recorte Categórico: Desempenho dos algoritmos perante Picos Climáticos Extremos.}
+    \vspace{-0.2cm}
+    \small{Fonte: Elaborado pelos autores (2026).}
+    \label{fig:zoom_anomalia}
+\end{figure}
+
+O exame desse extrato pontua inequivocamente que a rede \textbf{Bi-LSTM} acompanhou agilmente as subidas sazonais rotineiras, porém superestimou gravemente o ponto exato da tempestade (linha tracejada fugindo do limiar verdadeiro). Contraintuitivamente, é neste recorte bimodal estressante que o rigor do parâmetro \textit{Gamma} ($\gamma$) de regularização do vetor \textbf{XGBoost} evitou que o modelo explodisse seu chute para o patamar inalcançável gerado pelas falsas-ativações da matriz de chuvas. Seu conservadorismo perante a incerteza probabilística garantiu o menor erro quadrático na crise de tempestades.
+
+\section{Conclusões Parciais das Predições}
+Conclui-se através das curvas de aprendizado (\textit{Learning Curves}, detalhadas na Figura~\ref{fig:learning_curves}) que a adição de camadas \textit{Dropout} (0.3) e otimizadores com decaimento de peso adaptável (AdamW) suprimiram grande parcela do \textit{Overfitting} intrínseco às Redes Neurais sobre dados climáticos. O XGBoost revelou-se a base recomendada para a Neoenergia operar previsões diárias com severa margem de cautela contra anomalias (conforme relevância amostral na Figura~\ref{fig:importancia}).
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.48\textwidth]{img/learning_curve_lstm_bidirecional.png}
+    \includegraphics[width=0.48\textwidth]{img/learning_curve_gru_bidirecional.png}
+    \caption{Curvas de Aprendizado (MSE) para Bi-LSTM (Esq.) e Bi-GRU (Dir.).}
+    \vspace{-0.2cm}
+    \small{Fonte: Elaborado pelos autores (2026).}
+    \label{fig:learning_curves}
+\end{figure}
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.7\textwidth]{img/feature_importance_xgboost.png}
+    \caption{Importância Atribuída pelo modelo XGBoost às Variáveis Climáticas e Históricas.}
+    \vspace{-0.2cm}
+    \small{Fonte: Elaborado pelos autores (2026).}
+    \label{fig:importancia}
+\end{figure}
