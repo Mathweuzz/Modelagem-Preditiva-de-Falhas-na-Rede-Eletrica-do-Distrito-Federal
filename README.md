@@ -1,6 +1,6 @@
 <h1 align="center">
   <br>
-  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Marca_UnB.svg/512px-Marca_UnB.svg.png" alt="UnB Logo" width="120">
+  <img src="Monografia/img/unb_logo.png" alt="UnB Logo" width="120">
   <br>
   Modelagem Preditiva de Falhas na Rede Elétrica do Distrito Federal
   <br>
@@ -97,7 +97,7 @@ Organização modular para replicabilidade matemática impecável por futuros pe
   <img width="50" src="https://raw.githubusercontent.com/dmlc/dmlc.github.io/master/img/logo-m/xgboost.png" alt="XGBoost" title="XGBoost"/> &nbsp;&nbsp;
   <br><br>
   <img width="50" src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/latex/latex-original.svg" alt="LaTeX" title="LaTeX"/> &nbsp;&nbsp;
-  <img width="65" src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/scikitlearn/scikitlearn-original.svg" alt="Scikit-Learn" title="Scikit-Learn"/>
+  <img width="65" src="Monografia/img/scikit_logo.svg" alt="Scikit-Learn" title="Scikit-Learn"/>
 </div>
 
 ---
