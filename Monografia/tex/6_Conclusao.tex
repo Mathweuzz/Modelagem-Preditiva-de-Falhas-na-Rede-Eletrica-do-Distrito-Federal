@@ -1,11 +1,71 @@
-A transição iminente das matrizes de distribuição energética mundiais para o paradigma estocástico das \textit{Smart Grids} expõe a fragilidade brutal dos sistemas legados de manutenção puramente reativa. O aumento exponencial na frequência e densidade destructiva de anomalias climáticas — propiciadas intensamente pelas oscilações termodinâmicas do \textit{El Niño} na capital federal (DF) — exige que as concessionárias de energia abandonem a postura forense pós-blecaute e adotem urgentemente mecanismos algorítmicos preditivos, sob pena de sofrerem colapsos macroeconômicos e imensas sanções regulatórias pautadas nos indicativos DEC e FEC da ANEEL.
+Este capítulo sintetiza os principais achados do trabalho, avalia o cumprimento dos objetivos propostos e apresenta direções para trabalhos futuros.
 
-Em resposta direta a essa necessidade metodológica imperativa, este Trabalho de Conclusão de Curso demonstrou a superioridade arquitetural e estatística das topologias de Aprendizado Profundo Estritamente Recorrente (\textit{Deep Recurrent Neural Networks}) ao correlacionar as patologias intrínsecas dos desarmes elétricos contra o espectro climático geolocalizado e a onda bimodal de alocação de carga. Sob um laboratório empírico massivo de 3.073 dias ininterruptos de telemetria metropolitana cruzada e duplamente referenciada (Pilar Meteorológico do INMET contra o Pilar de Conformidade Punitiva da ANEEL), pavimentou-se um traçado claro relacionando as falhas transientes não com casualidades da natureza, mas com estresses friccionais acumulados sob janelas preestabelecidas de dias.
+\section{Síntese dos Achados}
 
-Através de uma intensa infraestrutura de Engenharia de Atributos puramente sequencial (\textit{Time-Series Feature Engineering}), mapeou-se quantitativamente o fenômeno temporal: médias móveis exponenciais (EMA) e atrasos (\textit{Lags}) térmicos evidenciaram fisicamente que as ondas prolongadas de calor exaurem silenciosamente o grau de isolamento dos transformadores rebaixadores. Este enfraquecimento escalar contínuo, quando transversalmente perfurado por rajadas instantâneas violentas de vento (variável que ostentou isoladamente o maior indíce de correlação linear bidimensional e de importância na Árvore de Decisão XGBoost), deflagra as quebras cinéticas (arrebentamento de cabos primários e hastes).
+Este trabalho de conclusão de curso desenvolveu e avaliou modelos preditivos para estimar o número diário de interrupções no fornecimento de energia elétrica no Distrito Federal, integrando dados climáticos do INMET, registros de ocorrências da ANEEL e dados de consumo energético ao longo de 3.073 dias consecutivos de dados brutos (janeiro de 2017 a maio de 2025), reduzidos a 3.058 dias após a engenharia de atributos.
 
-O processo avaliativo hierárquico, blindado compulsoriamente contra o vazamento furtivo de dados de predição via separador de temporalidade \textit{Out-Of-Sample}, estabeleceu que as matrizes de Árvores por Otimização de Gradiente (XGBoost), ancoradas em mateméticas Newtonianas para regularização restritiva foliar ($L_1$ / $L_2$), sucumbem perante o ruído estocástico das extremas oscilações atípicas climáticas. Embora veloz, o XGBoost peca na modelagem longitudinal puramente conectada. Em diametral oposição, a introdução das unidades de memória bidirecionais das Redes Neurais Long Short-Term Memory (Bi-LSTM) e Gated Recurrent Units (Bi-GRU) dominou o panorama \textit{R-Squared} regrassivo ($R^2$ convergiu assintoticamente a $0,82$). 
+Os principais achados são:
 
-O acoplamento matemático de inferência temporal proporcionado pela retropropagação retroativa (BPTT), nativamente exposta e orquestrada de ponta-a-ponta via tensores na biblioteca \textit{PyTorch}, permitiu que o vetor orgânico bi-LSTM "lembrasse" dos pulsos elétricos passados e bloqueasse interferências espúrias do ruído chuvoso fraco de forma holística. Esse resultado, obtido unicamente pelas pontes restritivas \textit{Forget Gates}, ratifica na academia que Redes Neurais possuem imensa escalabilidade latente aplicáveis nativamente à prevenção sistêmica contra Blecautes, orçamentando manutenção antecipatória cirúrgica através de previsões com altíssima taxa de robustez.
+\begin{enumerate}
+    \item \textbf{Correlação clima--falhas confirmada quantitativamente:} A análise de correlação em múltiplas escalas temporais demonstrou que a precipitação ($r = 0{,}54$ mensal), a direção do vento ($r = 0{,}59$ mensal) e o consumo de energia ($r = 0{,}48$ mensal) são preditores significativos das interrupções. A correlação intensifica-se consistentemente na transição do nível diário para o semanal e o mensal, indicando que os efeitos climáticos são cumulativos.
 
-Considerando as imensas limitações geográficas que compuseram esta base empírica fundadora purificada sob a égide do formato estático e dimensional do clima metropolitano seco do Distrito Federal (Bioma Cerrado), o trabalho descortina e deixa pavimentado na fronteira de futuros horizontes científicos a transposição imediata do \textit{Tensor Dimensional Preditivo} para novos eixos geográficos densos (como as matrizes do Litoral Nordestino ou da Bacia Amazônica), com intuito de universalizar definitivamente as redes de inteligência artificial de manutenção energética perante macro-cenários instáveis frente ao aquecimento global.
+    \item \textbf{XGBoost como modelo superior:} Contrariando a hipótese inicial de superioridade das redes neurais profundas, o modelo XGBoost obteve o melhor desempenho em todas as métricas ($R^2 = 0{,}520$, MAE $= 52{,}3$, MAPE $= 16{,}1\%$), favorecido pela engenharia de atributos explícita que equalizou a vantagem temporal das RNNs.
+
+    \item \textbf{Redes recorrentes com distribuição residual mais concentrada:} As redes Bi-LSTM e Bi-GRU, embora inferiores em métricas agregadas, apresentaram distribuições residuais mais leptocúrticas (concentradas em zero), sugerindo maior precisão nos dias ``normais'' com penalização nos eventos extremos.
+
+    \item \textbf{Tendência de crescimento nas interrupções:} A média diária de interrupções cresceu 65,3\% entre 2017 (183,5) e 2025 (303,4), refletindo a conjugação de envelhecimento da infraestrutura e intensificação dos eventos climáticos extremos no Centro-Oeste brasileiro.
+
+    \item \textbf{Defasagens temporais validadas empiricamente:} A análise de autocorrelação (ACF) e de correlação cruzada confirmou a dependência temporal significativa até 14 dias, validando a escolha do \textit{Lookback Window} de 14 dias e justificando a engenharia de \textit{Lags} e médias móveis exponenciais.
+
+    \item \textbf{Inversão de hierarquia em horizonte curto:} A análise multi-horizonte (1, 3, 7 e 14 dias à frente) revelou que a Bi-LSTM supera o XGBoost em previsão de 1 dia (MAE de 29,4 contra 70,6), enquanto o XGBoost retoma e mantém a liderança a partir de $x = 3$ dias. Esse resultado demonstra que a escolha do modelo deve ser guiada pelo horizonte operacional desejado.
+\end{enumerate}
+
+\section{Cumprimento dos Objetivos}
+
+Em relação aos objetivos específicos propostos na Seção~\ref{sec:objetivos}:
+
+\begin{enumerate}
+    \item \textbf{Base de dados integrada:} Construiu-se uma base multivariada inédita de 3.073 dias a partir de três fontes governamentais (INMET, ANEEL e SAMP), expandida para 41 atributos derivados via engenharia de \textit{features}, inteiramente disponibilizada nos apêndices e repositório do projeto. \textit{Objetivo cumprido.}
+
+    \item \textbf{Agregações em múltiplas escalas:} Realizaram-se análises em escala diária, semanal e mensal, revelando que a agregação temporal amplifica as correlações clima--falhas e facilita a identificação de padrões sazonais. \textit{Objetivo cumprido.}
+
+    \item \textbf{Engenharia de atributos temporais:} Desenvolveu-se um \textit{pipeline} de 41 \textit{features} derivadas incluindo defasagens de 1 a 7 dias, EMAs de 3, 7 e 14 dias, desvios padrão em janela de 7 dias e codificações harmônicas cíclicas. \textit{Objetivo cumprido.}
+
+    \item \textbf{Modelo de referência XGBoost:} Implementou-se o XGBoost com \textit{Grid Search} temporal (5 splits) e 7 hiperparâmetros otimizados, alcançando $R^2 = 0{,}520$ no conjunto de teste. \textit{Objetivo cumprido.}
+
+    \item \textbf{Redes Neurais Recorrentes Bidirecionais:} Implementaram-se Bi-LSTM e Bi-GRU em PyTorch com 200 épocas, Dropout 0,2, \textit{Weight Decay} e otimizador Adam, comparando sistematicamente contra o XGBoost. \textit{Objetivo cumprido.}
+
+    \item \textbf{Análises de correlação:} Conduziram-se análises de Pearson em três escalas temporais, autocorrelação (ACF), correlação cruzada e correlação entre consumo, temperatura e falhas. \textit{Objetivo cumprido.}
+
+    \item \textbf{Avaliação multi-horizonte:} Avaliou-se o comportamento dos três modelos em horizontes de previsão de 1, 3, 7 e 14 dias, quantificando a degradação do erro e identificando a inversão de hierarquia em $x = 1$ dia, conforme descrito na Seção~\ref{sec:multihorizonte}. \textit{Objetivo cumprido.}
+\end{enumerate}
+
+\section{Trabalhos Futuros}\label{sec:futuros}
+
+Os resultados e limitações identificados neste trabalho abrem diversas frentes de investigação para pesquisas subsequentes:
+
+\begin{enumerate}
+    \item \textbf{Resolução horária:} A transição para dados de resolução horária (em vez de diária) permitiria modelar a dinâmica intra-diária das interrupções, identificando os horários de maior vulnerabilidade e possibilitando previsões com maior granularidade temporal para alocação de equipes em tempo real.
+
+    \item \textbf{Arquiteturas Transformer:} A aplicação de arquiteturas baseadas em mecanismos de atenção (\textit{Transformers}), como o \textit{Temporal Fusion Transformer} (TFT) proposto por \cite{lim2021temporal}, poderia superar tanto o XGBoost quanto as RNNs ao modelar dependências de longo e curto prazo simultaneamente, com interpretabilidade nativa via pesos de atenção.
+
+    \item \textbf{Modelos híbridos (Ensemble):} A dualidade observada entre XGBoost (robusto em extremos) e Bi-LSTM (precisa em dias normais) sugere a criação de modelos \textit{ensemble} que combinem ambas as arquiteturas, potencialmente atribuindo pesos dinâmicos conforme a previsão meteorológica do dia.
+
+    \item \textbf{Expansão geográfica:} A replicação da metodologia para concessionárias de outros biomas brasileiros --- como o Litoral Nordestino (exposição marítima), a Bacia Amazônica (regime pluviométrico equatorial) ou a região Sul (geadas e ciclones extratropicais) --- permitiria avaliar a generalização dos modelos e construir um sistema preditivo nacional.
+
+    \item \textbf{Dados de vegetação e sensoriamento remoto:} A incorporação de índices de vegetação (NDVI) derivados de satélite e de dados de proximidade da vegetação à rede elétrica (via LiDAR) poderia capturar o risco de queda de árvores, uma das principais causas de interrupção não modeladas diretamente neste trabalho.
+
+    \item \textbf{Previsão probabilística:} A transição de previsões pontuais para previsões probabilísticas (intervalos de confiança) permitiria à concessionária dimensionar a incerteza associada a cada previsão, possibilitando decisões operacionais calibradas ao nível de risco tolerável.
+
+    \item \textbf{Incorporação de índices ENSO:} A inclusão explícita do \textit{Oceanic Niño Index} (ONI) como \textit{feature} preditora permitiria ao modelo antecipar períodos de maior vulnerabilidade climática com meses de antecedência, uma vez que os eventos El Niño são previstos por modelos acoplados oceano-atmosfera com horizonte de 6 a 9 meses.
+
+    \item \textbf{Funções de perda alternativas:} A heteroscedasticidade observada na distribuição residual (Capítulo~\ref{4_Resultados}) sugere a investigação de funções de perda alternativas ao MSE, como o \textit{Huber Loss} (robusto a \textit{outliers}), o \textit{Quantile Loss} (para previsão de percentis específicos) ou o \textit{Pinball Loss} (para calibração probabilística), que poderiam produzir modelos com melhor performance nos dias de operação normal sem sacrificar a acurácia nos extremos.
+\end{enumerate}
+
+\section{Considerações Finais}
+
+Este trabalho demonstrou que a previsão de falhas na rede elétrica do Distrito Federal é viável com as técnicas atuais de aprendizado de máquina, alcançando um MAPE de 16,1\% com o modelo XGBoost --- acurácia suficiente para orientar decisões operacionais de pré-posicionamento de equipes e dimensionamento de recursos. O achado central de que a engenharia de atributos temporais equaliza a vantagem das redes neurais recorrentes reforça a importância de investir em conhecimento de domínio antes de escalar a complexidade arquitetural dos modelos.
+
+A tendência de crescimento de 65,3\% nas interrupções ao longo de oito anos sinaliza uma urgência operacional: sem investimentos significativos em infraestrutura resiliente e sem a adoção de ferramentas preditivas como as desenvolvidas neste trabalho, a qualidade do fornecimento tenderá a deteriorar-se progressivamente, com impactos econômicos e sociais crescentes para os mais de 1,1 milhão de consumidores atendidos pela Neoenergia Brasília.
+
+A disponibilização integral do código-fonte, dos dados processados e da metodologia detalhada nos apêndices e no repositório do projeto visa garantir a replicabilidade e fomentar a continuidade desta linha de pesquisa por outros grupos acadêmicos e pelas próprias concessionárias de distribuição.

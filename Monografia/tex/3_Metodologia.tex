@@ -1,22 +1,22 @@
 Este capítulo detalha a metodologia de obtenção de dados, os procedimentos de integração e de pré-processamento das séries temporais utilizadas neste estudo, e a configuração experimental para os modelos de previsão baseados em aprendizagem profunda (Deep Learning).
 
 \section{Classificação da Pesquisa e Levantamento Bibliográfico}\label{sec:classificacao_pesquisa}
-Para alicerçar a originalidade e rigorosidade deste trabalho de conclusão de curso, estabeleceu-se uma fundamentação dual estruturada, enquadrada metodologicamente como uma pesquisa de natureza \textbf{quantitativa e aplicacional}. O escopo visa não somente observar o fenômeno temporal, mas engenhá-lo através da inferência profunda, operando testes empíricos rigorosos.
+Esta pesquisa é de natureza \textbf{quantitativa e aplicada}, combinando a análise de dados empíricos com a implementação e avaliação de modelos preditivos de aprendizado de máquina e aprendizado profundo.
 
-A revisão sistemática da literatura baseou-se nas diretrizes macro do protocolo \textit{PRISMA (Preferred Reporting Items for Systematic Reviews and Meta-Analyses)}. O roteiro de captação de evidências do estado-da-arte foi conduzido eletronicamente utilizando três das mais pujantes bases de indexação internacional das engenharias: \textbf{IEEE Xplore Digital Library}, \textbf{Scopus (Elsevier)} e \textbf{Google Scholar}.
+A revisão sistemática da literatura baseou-se nas diretrizes macro do protocolo \textit{PRISMA} (\textit{Preferred Reporting Items for Systematic Reviews and Meta-Analyses}). O roteiro de captação de evidências do estado-da-arte foi conduzido utilizando três fontes de busca acadêmica: \textbf{IEEE Xplore Digital Library}, \textbf{Scopus (Elsevier)} e \textbf{Google Scholar}.
 
 \subsection{Estratégia de Busca e Filtros Avançados}
 A estratégia de consulta baseou-se em operadores lógicos puramente booleanos aplicados aos \textit{abstracts} (resumos), limitando o horizonte bibliométrico a publicações consolidadas essencialmente do escopo quinquenal mais recente (2018--2024). A chave (\textit{search string}) primária executada nos motores de busca foi parametrizada sob a seguinte sintaxe relacional:
 
 \begin{quote}
-\texttt{("power outage" OR "grid failure" OR "transformer damage") AND ("deep learning" OR "LSTM" OR "XGBoost") AND ("weather" OR "climate" OR "wind")}
+\small\texttt{("power outage" OR "grid failure" OR "transformer damage"}\\\texttt{AND ("deep learning" OR "LSTM" OR "XGBoost")}\\\texttt{AND ("weather" OR "climate" OR "wind")}
 \end{quote}
 
-Inicialmente, o rastreio global retornou $541$ incidentes acadêmicos pregressos (Ex: Dissertações, Artigos Revisados por Pares, \textit{Conference Proceedings}). Submeteu-se esse espectro a um rigoroso decaimento metodológico. Eliminou-se $230$ artigos por falharem na dupla validação de pares, e expurgou-se subitamente outros $190$ cujos enfoques de Redes Neurais focavam puramente no diagnóstico financeiro das distribuidoras de energia, e não na relação Termodinâmica com o clima. A triagem final (\textit{Full-Text Reading}) selecionou $50+$ arquivos elementares que ancoram os paradigmas matemáticos deste trabalho.
+Inicialmente, a busca retornou 541 trabalhos (artigos de periódicos, artigos de conferências e dissertações). Aplicou-se um processo de triagem em etapas: removeram-se 230 artigos por ausência de revisão por pares, e excluíram-se outros 190 cujo foco era exclusivamente financeiro ou gerencial, sem relação com variáveis climáticas. A análise de texto completo (\textit{Full-Text Reading}) dos 121 trabalhos restantes resultou na seleção de mais de 50 referências que fundamentam o presente trabalho.
 
-O processo visual desse afunilamento rigoroso metodológico está sumarizado no Diagrama de Fluxo (Figura~\ref{fig:prisma_flowchart}), balizado pelas normas internacionais e desenhado para salvaguardar o estado-da-arte compilado.
+O processo de triagem está representado no Diagrama de Fluxo (Figura~\ref{fig:prisma_flowchart}), seguindo as diretrizes do protocolo PRISMA.
 
-\begin{figure}[!htbp]
+\begin{figure}[H]
 \centering
 \begin{tikzpicture}[
     scale=0.85, transform shape,
@@ -25,11 +25,11 @@ O processo visual desse afunilamento rigoroso metodológico está sumarizado no 
     line/.style={draw, -latex'}
 ]
 % Nodes
-\node [block] (identificacao) {\textbf{Identificação Mapeada}\\541 Arquivos (IEEE, Scopus, Scholar) via String Boolena};
-\node [block, below=1.0cm of identificacao] (triagem1) {\textbf{Triagem Inicial (Filtro Cego)}\\230 artigos removidos por ausência de qualificação formal (Sem \textit{Peer-Review})};
-\node [block, below=1.0cm of triagem1] (triagem2) {\textbf{Filtro Temático Rigoroso}\\190 papers excluídos por não relacionarem Blecautes com Dinâmicas Termodinâmicas (Foco Puramente Comercial)};
-\node [block, below=1.0cm of triagem2] (analise) {\textbf{Análise Crítica de Escopo (\textit{Full-Text})}\\121 resumos aceitos para análise densa de viabilidade arquitetural};
-\node [block, below=1.0cm of analise] (inclusao) {\textbf{Inclusão Fundamental (Estado da Arte)}\\Top 50+ monografias e teses selecionadas para basilar a fundamentação de LSTMs e Climatologia};
+\node [block] (identificacao) {\textbf{Identificação}\\541 trabalhos (IEEE Xplore, Scopus, Google Scholar)};
+\node [block, below=1.0cm of identificacao] (triagem1) {\textbf{Triagem por Qualidade}\\230 artigos removidos por ausência de revisão por pares};
+\node [block, below=1.0cm of triagem1] (triagem2) {\textbf{Triagem Temática}\\190 artigos excluídos por foco exclusivamente financeiro/gerencial};
+\node [block, below=1.0cm of triagem2] (analise) {\textbf{Análise de Texto Completo (\textit{Full-Text})}\\121 trabalhos analisados quanto à relevância metodológica};
+\node [block, below=1.0cm of analise] (inclusao) {\textbf{Inclusão Final}\\50+ referências selecionadas para fundamentação teórica e metodológica};
 
 % Paths
 \path [line] (identificacao) -- (triagem1);
@@ -37,64 +37,60 @@ O processo visual desse afunilamento rigoroso metodológico está sumarizado no 
 \path [line] (triagem2) -- (analise);
 \path [line] (analise) -- (inclusao);
 \end{tikzpicture}
-\caption{Fluxograma PRISMA metodológico de decaimento do Estado da Arte.}
-\vspace{-0.2cm}
+\caption[Fluxograma de triagem bibliográfica (PRISMA)]{Fluxograma de triagem da revisão bibliográfica, baseado no protocolo PRISMA.}
 \small{Fonte: Elaborado pelos autores (2026).}
 \label{fig:prisma_flowchart}
 \end{figure}
 
 \section{Fonte de Dados e Estrutura de Armazenamento}\label{sec:bases}
 
-A espinha dorsal deste projeto de *Machine Learning* sustenta-se na fusão horizontal de pilares isolados de dados coletados num horizonte contínuo de \textbf{3073 dias} (compreendendo rigorosamente o período entre 01/01/2016 e 31/05/2024). Essa volumetria temporal massiva garante que os tensores de aprendizado sejam expostos a múltiplos ciclos anuais, englobando as sazonais transições do fenômeno \textit{El Niño} severo e as secas extremas crônicas do bioma Cerrado metropolitano.
+A espinha dorsal deste projeto de \textit{Machine Learning} sustenta-se na fusão horizontal de três fontes de dados coletados num horizonte contínuo de \textbf{3.073 dias} (compreendendo rigorosamente o período entre 01/01/2017 e 31/05/2025). Após a engenharia de atributos (defasagens, médias móveis e desvios padrão em janela deslizante), o conjunto final possui \textbf{3.058 observações} válidas (a partir de 08/01/2017), totalizando 42 colunas (41 \textit{features} de entrada + 1 variável alvo). Esse horizonte temporal abrange múltiplos ciclos anuais completos, incluindo eventos climáticos relevantes como o El Niño de 2023--2024 e as transições sazonais características do bioma Cerrado.
 
-A abstração bruta dos eventos climáticos e elétricos ocorreu puramente através da requisição e mineração de portais abertos estatais, mantidos sob a estrita prerrogativa da lei nacional de Transparência Ativa governamental. O primeiro pilar, que representa as \textit{Features X} da matriz neural (variáveis independentes), foi alocado junto ao Instituto Nacional de Meteorologia (INMET). Os registros meteorológicos de resolução horária advêm metodicamente do portal de Dados Históricos do Instituto (\url{https://portal.inmet.gov.br/dadoshistoricos}). Para a topologia arquitetural deste estudo focado na capital federal, extraiu-se via \textit{web-scraping} passivo exclusivamente as planilhas da Estação Telemétrica Automática de Brasília (código sissiográfico A001). Essa restrição geográfica garante que as medições representem fidedignamente o domo termodinâmico que envolve as maiores subestações primárias de transmissão local.
+Os dados foram obtidos exclusivamente de portais abertos governamentais, em conformidade com a Lei de Acesso à Informação. As variáveis preditoras (climáticas) foram extraídas do portal de Dados Históricos do Instituto Nacional de Meteorologia --- INMET (\url{https://portal.inmet.gov.br/dadoshistoricos}), utilizando os registros horários da Estação Meteorológica Automática de Brasília (código A001). Essa estação foi selecionada por sua localização central no Distrito Federal e pela completude de seus registros no período analisado.
 
-Por outro lado, o vetor dimensional que atua como variável dependente (\textit{Target} de predição $Y$) teve como berço investigativo o repositório interativo da Agência Nacional de Energia Elétrica (ANEEL). Os massivos relatórios técnicos diários, documentando de forma pericial cada desarme de disjuntor, falha mecânica transversal e queda local distribuída, foram obtidos do conjunto de dados públicos ``Interrupções de Energia Elétrica'' (\sloppy\url{https://dadosabertos.aneel.gov.br/dataset/interrupcoes-de-energia-eletrica-nas-redes-de-distribuicao}\fussy). 
+A variável dependente (\textit{target}) --- o número diário de interrupções --- foi obtida do repositório de dados abertos da Agência Nacional de Energia Elétrica (ANEEL), no conjunto de dados ``Interrupções de Energia Elétrica'' (\sloppy\url{https://dadosabertos.aneel.gov.br/dataset/interrupcoes-de-energia-eletrica-nas-redes-de-distribuicao}\fussy). Cada registro documenta uma interrupção individual, incluindo data, causa e concessionária.
 
-Para solidificar o arcabouço preditivo, adicionou-se um terceiro pilar transversal: o perfil de consumo e carga elétrica da população do Distrito Federal. Essa métrica, crucial para identificar sobrecargas térmicas nos transformadores ocasionadas por picos de demanda (ex: uso massivo de ar-condicionado em ondas de calor), foi extraída da base oficial de Balanço Energético da ANEEL, disponível no conjunto de dados ``SAMP - Balanço'' (\sloppy\url{https://dadosabertos.aneel.gov.br/dataset/samp-balanco}\fussy). A combinação holística destes três vetores governamentais isolados formula, portanto, um laboratório empírico irrestrito para testar estatisticamente os elásticos de resiliência eletromecânica intrínseca às concessionárias isoladas.
+Adicionalmente, incorporou-se o perfil de consumo energético do Distrito Federal como variável preditora. O consumo mensal de energia, que reflete a demanda sobre os transformadores de distribuição (elevada em meses quentes pelo uso de climatização), foi extraído do conjunto de dados ``SAMP --- Balanço'' da ANEEL (\sloppy\url{https://dadosabertos.aneel.gov.br/dataset/samp-balanco}\fussy). A combinação dessas três fontes de dados governamentais constitui um conjunto de dados integrado adequado para a avaliação empírica de modelos preditivos de interrupções no sistema de distribuição.
 \subsection{Tipagem Primitiva e o Paradigma \textit{Comma-Separated Values} (CSV)}
 
-Toda a infraestrutura documental (totalizando gigabytes de matrizes não aglomeradas) foi fornecida originalmente pelas autarquias públicas sob a padronização unificada de arquivos \textit{Comma-Separated Values} (\texttt{.csv}). \textit{Frameworks} contemporâneos de Engenharia de Dados oferecem alternativas mais sofisticadas orientadas a colunas (como o formato \textit{Apache Parquet} ou estocagem binária \textit{HDF5}); entretanto, aderiu-se nativamente à ingestão direta do mapeamento CSV por justificativas sistêmicas.
-
-O \texttt{.csv} fundamenta-se sob texto aberto estático (codificação genérica \texttt{UTF-8}), possuindo neutralidade sintática absoluta contra vulnerabilidades inerentes a pacotes proprietários. Em simulações empíricas, tal escolha aliviou imensamente os gargalos latentes de \textit{I/O} (\textit{Input/Output}): o processamento direto dos delímetros planares permitiu aos roteiros analíticos injetarem na memórial RAM vetores pesados contendo milhões de aberturas de \textit{tickets} elétricos num tempo de decodificação logaritmicamente viável, sem evocar a imensa redundância latente e consumo alocado (\textit{Overhead}) exigido pela manutenção estática contínua de um banco SQL (\textit{Structured Query Language}) complexo de interações como Oracle ou PostgreSQL. Destaca-se que a conversão posterior dos caracteres em matrizes matemáticas otimizadas foi delegada de forma eficiente às arquiteturas C nativas da biblioteca \textit{Pandas} posteriormente no processo.
+Todos os dados foram disponibilizados pelas autarquias públicas no formato \textit{Comma-Separated Values} (\texttt{.csv}), padrão aberto baseado em texto (\texttt{UTF-8}). Optou-se por manter esse formato nativo na ingestão dos dados, dada sua portabilidade, simplicidade de versionamento e compatibilidade direta com a biblioteca \textit{Pandas} \cite{mckinney2010data}, que realiza a conversão eficiente dos dados textuais em estruturas otimizadas em memória (\textit{DataFrames}).
 
 \subsection{Dicionário de Dados Estatais e Relevância Regulatória}
 
-A fim de referenciar e tipar rigorosamente os tensores multidimensionais ingeridos na camada de entrada do modelo iterativo neural, organizou-se os parâmetros macro-climáticos e elétricos primários sob diretrizes estritas de taxonomia. A engenharia de \textit{Features} começa no entendimento atômico de cada componente captado pelas estações locais governamentais. A Tabela~\ref{tab:dic_inmet} materializa as especificações estruturais das matrizes oriundas da integração direta com o portal INMET. 
+Para documentar as variáveis utilizadas na modelagem, organizou-se um dicionário de dados descrevendo cada atributo, seu tipo e sua relevância para o problema. A Tabela~\ref{tab:dic_inmet} apresenta as variáveis meteorológicas extraídas do portal INMET.
 
-É imperativo salientar a escolha quantitativa por trás do atributo \texttt{Vento Rajada Max}. Em modelagens termodinâmicas ambientais genéricas, utiliza-se comumente a "Velocidade Média" eólica; todavia, a dinâmica de falhas estruturais em cabos de média tensão ($13.8$ kV) não responde à erosão elástica da brisa inócua contínua, mas sim a anomalias instantâneas e rajadas limítrofes. São esses pulsos cinéticos destrutivos, transpassando velozmente o limiar de fadiga e cisalhamento das cruzetas e hastes das redes neutras, que impulsionam o caos local. Congruentemente, a \texttt{Precipitação Total} confere o fator agravante do peso hídrico infiltrado em redes com proteção rompida, além da fragilização morfológica do solo que encoraja tombamentos em encostas.
+Optou-se por incluir cinco variáveis eólicas distintas (velocidade média, velocidade máxima, rajada máxima, direção média e moda da direção) ao invés de apenas a velocidade média. Essa decisão reflete a dinâmica real de falhas na rede de distribuição: os danos mecânicos a cabos de média tensão ($13{,}8$ kV) não resultam da velocidade média contínua, mas sim de rajadas extremas instantâneas. São essas rajadas que causam a queda de árvores sobre os condutores, a ruptura de cruzetas e o rompimento mecânico de cabos. As defasagens e EMAs foram calculadas sobre a \textbf{rajada máxima} (\texttt{vento\_rajada\_max\_ms}), por ser a variável eólica com maior relação causal com as interrupções. A precipitação acumulada complementa o cenário ao capturar o encharcamento do solo (que facilita o tombamento de postes e árvores) e o peso hídrico sobre a fiação.
 
-\begin{table}[!htbp]
+\begin{table}[H]
 \caption{Dicionário de Dados Meteorológicos (INMET - Arquivos A001 Históricos)}
 \label{tab:dic_inmet}
 \begin{center}
 \small
-\begin{tabular}{p{6cm} p{2cm} p{6.5cm}}
+\begin{tabular}{p{5.5cm} p{1.8cm} p{6cm}}
 \toprule
-\textbf{Atributo Bruto (CSV)} & \textbf{Tipo de Dado} & \textbf{Descrição Física Regulatória} \\
+\textbf{Atributo Bruto (CSV)} & \textbf{Tipo} & \textbf{Descrição e Agregação Diária} \\
 \midrule
-\texttt{Data} \& \texttt{Hora UTC} & \texttt{Datetime64} & Chave primária de sincronização espaço-temporal cruzada. \\
-\texttt{PRECIPITACAO TOTAL, HORARIA (mm)} & \texttt{Float64} & Acúmulo pluviométrico. Enfraquece encostas e eleva tenções do solo. \\
-\texttt{VENTO, RAJADA MAXIMA (m/s)} & \texttt{Float64} & Picos de arrastos acústicos (m/s) responsáveis por arrebentar cabos e hastes.\\
-\texttt{TEMPERATURA DO AR - BULBO SECO ({\textdegree}C)} & \texttt{Float64} & Termodinâmica base induzindo a dilatação de condutores de alumínio.\\
+\texttt{Data} \& \texttt{Hora UTC} & \texttt{Datetime} & Chave temporal de sincronização entre fontes. \\
+\texttt{PRECIPITACAO TOTAL, HORARIA (mm)} & \texttt{Float64} & Acúmulo pluviométrico horário. Agregado por \textbf{soma} diária. \\
+\texttt{TEMPERATURA DO AR - BULBO SECO (°C)} & \texttt{Float64} & Temperatura do ar. Agregada por \textbf{média} aritmética diária. \\
+\texttt{VENTO, VELOCIDADE HORARIA (m/s)} & \texttt{Float64} & Velocidade do vento. Agregada por \textbf{média} e \textbf{máximo} diários. \\
+\texttt{VENTO, RAJADA MAXIMA (m/s)} & \texttt{Float64} & Rajada máxima horária. Agregada pelo \textbf{máximo} diário. \\
+\texttt{VENTO, DIRECAO HORARIA (gr)} & \texttt{Float64} & Direção do vento em graus. Agregada por \textbf{média} e \textbf{moda} diárias. \\
 \bottomrule
 \end{tabular}
 \normalsize
 \end{center}
-\vspace{-0.2cm}
 \small{Fonte: INMET (2025). Colunas nominais extraídas do portal de Dados Históricos.}
 \end{table}
 
-De forma complementar e dialética, a taxonomia do vetor \textit{Target} bidimensional de interrupções, extraído em bruto do \textit{Data Warehouse} da ANEEL, detém um histórico contábil e puramente punitivo atrelado às resoluções normativas (PRODIST). Tais relatórios são comissionados nativamente pelas concessionárias de distribuição local para estruturarem os índices oficiais de fiscalização (Limites DEC e FEC). 
+A Tabela~\ref{tab:dic_aneel} descreve os campos da base de interrupções da ANEEL e do balanço energético SAMP utilizados na construção da variável \textit{target} e das variáveis de consumo. Os relatórios de interrupções são produzidos pelas concessionárias em cumprimento às exigências regulatórias do PRODIST \cite{aneel2023prodist}. Para garantir que o modelo capture exclusivamente a relação entre clima e interrupções, aplicou-se um filtro na coluna \texttt{FatGeradorInterrupcao}, excluindo interrupções de origem não-climática: ``Manutenção Programada'', ``Abalroamento de Poste'' e ``Furto de Condutores''. Retiveram-se apenas interrupções causadas por ``Descargas Atmosféricas'', ``Árvores sobre a Rede'', ``Vendaval'' e demais causas de origem climática ou ambiental. Adicionalmente, os dados de consumo energético oriundos do Balanço Energético SAMP (\texttt{VlrEnergia} em kWh) foram incorporados como variável preditora, capturando o efeito de sobrecarga térmica dos transformadores em meses de alta demanda.
 
-O mapeamento da Tabela~\ref{tab:dic_aneel} atesta os cernes adotados para a construção quantitativa da Variável Alvo (\textit{Target Variable $Y$}). A garantia arquitetural da predição repousa estritamente na blindagem antrópica através do filtro heurístico da categoria \texttt{FatGeradorInterrupcao}. Para evitar vieses estocásticos, a base processada eliminou compulsoriamente os blecautes com nascedouros de "Manutenção", "Abalroamento" e "Furto de Condutores", isolando a IA exclusivamente de desastres de traços sistêmicos da natureza como "Descargas Atmosféricas" e "Árvores". Posteriormente, os atributos de carga elétrica oriundos do Balanço Energético (como \texttt{VlrEnergia} em kWh discriminados por \texttt{DscDetalheBalanco}) foram infundidos como tensores de estresse térmico secundário.
-
-\begin{table}[!htbp]
+\begin{table}[H]
 \caption{Dicionário Oficial de Metadados (Pilar ANEEL e SAMP Balanço)}
 \label{tab:dic_aneel}
 \begin{center}
 \small
-\begin{tabular}{p{5cm} p{2.5cm} p{7cm}}
+\begin{tabular}{p{4.5cm} p{2.2cm} p{6cm}}
 \toprule
 \textbf{Atributo Bruto (CSV)} & \textbf{Tipo de Dado} & \textbf{Descrição Operacional (PRODIST)} \\
 \midrule
@@ -106,24 +102,23 @@ O mapeamento da Tabela~\ref{tab:dic_aneel} atesta os cernes adotados para a cons
 \end{tabular}
 \normalsize
 \end{center}
-\vspace{-0.2cm}
 \small{Fonte: Dicionário de Metadados de Dados Abertos - ANEEL (2025).}
 \end{table}
 
 \section{Ecossistema Computacional e Bibliotecas}\label{sec:computacional}
-Para orquestrar a extração, o processamento matricial hiper-dimensional e a inferência não-linear estocástica exigida pelas Redes Neurais Profundas, escolheu-se como alicerce nativo a linguagem genérica \textbf{Python} (\textit{Python Software Foundation}, versão 3.10+). A aderência ao ecossistema Python transcende a mera sintaxe fluida; ela se justifica pela virtual monopolização global de \textit{frameworks} em Inteligência Artificial acoplados com binários nativos de alta performance em \texttt{C/C++}. Tal arquitetura delega as matemáticas intensas ao baixo-nível enquanto expõe APIs interativas limpas aos pesquisadores. A esteira analítica dividiu-se nos seguintes macro-componentes da litertura científica computacional:
+Para o pré-processamento dos dados e o treinamento dos modelos de aprendizado de máquina e redes neurais, utilizou-se a linguagem \textbf{Python} (\textit{Python Software Foundation}, versão 3.10+). A escolha do Python justifica-se pela ampla disponibilidade de bibliotecas especializadas em aprendizado de máquina e manipulação de dados, com implementações de alto desempenho em \texttt{C/C++} expostas através de interfaces de alto nível. As principais bibliotecas utilizadas são descritas a seguir.
 
 \subsection{Engenharia de Dados Contínuos: Pandas e NumPy}
-O núcleo da tabulação espaço-temporal em massa operou-se via biblioteca \textbf{Pandas} \cite{mckinney2010data}. Desenvolvido inicialmente para projeções quantitativas em Wall Street, o formato nativo estático \textit{DataFrame} confere poder de fusão assíncrona (\textit{Join}, \textit{Merge}) entre as chaves primárias do INMET e da ANEEL puramente sob memória volátil local (RAM). Como alicerce subjacente ao Pandas para computação científica \textit{array-centric}, o pacote \textbf{NumPy} \cite{harris2020array} executou os \textit{broadcastings} (operações homogeneizadas em blocos) permitindo as rotinas trigonométricas de Seno e Cosseno na marcação do tempo cilíclico (\textit{Timestamp Embeddings}). 
+A manipulação e integração dos dados foi realizada com a biblioteca \textbf{Pandas} \cite{mckinney2010data}, cujas estruturas \textit{DataFrame} permitem operações eficientes de fusão (\textit{merge}) entre as bases do INMET e da ANEEL por chave temporal. O pacote \textbf{NumPy} \cite{harris2020array} foi utilizado para operações vetorizadas, incluindo as codificações trigonométricas (seno e cosseno) das variáveis temporais cíclicas.
 
 \subsection{Pipelines Estatísticos: Scikit-Learn}
-Para delimitar o \textit{Machine Learning} ortodoxo e processar as divisões estruturais cruzadas (\textit{Time-Series K-Fold Split}), incorporou-se a matriz sistêmica do \textbf{Scikit-Learn} \cite{pedregosa2011scikit}. No escopo desta arquitetura neural, sua usabilidade foi isolada para blindar matematicamente a amplitude escalar dos \textit{features} elétricos. Sensores dispares (como $0.2 \text{mm}$ para chuvas e $32^\circ \text{C}$ para calor) inviabilizam a convergência dos tensores de descida de gradiente; portanto, invocou-se o bloco \texttt{MinMaxScaler} algébrico do Scikit-Learn para confinar a dimensionalidade hiperbólica estritamente ao espectro $[0, 1]$.
+A biblioteca \textbf{Scikit-Learn} \cite{pedregosa2011scikit} foi utilizada para a normalização dos dados (\texttt{MinMaxScaler}, que escala cada variável ao intervalo $[0, 1]$) e para a validação cruzada temporal (\texttt{Time\-Series\-Split}). A normalização é necessária porque as variáveis possuem escalas distintas (por exemplo, precipitação em mm e temperatura em °C), o que prejudicaria a convergência dos algoritmos de descida de gradiente nas redes neurais.
 
-\subsection{Grafos Deslizantes: PyTorch}
-Enquanto \textit{frameworks} preteridos exigem declaração estática massiva (\textit{Define-and-Run}), o pacote \textit{Open-Source} \textbf{PyTorch} \cite{paszke2019pytorch} popularizou o sistema imperativo dinâmico de \textit{Define-by-Run}. Isso permitiu a maleabilidade fluida na arquitetura das LSTMs deste trabalho de conclusão, onde o \textit{Forward Pass} é reescrito computacionalmente a cada lote (Lags $T-14$ a $T-1$) conforme o bloco \textit{Autograd} nativo constrói grafos dirigidos acíclicos na GPU. O autômato do PyTorch computa automaticamente os derivativos parciais pesados (BPTT), removendo os gargalos da \textit{Vanishing Gradient Problem}.
+\subsection{PyTorch: Grafos Computacionais Dinâmicos}
+A implementação das redes recorrentes utilizou o \textit{framework} \textbf{PyTorch} \cite{paszke2019pytorch}, que se diferencia por adotar grafos computacionais dinâmicos (\textit{Define-by-Run}). Essa abordagem permite que o grafo de computação seja reconstruído a cada iteração, facilitando a depuração e a experimentação com diferentes arquiteturas. O módulo \textit{Autograd} do PyTorch computa automaticamente os gradientes via BPTT (\textit{Backpropagation Through Time}), enquanto o problema do desvanecimento do gradiente é mitigado pelas próprias arquiteturas LSTM e GRU, conforme descrito na Seção~\ref{sec:sistema_eletrico}.
 
-\subsection{Boost de Árvores Extremo: XGBoost}
-Na esfera de predições tabulares basais, absteve-se de Árvores de Decisão primitivas em prol da API encapsulada \textbf{eXtreme Gradient Boosting (XGBoost)} \cite{chen2016xgboost}. A escolha desta arquitetura repousa em três inovações descritas pela literatura: (I) Penalização nativa pela Regularização $L_1$ e $L_2$ mitigando severamente o \textit{Overfitting} de sazonalidade longa; (II) Processamento Multi-Thread para a contrução hiper-rápida de partições nas árvores de base; e (III) A matemática supracitada de expatriação de Segunda Ordem Euclidiana em Matrizes Hessian, forçando os \textit{Leaf Weights} aos limiares de convergência ideais até sobre bases cheias de vazamento de dados.
+\subsection{XGBoost}
+Para a modelagem tabular, utilizou-se a biblioteca \textbf{XGBoost} \cite{chen2016xgboost}. A escolha fundamenta-se em três vantagens descritas na literatura: (I) regularização nativa $L_1$ e $L_2$ que mitiga o \textit{overfitting}; (II) processamento paralelo (\textit{multi-thread}) para construção eficiente das árvores; e (III) aproximação de segunda ordem (expansão de Taylor) da função de perda, que permite o cálculo analítico dos pesos ótimos das folhas com convergência acelerada.
 
 Devido às limitações de formatação gráfica, o comportamento intrínseco de \textit{Forward-Pass} iterativo construído na tese pode ser sintetizado pelo Pseudocódigo \ref{alg:treinamento_torch}, o qual elucida a mecânica de descida do gradiente no PyTorch.
 
@@ -144,7 +139,7 @@ Para cada Epoch de 1 ate NumEpochs:
 Reportar Modelo_Final()
 \end{lstlisting}
 
-\begin{figure}[!htbp]
+\begin{figure}[H]
 \centering
 \begin{tikzpicture}[
     scale=0.85, transform shape,
@@ -157,7 +152,7 @@ Reportar Modelo_Final()
 % Nodes
 \node [tensor] (input) {Tensor de Entrada ($B \times L \times F$)};
 \node [layer, below=1cm of input] (rnn) {Camada Bi-Direcional (LSTM/GRU)};
-\node [layer, below=1cm of rnn] (dropout) {Camada de Regularização (Dropout $p=0.3$)};
+\node [layer, below=1cm of rnn] (dropout) {Camada de Regularização (Dropout $p=0{,}2$)};
 \node [layer, below=1cm of dropout] (linear) {Camada Linear (Dense Layer)};
 \node [tensor, below=1cm of linear, fill=green!10] (output) {Vetor de Previsão Diária ($Y_{pred}$)};
 
@@ -172,54 +167,98 @@ Reportar Modelo_Final()
 \label{fig:topologia_neural}
 \end{figure}
 
-\section{Pré-processamento e Agregações Espaço-temporais}\label{sec:preprocessamento}
+\subsection{Infraestrutura de Hardware}\label{sec:hardware}
+Todos os experimentos foram executados em uma estação de trabalho local com a seguinte configuração:
+
+\begin{table}[H]
+\begin{center}
+\begin{tabular}{l l}
+\toprule
+\textbf{Componente} & \textbf{Especificação} \\
+\midrule
+\multicolumn{2}{l}{\textit{Configuração 1}} \\
+\midrule
+Processador (CPU) & Intel Core i5-9300HF, 4 núcleos / 8 \textit{threads}, 2{,}40\,GHz \\
+Memória RAM       & 16\,GB DDR4 \\
+Acelerador (GPU)  & NVIDIA GeForce GTX 1050 3\,GB Max-Q (CUDA 6.1) \\
+Sistema Operacional & Manjaro Linux, \textit{kernel} 6.x \\
+\midrule
+\multicolumn{2}{l}{\textit{Configuração 2}} \\
+\midrule
+Processador (CPU) & Intel Core i9-14900HX, 24 núcleos / 48 \textit{threads}, até 5{,}80\,GHz \\
+Memória RAM       & 32\,GB DDR5 \\
+Acelerador (GPU)  & NVIDIA GeForce RTX 4070 Laptop GPU, 8\,GB GDDR6 (CUDA 8.9) \\
+Sistema Operacional & Arch Linux, \textit{kernel} 7.0.9 \\
+\bottomrule
+\end{tabular}
+\end{center}
+\caption{Configurações de hardware utilizadas nos experimentos.}
+\label{tab:hardware}
+\end{table}
+
+A GPU foi empregada para acelerar o treinamento das redes neurais recorrentes (LSTM, BiLSTM e GRU) via \textit{framework} CUDA integrado ao PyTorch. O modelo XGBoost, por sua vez, utilizou exclusivamente a CPU com paralelismo \textit{multi-thread} nos quatro núcleos disponíveis. O tempo médio de treinamento completo (100 \textit{epochs} com \textit{early stopping}) de cada rede recorrente foi de aproximadamente 3 a 5 minutos por \textit{fold} de validação cruzada, totalizando cerca de 15 a 25 minutos por modelo. O XGBoost convergiu em menos de 30 segundos por \textit{fold}.
+
+A Configuração 1 foi utilizada no desenvolvimento e treinamento dos modelos principais apresentados neste trabalho. A Configuração 2, com maior capacidade de processamento, foi empregada na implementação complementar da previsão multi-horizonte, mantendo o mesmo ambiente de software e versionamento de bibliotecas para garantir a reprodutibilidade dos resultados.
+
+\subsection{Reprodutibilidade e Controle de Versão}\label{sec:reprodutibilidade}
+Para garantir a reprodutibilidade dos experimentos, o código-fonte integral do \textit{pipeline} de dados, do treinamento dos modelos e da geração de gráficos está disponível em repositório público no GitHub\footnote{\url{https://github.com/Mathweuzz/Modelagem-Preditiva-de-Falhas-na-Rede-Eletrica-do-Distrito-Federal}}. O XGBoost foi instanciado com semente fixa (\texttt{random\_state=42}), assegurando resultados determinísticos. As versões das bibliotecas utilizadas são: Python 3.14, PyTorch 2.10, XGBoost 3.2, Scikit-Learn 1.8, Pandas 3.0 e NumPy 2.4.
+
+\subsection{Enquadramento Legal dos Dados}\label{sec:legal}
+Todos os conjuntos de dados utilizados neste trabalho são de domínio público e estão disponíveis em portais de dados abertos mantidos por órgãos do governo federal brasileiro. A utilização desses dados é respaldada por dois marcos legais:
+
+\begin{itemize}
+    \item \textbf{Lei de Acesso à Informação} (LAI --- Lei nº 12.527/2011): garante a qualquer cidadão o direito de acesso a informações públicas produzidas ou custodiadas pelo Estado. Os dados meteorológicos do INMET e os registros de interrupções da ANEEL são disponibilizados em conformidade com essa lei, por meio dos portais \textit{Dados Abertos} do INMET e da ANEEL;
+    \item \textbf{Lei Geral de Proteção de Dados Pessoais} (LGPD --- Lei nº 13.709/2018): regula o tratamento de dados pessoais. Neste trabalho, \textbf{nenhum dado pessoal é coletado ou processado}. As séries meteorológicas referem-se a medições de estações automáticas e os registros de interrupções são agregados por conjunto elétrico, sem qualquer identificação de consumidores individuais. Portanto, o estudo está fora do escopo de aplicação da LGPD.
+\end{itemize}
+
+\section{Pré-processamento e Agregações Temporais}\label{sec:preprocessamento}
 
 Dada a característica intrinsecamente ruidosa da frequência horária coletada nos pólos meteorológicos, bem como a extrema latência de relatórios regulatórios de consumo mensal, instituíram-se rigorosos métodos de agregação escalar diária.
 
 \subsection{Agrupamento por Somatório Contínuo (Precipitação e Falhas)}
-Eventos discretos pontuais, como a precipitação acumulada ao longo de 24 horas geográficas ou a detecção contínua de curtos-circuitos reportados pela Neoenergia, exigem um achatamento linear via Somatório Cumulativo Clássico. Para um dado dia $t$, o volume diário ($V_t$) de uma grandeza observada n vezes no dia é definido por:
+Variáveis que representam eventos acumuláveis --- como a precipitação total diária ou o número de interrupções reportadas pela Neoenergia --- foram agregadas por somatório simples. Para um dado dia $t$, o total diário ($V_t$) de uma grandeza observada $n$ vezes no dia é definido por:
 \begin{equation}
     V_t = \sum_{i=1}^{n} v_i
 \end{equation}
 
 \subsection{Média Aritmética Múltipla (Temperatura e Vento)}
-Contrastando à volumetria de chuvas, atributos contínuos oscilantes (velocidade do vento em m/s e temperatura em Celsius) demandaram equalização por Média Aritmética Diária ($\bar{x}_t$), a fim de reter o limiar barométrico real do dia mitigando esporádicos picos de rajadas:
+Diferentemente da precipitação, variáveis contínuas como velocidade do vento (m/s) e temperatura (°C) foram agregadas por Média Aritmética Diária ($\bar{x}_t$), suavizando flutuações horárias e representando a condição predominante do dia:
 \begin{equation}
     \bar{x}_t = \frac{1}{n} \sum_{i=1}^{n} x_i
 \end{equation}
 
-\subsection{Média Móvel Simples (SMA)}
-Para a depuração primária, servindo tanto para supressão da variância estocástica extrema no *Dataset* quanto para a geração de um Algoritmo de Referência Simples (*Baseline Model*), incorporou-se a Média Móvel Simples (SMA). Diferindo da EMA explorada outrora, a SMA confere janelas de pesos estritamente idênticos ($1/k$) aos k dias regentes:
-\begin{equation}
-    \text{SMA}_k(t) = \frac{y_t + y_{t-1} + \dots + y_{t-k+1}}{k} = \frac{1}{k} \sum_{i=0}^{k-1} y_{t-i}
-\end{equation}
-Aplicaram-se retrospectivas de 7 ($k=7$) e 14 dias para todas as séries de falhas e matrizes climáticas.
+\subsection{Médias Móveis na Análise Exploratória e na Engenharia de Atributos}
+A Média Móvel Simples (SMA) foi utilizada na análise exploratória para visualização de tendências (gráficos de séries temporais). No \textit{pipeline} final de engenharia de atributos, optou-se pela \textbf{Média Móvel Exponencial} (EMA) como \textit{feature} de entrada dos modelos, por atribuir maior peso às observações mais recentes. Aplicaram-se janelas de 3, 7 e 14 dias para as variáveis de precipitação, temperatura e rajada de vento, conforme detalhado na Tabela~\ref{tab:longtable_features}.
 
-\subsection{Codificação Harmônica de Variáveis Contínuas (Senoides)}
-Redes neurais operam sob pressupostos geométricos contínuos. A transição da data base "31 de Dezembro" (dia 365) para "01 de Janeiro" (dia 1) representa um salto alfanumérico brutal, apesar da contiguidade temporal fática \cite{goodfellow2016deep}. Dessa forma, os vetores cronológicos (Mês e Dia do Ano) foram transcritos em coordenadas cartesianas polares acopladas via funções harmônicas:
+\subsection{Desvio Padrão em Janela Deslizante}
+Para capturar a \textbf{variabilidade} recente das séries climáticas, calculou-se o desvio padrão em janela deslizante de 7 dias para precipitação, temperatura e rajada de vento. Essa medida complementa as EMAs ao indicar \textit{instabilidade} --- dias com desvio padrão elevado sinalizam transições climáticas abruptas, que tendem a provocar mais interrupções.
+
+\subsection{Codificação Temporal}
+A variável \texttt{mês} foi codificada em coordenadas polares via funções harmônicas, preservando a continuidade cíclica (a transição dezembro $\rightarrow$ janeiro é contígua no tempo, mas descontínua numericamente) \cite{goodfellow2016deep}:
 \begin{equation}
     Mês_{sen} = \sin\left(\frac{2\pi \cdot \text{mês}}{12}\right), \quad Mês_{cos} = \cos\left(\frac{2\pi \cdot \text{mês}}{12}\right)
 \end{equation}
+As variáveis \texttt{dia\_semana} e \texttt{dia\_ano} foram mantidas como inteiros, sendo que o XGBoost (baseado em árvores de decisão) é capaz de capturar padrões não-lineares sem necessidade de codificação adicional \cite{chen2016xgboost}.
 
 \subsection{Matriz Extensiva de Engenharia de Atributos (Feature Engineering)}
-A alquimia matricial executada na base de dados estatal culminou na expansão massiva de uma tabela primitiva (4 colunas) para um tensor complexo multivariável operando com mais de 40 dimensões independentes simultâneas. 
+O processo de engenharia de atributos expandiu a base de dados original (10 variáveis brutas após a integração INMET--ANEEL) para um conjunto de \textbf{41 \textit{features} de entrada} mais a variável alvo, totalizando 42 colunas no \textit{dataset} final. As categorias de atributos incluem: variáveis base meteorológicas e eólicas, codificações temporais (inteiras e cíclicas), defasagens de 1 a 7 dias, médias móveis exponenciais (EMA) de 3, 7 e 14 dias, e desvios padrão em janela deslizante de 7 dias.
 
-Para a estrita replicabilidade do \textit{pipeline} neural e transparência das inferências XGBoost, a Tabela~\ref{tab:longtable_features} expõe a totalidade do dicionário de atributos concebidos na janela de pré-processamento. Este conglomerado de defasagens ($T-1$ a $T-14$) infunde a capacidade retroativa algorítmica.
+A Tabela~\ref{tab:longtable_features} apresenta o dicionário completo de todos os atributos, conforme extraídos do arquivo \texttt{dataset\_engenharia\_features.csv} utilizado na modelagem.
 
 \begin{center}
-\small % Encolhe a tabela para caber na margem
-\begin{longtable}{p{4.5cm} p{2cm} p{8cm}}
-\caption{Dicionário do Tensor Multivariado Final (Features Engenheiradas)} \label{tab:longtable_features} \\
+\footnotesize
+\begin{longtable}{p{6cm} p{1.2cm} p{5.8cm}}
+\caption{Dicionário Completo de Atributos (41 Features + Target)} \label{tab:longtable_features} \\
 
 \toprule
-\textbf{Nome do Atributo} & \textbf{Tipo} & \textbf{Justificativa Física / Descrição Matemática} \\
+\textbf{Nome do Atributo} & \textbf{Tipo} & \textbf{Descrição} \\
 \midrule
 \endfirsthead
 
 \multicolumn{3}{c}%
 {{\bfseries \tablename\ \thetable{} -- Continuação da página anterior}} \\
 \toprule
-\textbf{Nome do Atributo} & \textbf{Tipo} & \textbf{Justificativa Física / Descrição Matemática} \\
+\textbf{Nome do Atributo} & \textbf{Tipo} & \textbf{Descrição} \\
 \midrule
 \endhead
 
@@ -229,72 +268,92 @@ Para a estrita replicabilidade do \textit{pipeline} neural e transparência das 
 \bottomrule
 \endlastfoot
 
-\textbf{interrupcoes} & \textit{Target (Y)} & Número Diário de Quedas de Rede. Variável dependente estocástica. \\
-\textbf{temperatura\_mean} & \textit{Float} & Média Aritmética ($\bar{x}$) Térmica (°C). Mensura o estresse de dilatação Joule. \\
-\textbf{vento\_mean} & \textit{Float} & Velocidade Eólica (m/s). Parâmetro base para o Arrasto Aerodinâmico. \\
-\textbf{precipitacao\_sum} & \textit{Float} & Somatório ($V_t$) Volumétrico de Chuva (mm). Indicador de encharcamento. \\
+\multicolumn{3}{c}{\textbf{Variáveis Base (9 + Target)}} \\
 \midrule
-\multicolumn{3}{c}{\textbf{Codificações Cíclicas e Temporais (Trigonometria)}} \\
+\textbf{interrupcoes} & \textit{Target} & Número diário de interrupções no fornecimento. Variável dependente. \\
+\textbf{temperatura\_media} & \textit{Float} & Média aritmética diária da temperatura (°C). \\
+\textbf{precipitacao\_total\_mm} & \textit{Float} & Precipitação acumulada diária (mm). \\
+\textbf{vento\_velocidade\_media\_ms} & \textit{Float} & Velocidade média diária do vento (m/s). \\
+\textbf{vento\_velocidade\_max\_ms} & \textit{Float} & Velocidade máxima diária do vento (m/s). \\
+\textbf{vento\_rajada\_max\_ms} & \textit{Float} & Rajada máxima diária (m/s). Principal variável eólica preditiva. \\
+\textbf{vento\_direcao\_media\_gr} & \textit{Float} & Direção média do vento em graus (0--360°). \\
+\textbf{vento\_direcao\_moda\_gr} & \textit{Float} & Moda da direção horária do vento (graus). \\
+\textbf{n\_registros} & \textit{Integer} & Número de observações horárias no dia (controle de completude). \\
 \midrule
-\textbf{mes\_sin} & \textit{Float} & Projeção Senoidal (eixo Y) do mês (1 a 12). \\
-\textbf{mes\_cos} & \textit{Float} & Projeção Cosseno (eixo X) do mês. Suaviza a passagem Dez $\rightarrow$ Jan. \\
-\textbf{dia\_ano\_sin} & \textit{Float} & Projeção polar do dia exato no ano (1 a 365). \\
-\textbf{dia\_ano\_cos} & \textit{Float} & Permite ao modelo enxergar oscilações anuais perfeitamente idênticas. \\
+\multicolumn{3}{c}{\textbf{Variáveis Temporais (5: 3 inteiras + 2 cíclicas)}} \\
 \midrule
-\multicolumn{3}{c}{\textbf{Janelas Deslizantes e Médias Móveis (Averaging Matrices)}} \\
+\textbf{mes} & \textit{Integer} & Mês do ano (1--12). \\
+\textbf{dia\_semana} & \textit{Integer} & Dia da semana (0 = segunda, 6 = domingo). \\
+\textbf{dia\_ano} & \textit{Integer} & Dia do ano (1--365/366). \\
+\textbf{mes\_sin} & \textit{Float} & Codificação senoidal do mês: $\sin(2\pi \cdot m/12)$. \\
+\textbf{mes\_cos} & \textit{Float} & Codificação cosseno do mês: $\cos(2\pi \cdot m/12)$. \\
 \midrule
-\textbf{interrupcoes\_ema\_3d} & \textit{Float} & Média Móvel Exponencial (3 dias). Suaviza picos locais abruptos. \\
-\textbf{interrupcoes\_ema\_7d} & \textit{Float} & Tendência Semanal Exponencial. Representa falhas contínuas por raízes não resolvidas. \\
-\textbf{interrupcoes\_ema\_14d}& \textit{Float} & Memória quinzenal das restrições elétricas operacionais do macro-distrito. \\
-\textbf{temperatura\_sma\_7d} & \textit{Float} & Média Simples Linear Semanal. Base para rastreio de Ondas de Calor estacionárias. \\
-\textbf{vento\_sma\_14d} & \textit{Float} & Velocidade média quinzenal identificando turbulências persistentes (La Niña). \\
+\multicolumn{3}{c}{\textbf{Defasagens do Target (4)}} \\
 \midrule
-\multicolumn{3}{c}{\textbf{Defasagens Temporais Estritas de Rede (Target Lags)}} \\
+\textbf{interrupcoes\_lag\_1} & \textit{Integer} & Interrupções em $T-1$. Principal preditor individual (ACF). \\
+\textbf{interrupcoes\_lag\_2} & \textit{Integer} & Interrupções em $T-2$. Inércia de curto prazo. \\
+\textbf{interrupcoes\_lag\_3} & \textit{Integer} & Interrupções em $T-3$. Persistência de eventos extremos. \\
+\textbf{interrupcoes\_lag\_7} & \textit{Integer} & Interrupções em $T-7$. Padrão semanal (dias úteis vs.\ fim de semana). \\
 \midrule
-\textbf{interrupcoes\_lag\_1} & \textit{Integer} & Ocorrências em $T-1$ (Ontem). Altíssima correlação linear (Pearson $> 0.7$). \\
-\textbf{interrupcoes\_lag\_2} & \textit{Integer} & Ocorrências em $T-2$ (Anteontem). Retrato da inércia dos blecautes. \\
-\textbf{interrupcoes\_lag\_3} & \textit{Integer} & Ocorrências no terceiro dia passado. Efeito cascata mecânico. \\
-\textbf{interrupcoes\_lag\_7} & \textit{Integer} & Ocorrências em $T-7$. Retendo padrões rígidos do dia da semana (ex: domingos). \\
-\textbf{interrupcoes\_lag\_14} & \textit{Integer} & Ocorrências em $T-14$. Fechamento do ciclo bimensal operativo. \\
+\multicolumn{3}{c}{\textbf{Defasagens Climáticas (12)}} \\
 \midrule
-\multicolumn{3}{c}{\textbf{Defasagens Termodinâmicas Sazonais (Climate Lags)}} \\
+\textbf{precipitacao\_total\_mm\_lag\_1} & \textit{Float} & Precipitação em $T-1$. Efeito imediato de chuvas sobre a rede. \\
+\textbf{precipitacao\_total\_mm\_lag\_2} & \textit{Float} & Precipitação em $T-2$. Encharcamento residual. \\
+\textbf{precipitacao\_total\_mm\_lag\_3} & \textit{Float} & Precipitação em $T-3$. Saturação acumulada do solo. \\
+\textbf{precipitacao\_total\_mm\_lag\_7} & \textit{Float} & Precipitação em $T-7$. Regime pluviométrico semanal. \\
+\textbf{temperatura\_media\_lag\_1} & \textit{Float} & Temperatura em $T-1$. Estresse térmico imediato. \\
+\textbf{temperatura\_media\_lag\_2} & \textit{Float} & Temperatura em $T-2$. Acúmulo de calor recente. \\
+\textbf{temperatura\_media\_lag\_3} & \textit{Float} & Temperatura em $T-3$. Estresse térmico de curto prazo. \\
+\textbf{temperatura\_media\_lag\_7} & \textit{Float} & Temperatura em $T-7$. Memória de ondas de calor. \\
+\textbf{vento\_rajada\_max\_ms\_lag\_1} & \textit{Float} & Rajada máxima em $T-1$. Danos mecânicos recentes. \\
+\textbf{vento\_rajada\_max\_ms\_lag\_2} & \textit{Float} & Rajada máxima em $T-2$. Efeito retardado do vento. \\
+\textbf{vento\_rajada\_max\_ms\_lag\_3} & \textit{Float} & Rajada máxima em $T-3$. Fragilização acumulada de estruturas. \\
+\textbf{vento\_rajada\_max\_ms\_lag\_7} & \textit{Float} & Rajada máxima em $T-7$. Padrão eólico semanal. \\
 \midrule
-\textbf{temperatura\_lag\_1} & \textit{Float} & Choque Térmico em $T-1$. O material tensionado no último dia cede hoje. \\
-\textbf{temperatura\_lag\_3} & \textit{Float} & Latência tripartida de ressecamento de pinos isoladores. \\
-\textbf{temperatura\_lag\_7} & \textit{Float} & Memória da onda de calor da penúltima frente estacionária. \\
-\textbf{vento\_lag\_1} & \textit{Float} & Tempestades de vento (rajadas) deflagradas nas últimas 24h. Efeito direto em Árvores. \\
-\textbf{vento\_lag\_2} & \textit{Float} & Aceleração turbulenta prévia ($T-2$). O enfraquecimento contínuo da haste base. \\
-\textbf{precipitacao\_lag\_1}& \textit{Float} & Chuvas das últimas 24 horas geográficas ($T-1$). \\
-\textbf{precipitacao\_lag\_3}& \textit{Float} & Chuvas de Três Dias atrás. Impacta pesadamente o peso da vegetação podre na fiação. \\
-\textbf{precipitacao\_lag\_7}& \textit{Float} & Retenção de água do solo retida durante a semana inteira (fator \textit{landslide}). \\
+\multicolumn{3}{c}{\textbf{Médias Móveis Exponenciais -- EMA (9)}} \\
+\midrule
+\textbf{precipitacao\_total\_mm\_ema\_3} & \textit{Float} & EMA de 3 dias da precipitação. Tendência pluviométrica recente. \\
+\textbf{precipitacao\_total\_mm\_ema\_7} & \textit{Float} & EMA de 7 dias da precipitação. Regime chuvoso semanal. \\
+\textbf{precipitacao\_total\_mm\_ema\_14} & \textit{Float} & EMA de 14 dias da precipitação. Tendência quinzenal. \\
+\textbf{temperatura\_media\_ema\_3} & \textit{Float} & EMA de 3 dias da temperatura. Variação térmica recente. \\
+\textbf{temperatura\_media\_ema\_7} & \textit{Float} & EMA de 7 dias da temperatura. Identifica ondas de calor. \\
+\textbf{temperatura\_media\_ema\_14} & \textit{Float} & EMA de 14 dias da temperatura. Tendência térmica quinzenal. \\
+\textbf{vento\_rajada\_max\_ms\_ema\_3} & \textit{Float} & EMA de 3 dias das rajadas. Ventos extremos recentes. \\
+\textbf{vento\_rajada\_max\_ms\_ema\_7} & \textit{Float} & EMA de 7 dias das rajadas. Persistência de ventos fortes. \\
+\textbf{vento\_rajada\_max\_ms\_ema\_14} & \textit{Float} & EMA de 14 dias das rajadas. Tendência eólica quinzenal. \\
+\midrule
+\multicolumn{3}{c}{\textbf{Desvio Padrão em Janela de 7 Dias (3)}} \\
+\midrule
+\textbf{precipitacao\_total\_mm\_std\_7d} & \textit{Float} & Variabilidade pluviométrica semanal. Distingue chuva contínua de isolada. \\
+\textbf{temperatura\_media\_std\_7d} & \textit{Float} & Variabilidade térmica semanal. Indica mudanças bruscas de temperatura. \\
+\textbf{vento\_rajada\_max\_ms\_std\_7d} & \textit{Float} & Variabilidade das rajadas na semana. Indica instabilidade eólica. \\
 \end{longtable}
-\normalsize % Retorna o tamanho normal
+\normalsize
 \end{center}
 
-\begin{figure}[!htbp]
+\begin{figure}[H]
 \centering
 \begin{tikzpicture}[
-    scale=0.85, transform shape,
-    node distance=1.5cm,
-    block/.style={rectangle, draw, fill=blue!10, text width=4cm, text centered, rounded corners, minimum height=1.2cm},
-    line/.style={draw, -latex'}
+    node distance=1.2cm,
+    block/.style={rectangle, draw, fill=blue!10, text width=4.5cm, text centered, rounded corners, minimum height=1.2cm},
+    line/.style={draw, -latex', thick}
 ]
 
 % Nodes
 \node [block] (inmet) {Dados Climáticos (INMET)};
-\node [block, right=2cm of inmet] (aneel) {Dados de Falha (ANEEL)};
-\node [block, below=1cm of inmet] (agg1) {Média Aritmética Múltipla};
-\node [block, below=1cm of aneel] (agg2) {Somatório Contínuo ($V_t$)};
-\node [block, below=2.5cm of $(inmet)!0.5!(aneel)$] (merge) {Fusão Horizontal (Pandas Merge)};
-\node [block, below=1cm of merge] (nan) {Interpolação Linear (NaNs)};
-\node [block, below=1cm of nan] (pearson) {Filtro de Multicolinearidade (Pearson $r < 0.90$)};
-\node [block, below=1cm of pearson, fill=green!10] (final) {Tensor Climático-Elétrico Final Dimensional};
+\node [block, right=2.5cm of inmet] (aneel) {Dados de Falha (ANEEL)};
+\node [block, below=1.2cm of inmet] (agg1) {Média Aritmética Múltipla};
+\node [block, below=1.2cm of aneel] (agg2) {Somatório Contínuo ($V_t$)};
+\node [block, below=1.2cm of $(agg1)!0.5!(agg2)$] (merge) {Fusão Horizontal (Pandas Merge)};
+\node [block, below=1.2cm of merge] (nan) {Interpolação Linear (NaNs)};
+\node [block, below=1.2cm of nan] (pearson) {Filtro de Multicolinearidade (Pearson $r < 0{,}90$)};
+\node [block, below=1.2cm of pearson, fill=green!10] (final) {Dataset Final (41 Features + Target)};
 
 % Paths
 \path [line] (inmet) -- (agg1);
 \path [line] (aneel) -- (agg2);
-\path [line] (agg1) -- (merge);
-\path [line] (agg2) -- (merge);
+\path [line] (agg1) |- (merge);
+\path [line] (agg2) |- (merge);
 \path [line] (merge) -- (nan);
 \path [line] (nan) -- (pearson);
 \path [line] (pearson) -- (final);
@@ -305,61 +364,258 @@ Para a estrita replicabilidade do \textit{pipeline} neural e transparência das 
 \end{figure}
 
 \subsection{Engenharia de Interpolação de Valores Ausentes (NaNs)}
-A integridade sequencial é o pilar inescapável de qualquer topologia Autoregressiva acoplada a Redes Neurais Recorrentes (RNNs). A ausência fragmentada de dados pluviométricos ou termodinâmicos --- ocasionada precipuamente por descargas elétricas que desarmam os próprios sensores telemétricos governamentais do INMET --- forja lacunas críticas (\textit{Not a Number} - NaNs) no tensor basal. Em arquiteturas \textit{Cross-Sectional} assíncronas padrão, o descarte de linhas (técnica de \textit{Dropna} global) é trivial; contudo, a amputação de um dia da série cronológica corrompe fatalmente a contiguidade estrutural da função de aprendizado do modelo \textit{Long Short-Term Memory} (LSTM), rompendo a esteira do retrospecto de 14 dias ($T-14$).
+A continuidade temporal é um requisito fundamental para modelos baseados em janelas deslizantes. Eventuais valores ausentes (\textit{NaN}) nos dados meteorológicos --- causados por falhas nos sensores da estação INMET --- não podem ser simplesmente descartados, pois a remoção de um dia da série interromperia a janela de \textit{lookback} de 14 dias utilizada pelas redes recorrentes.
 
-Como mitigação cirúrgica para lacunas estreitas, invocou-se o pressuposto de Continuidade Meteorológica, implementando a algoritmia de \textbf{Interpolação Linear}. A função preenche os intervalos vazios assumindo que a taxa de variação climática num curtíssimo interstício (ex: $x_0$ a $x_1$) é estruturalmente constante. Matematicamente, o atributo sintético interpolado $y$ no ponto vazio $x$ é conjurado por:
+Para tratar as lacunas pontuais, aplicou-se \textbf{interpolação linear}, assumindo que a variação das grandezas climáticas em intervalos curtos (1--2 dias) é aproximadamente linear. Para um ponto ausente $x$ entre dois pontos conhecidos $(x_0, y_0)$ e $(x_1, y_1)$, o valor interpolado é:
 
 \begin{equation}
     y = y_0 + (x - x_0) \frac{y_1 - y_0}{x_1 - x_0}
 \end{equation}
 
-Essa estratégia geométrica restabelece a densidade plena da Matriz, impedindo o modelo neural de colapsar perante descontinuidades matemáticas de vetores esparsos, sem forjar picos sazonais falsos indesejados.
+Essa estratégia preserva a continuidade temporal da série sem introduzir picos artificiais, sendo adequada para lacunas de poucos dias em variáveis meteorológicas de variação gradual.
 
 \subsection{Multicolinearidade e Seleção Dimensional de Recursos}
-O desdobramento hiperbólico do conjunto de predição em mais de 40 preditores contínuos, detalhado outrora, convoca imperativamente a ameaça estatística alcunhada como a ``Maldição da Dimensionalidade'' (\textit{Curse of Dimensionality}). A aglomeração excessiva de defasagens e médias acopladas (como a sobreposição ruidosa entre a velocidade de $Vento_{T-1}$ e $SMA_{Vento-7d}$) engatilha a patologia da \textbf{Multicolinearidade}. Em \textit{arrays} severamente colineares, preditores não fornecem novos prismas de variância à arquitetura, mas atuam como espelhos refletindo o mesmo sinal redundante, induzindo o gradiente da Função de Custo a estagnar em mínimos locais rasos ou exacerbar ruídos de fundo pontuais (\textit{Overfitting} crônico).
+A expansão do conjunto de preditores para mais de 40 variáveis, incluindo defasagens e médias móveis derivadas das mesmas séries originais, introduz o risco de \textbf{multicolinearidade}. Quando duas variáveis preditoras são altamente correlacionadas (por exemplo, \texttt{vento\_rajada\_max\_ms\_lag\_1} e \texttt{vento\_rajada\_max\_ms\_ema\_3}), ambas transmitem informação redundante ao modelo, o que pode inflacionar a variância dos coeficientes em modelos lineares e dificultar a interpretação da importância relativa das variáveis \cite{hastie2009elements}.
 
-Para blindar a arquitetura analítica e afunilar a complexidade tensorial, empregou-se como funil de triagem paramétrica a Correlação Produto-Momento de Pearson ($r$). O coeficiente escalar captura a espessura da associação exclusivamente linear simétrica entre duas séries emparelhadas distintas, operando a covariância cruzada normatizada pelo produto de seus respectivos desvios padrão ($\sigma$):
+Para identificar e remover variáveis redundantes, empregou-se a Correlação Produto-Momento de Pearson ($r$). O coeficiente mede a intensidade da associação linear entre duas variáveis, definido como a covariância normalizada pelo produto dos respectivos desvios padrão ($\sigma$):
 
 \begin{equation}
     r_{xy} = \frac{\sum_{i=1}^{n} (x_i - \bar{x})(y_i - \bar{y})}{\sqrt{\sum_{i=1}^{n} (x_i - \bar{x})^2} \sqrt{\sum_{i=1}^{n} (y_i - \bar{y})^2}} \quad \in [-1, 1]
 \end{equation}
 
-O mapeamento hierárquico construído por este coeficiente (detalhado empiricamente na Matriz de Calor do portfólio de Resultados --- Seção~\ref{sec:pearson}) habilitou as rodadas de sintonia de hiperparâmetros (\textit{Hyperopt}) a amputarem defasagens que alcançaram autossimilaridade superior a $0.85$ e focarem estritamente num cone vetorial de menor predação computacional e maior entropia preditiva.
+A matriz de correlação de Pearson (detalhada na Seção~\ref{sec:pearson}) foi utilizada para identificar pares de variáveis com correlação superior a $|r| > 0{,}90$. Nesses casos, manteve-se a variável com maior correlação com a variável \textit{target} (interrupções), removendo a variável redundante para reduzir a multicolinearidade sem perda de informação preditiva.
+
+\section{Tratamento de Outliers e Qualidade dos Dados}\label{sec:outliers}
+
+A presença de valores extremos (\textit{outliers}) na série de interrupções exigiu uma decisão metodológica crítica. Conforme evidenciado pela Tabela~\ref{tab:descritiva}, o máximo de 1.424 interrupções em um único dia (27 de novembro de 2021) excede em $10{,}1$ desvios padrão a média ($243{,}6 \pm 116{,}7$), configurando um \textit{outlier} extremo segundo o critério de Tukey ($Q_3 + 3 \cdot IQR$).
+
+Optou-se deliberadamente por \textbf{não remover} os \textit{outliers} da série, por três razões:
+
+\begin{enumerate}
+    \item \textbf{Representatividade fenomenológica:} Os picos extremos de interrupções correspondem a eventos climáticos reais e verificáveis (tempestades convectivas, rajadas intensas associadas ao El Niño), e não a erros de medição. Removê-los significaria privar os modelos de informação sobre os cenários operacionais mais críticos para a concessionária --- justamente aqueles que a manutenção preditiva visa antecipar.
+
+    \item \textbf{Impacto na função de perda:} A remoção de extremos alteraria artificialmente a distribuição da variável \textit{target}, enviesando os modelos para subestimar sistematicamente os dias de crise. No contexto operacional da Neoenergia, essa subestimação teria consequências práticas graves: equipes subdimensionadas, materiais insuficientes e violação dos indicadores DEC/FEC.
+
+    \item \textbf{Robustez do XGBoost:} O mecanismo de regularização do XGBoost (parâmetros $\gamma$, \texttt{max\_depth}, \texttt{subsample}) confere robustez intrínseca a \textit{outliers}, limitando o impacto de valores extremos individuais sobre a estrutura global das árvores \cite{chen2016xgboost}. Para as redes neurais, a normalização Min-Max comprime os extremos ao intervalo $[0, 1]$, atenuando naturalmente seu efeito sobre os gradientes.
+\end{enumerate}
+
+A qualidade dos dados meteorológicos do INMET foi verificada através de três critérios: (i) \textbf{completude temporal}, confirmando a ausência de lacunas superiores a 3 dias consecutivos na série; (ii) \textbf{consistência física}, validando que todos os valores de temperatura, precipitação e vento situam-se dentro dos limites climatológicos esperados para o Cerrado; e (iii) \textbf{consistência cruzada}, verificando que dias com precipitação elevada ($>30$ mm) coincidem com rajadas de vento superiores à mediana, conforme esperado pela dinâmica das tempestades convectivas. Das 3.073 observações, apenas 12 apresentaram valores ausentes (0,39\%), tratados por interpolação linear conforme descrito anteriormente.
+
+\section{Separação Temporal e Validação Cruzada}\label{sec:protocolo_validacao}
+
+A validação de modelos preditivos em séries temporais exige cuidados específicos que diferem fundamentalmente da validação cruzada aleatória (\textit{K-Fold}) empregada em problemas de classificação \cite{hastie2009elements}. A aleatorização das observações entre \textit{folds} violaria a estrutura temporal dos dados, permitindo que o modelo ``veja'' o futuro durante o treinamento --- uma forma de \textit{Data Leakage} que inflacionaria artificialmente as métricas de desempenho.
+
+\subsection{Time-Series Split com Separação Estrita}
+
+O protocolo adotado neste trabalho segue o paradigma de \textbf{separação temporal estrita} (\textit{Out-of-Sample}), conforme ilustrado esquematicamente na Figura~\ref{fig:time_split}.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    scale=0.85, transform shape,
+    node distance=0.5cm
+]
+% Timeline
+\draw[thick, -latex] (0,0) -- (14,0) node[right] {Tempo};
+
+% Training block
+\fill[blue!30] (0.5,0.3) rectangle (9.5,1.0);
+\node at (5,0.65) {\small\textbf{Treinamento + Validação (88\%)}};
+\node at (5,-0.4) {\small\textit{08/01/2017 --- 31/05/2024}};
+
+% Test block
+\fill[red!30] (9.5,0.3) rectangle (13.5,1.0);
+\node at (11.5,0.65) {\small\textbf{Teste (12\%)}};
+\node at (11.5,-0.4) {\small\textit{01/06/2024 --- 31/05/2025}};
+
+% Cut line
+\draw[thick, dashed] (9.5,-0.1) -- (9.5,1.3);
+\node at (9.5,1.6) {\small\textbf{Corte}};
+
+% Labels
+\node at (5,-1.1) {\small 2.693 dias};
+\node at (11.5,-1.1) {\small 365 dias};
+
+\end{tikzpicture}
+\caption{Esquema de separação temporal estrita (\textit{Out-of-Sample}) entre conjuntos de treinamento e teste.}
+\label{fig:time_split}
+\end{figure}
+
+Dentro do conjunto de treinamento (2.693 dias), o XGBoost utilizou \textbf{validação cruzada temporal} com 5 \textit{splits} (via \texttt{TimeSeriesSplit} do Scikit-Learn), onde cada \textit{fold} subsequente avança temporalmente, garantindo que a informação futura nunca contamine a avaliação.
+
+\subsection{Justificativa do Ponto de Corte}
+
+O ponto de corte em 1\textordmasculine{} de junho de 2024 foi selecionado de forma a reservar os últimos 365 dias (um ano completo) para teste, garantindo que o conjunto de teste inclua uma transição completa entre estação seca e chuvosa \cite{hyndman2018forecasting}. Dessa forma, o treinamento abrange o período do El Niño 2023--2024 (permitindo que os modelos aprendam com esse evento atípico), enquanto o teste avalia a generalização para o período subsequente de transição para condições neutras/La Niña.
 
 \section{Configuração Experimental para Previsão}\label{sec:treinamento}
 
-O procedimento de treino-teste foi delineado sob um arcabouço rigoroso para evitar estritamente qualquer intrusão (\textit{data leakage}) de instâncias futuras sobre avaliações pretéritas, um axioma indissociável de séries temporais financeiras e climáticas.
+Conforme detalhado na Seção~\ref{sec:protocolo_validacao}, a separação temporal estrita (2.693 dias para treinamento e 365 dias para teste) foi rigorosamente mantida para todos os modelos, prevenindo qualquer vazamento de dados (\textit{data leakage}).
 
-\subsection{Alocação Temporal Sem Vazamento (Time-Series Split)}
-Para conjuntos trans-sazonais (3073 dias analisados), a aferição por \textit{K-Fold Cross-Validation} randômico invalida-se ao corromper o contínuo de tempo. Destarte, segmentou-se hierarquicamente a base:
-\begin{itemize}
-    \item \textbf{Conjunto de Treinamento e Validação}: Efetuado desde o princípio do histórico (01/01/2017) até o corte em \textbf{24/09/2023} (2458 dias, aprox. 80\%).
-    \item \textbf{Conjunto de Teste (\textit{Out-of-sample})}: Reservou-se de \textbf{25/09/2023} a 31/05/2025 (615 dias) absolutamente selados perante os otimizadores, testando a resiliência dos tensores frente aos extremos climáticos recentes (ex: El Niño de 2023).
-\end{itemize}
-
-Para balizar o desempenho da engenharia matemática, firmou-se como modelo base o \textit{eXtreme Gradient Boosting} (XGBoost), contrastado dialeticamente contra matrizes puramente neurais codificadas em linguagem \textit{Python}, mediante a biblioteca de tensores \textit{PyTorch} \cite{paszke2019pytorch}.
-
-\subsection{Modelagem Tensorial por Janelas Deslizantes (Sliding Windows)}
-No ecossistema de *Deep Learning* (\textit{PyTorch}), o processamento sequencial obriga a conversão de tabelas escalares \textit{DataFrames} (2D) em tensores tri-dimensionais (3D) de dimensão:
+\subsection{Modelagem Tensorial por Janelas Deslizantes}
+No ecossistema de \textit{Deep Learning} (PyTorch), o processamento sequencial obriga a conversão de tabelas escalares \textit{DataFrames} (2D) em tensores tridimensionais (3D) de dimensão:
 \begin{equation}
     \mathcal{T}_{input} = [B, L, F] \Rightarrow [\text{Batch Size}, \text{Lookback Sequence}, \text{Features}]
 \end{equation}
-Neste arranjo iterativo (\textit{DataLoaders}), cada lote computacional ($B$) examina uma sequência recursiva contendo os $L$ dias predecessores do instante que almeja prever, incorporando as $F=42$ \textit{features} climáticas. Conduz-se simultaneamente a normalização via *MinMaxScaler*, cuja parametrização intrínseca restringe-se invariavelmente ao conjunto de Treino: $X_{norm} = \frac{X - \min(X_{train})}{\max(X_{train}) - \min(X_{train})}$, eliminando o viés do limite numérico nos tensores de inferência.
-
-\subsection{Estratégias de Otimização: AdamW e Gradient Clipping}
-O gargalo estocástico oriundo da topologia das redes Bi-LSTM e Bi-GRU confronta as instabilidades numéricas das variações cliamáticas diárias. A mitigação do explosivo crescimento escalar se fundamentou na convergência do algoritmo de *Decoupled Weight Decay Regularization* (AdamW), proposto magistralmente por \cite{loshchilov2017decoupled}.
-Diferente do Adam clássico (que subordina a regularização ao ritmo de *Learning Rate*), o AdamW desatrela o decaimento vetorial diretamente na atualização de pesos:
+No treinamento em \textit{full-batch}, cada época processa todas as $N$ sequências simultaneamente, onde cada sequência contém os $L = 14$ dias predecessores do instante a prever, com $F = 42$ variáveis (incluindo o \textit{target} como parte do histórico). Para cada dia $t$ a ser previsto, a janela de entrada é construída como:
 \begin{equation}
-    \theta_t = \theta_{t-1} - \eta_t m_t - \eta_t \lambda \theta_{t-1}
+    \mathbf{X}_t = [\mathbf{x}_{t-L}, \mathbf{x}_{t-L+1}, \dots, \mathbf{x}_{t-1}] \in \mathbb{R}^{L \times F}
 \end{equation}
-Esse controle assintótico, amparado por *Dropout* estático ($\approx 30\%$) na intercomunicação celular e pelo mecanismo de *Gradient Clipping* (que cisalha o \textit{norm} máximo em 1.0), blinda as redes recorrentes contra o transbordamento aritmético perante os picos chuvosos extremos (\textit{Outliers} climáticos severos).
+onde $\mathbf{x}_i \in \mathbb{R}^F$ é o vetor de \textit{features} do dia $i$. O \textit{target} associado é o escalar $y_t$ (número de interrupções no dia $t$). Essa formulação transforma o problema de regressão de séries temporais num problema de aprendizado supervisionado com entradas tridimensionais.
+
+A normalização dos dados é realizada via \texttt{MinMaxScaler}, cuja parametrização intrínseca restringe-se invariavelmente ao conjunto de treino para prevenir \textit{Data Leakage}: $X_{norm} = \frac{X - \min(X_{train})}{\max(X_{train}) - \min(X_{train})}$. Os parâmetros $\min$ e $\max$ são computados exclusivamente sobre os dados de treinamento e aplicados de forma transformativa aos dados de teste, garantindo que nenhuma informação do futuro contamine o processo de normalização.
+
+\subsection{Estratégias de Otimização: Adam com Weight Decay}
+O treinamento das redes Bi-LSTM e Bi-GRU utilizou o otimizador \textbf{Adam} \cite{kingma2014adam} com \textit{weight decay} de $\lambda = 10^{-5}$, que adiciona uma penalização $L_2$ aos pesos para reduzir o \textit{overfitting}. A regra de atualização combina os momentos de primeira e segunda ordem com a regularização:
+\begin{equation}
+    \theta_t = \theta_{t-1} - \eta \cdot \frac{\hat{m}_t}{\sqrt{\hat{v}_t} + \epsilon} - \eta \lambda \theta_{t-1}
+\end{equation}
+Complementarmente, aplicou-se \textit{Dropout} ($p = 0{,}2$) entre as camadas recorrentes e a camada densa, desativando aleatoriamente 20\% dos neurônios a cada iteração para reduzir a co-adaptação entre unidades \cite{goodfellow2016deep}. As redes foram treinadas em modo \textit{full-batch}, processando todo o conjunto de treinamento em uma única passagem por época.
 
 \subsection{Sintonia de Hiperparâmetros (Grid Search em Espaço Discreto)}
-Contrastando à otimização contínua baseada em cálculo vetorial Jacobiano das Redes Bi-LSTM, a arquitetura canônica baseada em Árvores de Decisão (XGBoost) exige uma varredura combinatória heurística para ancoragem do platô ótimo. Implantou-se uma rotina de varredura paramétrica (*Grid Search*) acoplada diretamente à validação cruzada do particionamento de treinamento, isolando estritamente os vetores de Teste para prevenir contaminações indutivas.
-
-Os tensores de árvores cartesianas exigem a modelagem restritiva do *Hyper-space* $\mathcal{H}_{xgb} = \{\eta \times \gamma \times \text{Depth} \times \text{ChildWeight}\}$. Especificamente, as frentes de regularização e combate a *Overfitting* foram calibradas mediante:
+Para o XGBoost, os hiperparâmetros foram otimizados via \textit{Grid Search} com validação cruzada temporal (\texttt{TimeSeriesSplit}, 5 \textit{folds}), utilizando exclusivamente o conjunto de treinamento. Os principais hiperparâmetros otimizados foram:
 \begin{enumerate}
-    \item \textbf{Taxa de Aprendizagem ($\eta$ ou Learning Rate):} Avaliada no decaimento ruidoso $[0.01, 0.05, 0.1, 0.3]$. Valores módicos amansam a volatilidade do modelo ao convergir rumo aos gradientes marginais do vetor climático.
-    \item \textbf{Profundidade da Árvore (\textit{max\_depth}):} Restringida no limiar $\{3, 5, 7, 9\}$ para evitar interações não lineares colossais, limitando a miopia sobre a base ruidosa do vento de Brasília.
-    \item \textbf{Atenuação de Folha e Falsa-Ativação ($\gamma$ Gamma):} Parametrizada no gradiente discreto $\{0, 0.5, 1, 5\}$. O Fator Gamma suprime crescimentos espúrios na árvore caso a divisão arbórea não gere uma redução no pseudo-resíduo (Perda Quadrática) superior ao limiar imposto ($\Delta \mathcal{L} > \gamma$). É a trava mestra contra memorização falsa de tempestades atípicas.
+    \item \textbf{Taxa de Aprendizagem ($\eta$):} Avaliada em $\{0{,}01;\, 0{,}05;\, 0{,}1\}$. Controla a contribuição de cada árvore ao \textit{ensemble}.
+    \item \textbf{Profundidade da Árvore (\texttt{max\_depth}):} Testada em $\{3, 5, 7\}$. Limita a complexidade de cada árvore individual.
+    \item \textbf{Número de Estimadores (\texttt{n\_estimators}):} Testado em $\{100, 300, 500\}$. Define o total de árvores no \textit{ensemble}.
+    \item \textbf{Subamostragem (\texttt{subsample}):} Testada em $\{0{,}8;\, 1{,}0\}$. Fração dos dados usada para treinar cada árvore.
+    \item \textbf{Subamostragem de Colunas (\texttt{colsample\_bytree}):} Testada em $\{0{,}8;\, 1{,}0\}$. Fração das \textit{features} amostradas por árvore.
+    \item \textbf{Regularização $L_1$ (\texttt{reg\_alpha}):} Testada em $\{0;\, 0{,}5;\, 1\}$. Penalização \textit{Lasso} sobre os pesos das folhas.
+    \item \textbf{Regularização $L_2$ (\texttt{reg\_lambda}):} Testada em $\{1;\, 2;\, 5\}$. Penalização \textit{Ridge} sobre os pesos das folhas.
 \end{enumerate}
+
+\section{Análise Descritiva do Conjunto de Dados}\label{sec:descritiva}
+
+Antes da modelagem preditiva, é imprescindível caracterizar estatisticamente o conjunto de dados integrado para identificar tendências centrais, dispersões e assimetrias que orientem as decisões de engenharia de atributos. A Tabela~\ref{tab:descritiva} apresenta as estatísticas descritivas das variáveis primárias calculadas sobre os 3.073 dias do horizonte bruto de análise (janeiro de 2017 a maio de 2025).
+
+\begin{table}[H]
+\caption{Estatísticas Descritivas das Variáveis Primárias (Base Diária, $N = 3.073$)}
+\label{tab:descritiva}
+\begin{center}
+\small
+\begin{tabular}{lrrrrrr}
+\toprule
+\textbf{Variável} & \textbf{Média} & \textbf{Desvio} & \textbf{Mín.} & \textbf{Mediana} & \textbf{Máx.} & \textbf{IQR} \\
+\midrule
+Interrupções (diárias) & 243,6 & 116,7 & 63 & 219 & 1.424 & 130 \\
+Temperatura Média (°C) & 21,6 & 2,1 & 11,3 & 21,5 & 29,9 & 2,6 \\
+Precipitação Total (mm) & 4,0 & 10,0 & 0,0 & 0,0 & 113,0 & 2,0 \\
+Vento Vel. Média (m/s) & 2,1 & 0,6 & 1,0 & 2,0 & 4,6 & 0,8 \\
+Vento Rajada Máx. (m/s) & 11,4 & 2,6 & 5,3 & 11,0 & 30,4 & 3,2 \\
+\bottomrule
+\end{tabular}
+\normalsize
+\end{center}
+\small{Fonte: Calculado pelos autores a partir dos dados do INMET e ANEEL (2017--2025).}
+\end{table}
+
+Observa-se que a variável \textit{target} (interrupções diárias) apresenta distribuição assimétrica positiva (média $= 243{,}6$ superior à mediana $= 219$), com cauda longa à direita evidenciada pelo máximo de 1.424 interrupções --- quase seis vezes a média. Essa assimetria reflete a natureza esporádica dos eventos extremos climáticos. A precipitação total diária é igualmente assimétrica: a mediana é zero (63,8\% dos dias não registraram chuva), porém o máximo atinge 113 mm em dias de tempestade convectiva intensa.
+
+A Tabela~\ref{tab:descritiva_anual} revela a evolução temporal das interrupções, evidenciando uma tendência de crescimento ao longo do período analisado.
+
+\begin{table}[H]
+\caption{Evolução Anual das Interrupções na Neoenergia Brasília}
+\label{tab:descritiva_anual}
+\begin{center}
+\small
+\begin{tabular}{lrrrrrr}
+\toprule
+\textbf{Ano} & \textbf{Média Diária} & \textbf{Desvio} & \textbf{Mín.} & \textbf{Máx.} & \textbf{Total Anual} & \textbf{Dias} \\
+\midrule
+2017 & 183,5 & 81,0 & 63 & 686 & 66.977 & 365 \\
+2018 & 182,2 & 70,5 & 63 & 500 & 66.488 & 365 \\
+2019 & 201,9 & 101,0 & 72 & 916 & 73.685 & 365 \\
+2020 & 207,9 & 90,2 & 83 & 900 & 76.100 & 366 \\
+2021 & 273,2 & 123,1 & 108 & 1.424 & 99.719 & 365 \\
+2022 & 296,9 & 124,7 & 136 & 994 & 108.355 & 365 \\
+2023 & 295,3 & 119,4 & 122 & 1.007 & 107.800 & 365 \\
+2024 & 283,1 & 120,9 & 111 & 1.127 & 103.611 & 366 \\
+2025* & 303,4 & 115,7 & 126 & 1.022 & 45.807 & 151 \\
+\bottomrule
+\end{tabular}
+\normalsize
+\end{center}
+\small{* Dados parciais (janeiro a maio). Fonte: Elaborado pelos autores (2026).}
+\end{table}
+
+A média diária de interrupções apresentou crescimento de 65,3\% entre 2017 (183,5) e 2025 (303,4). O salto mais abrupto ocorreu entre 2020 e 2021 ($+31{,}4\%$), coincidindo com o envelhecimento acelerado da infraestrutura e o aumento da frequência de eventos climáticos extremos documentado pelo INPE \cite{inpe2021relatorio}. A sazonalidade é pronunciada: os meses da estação chuvosa (outubro a março) apresentam média de 292,0 interrupções/dia ($\sigma = 125{,}1$), contra 182,3 ($\sigma = 67{,}9$) na estação seca (maio a agosto).
+
+\section{Arquitetura Final dos Modelos}\label{sec:arquitetura_final}
+
+A Tabela~\ref{tab:hiperparametros} consolida os hiperparâmetros finais de cada modelo implementado, conforme determinados pela varredura \textit{Grid Search} (XGBoost) e pela exploração empírica guiada pelas curvas de aprendizado (redes neurais).
+
+\begin{table}[H]
+\caption{Hiperparâmetros Finais dos Modelos Preditivos}
+\label{tab:hiperparametros}
+\begin{center}
+\small
+\begin{tabular}{p{4cm} p{2.8cm} p{2.8cm} p{2.8cm}}
+\toprule
+\textbf{Hiperparâmetro} & \textbf{XGBoost} & \textbf{Bi-LSTM} & \textbf{Bi-GRU} \\
+\midrule
+\multicolumn{4}{c}{\textit{Estrutura do Modelo}} \\
+\midrule
+Lookback (dias) & N/A & 14 & 14 \\
+Dimensão Oculta ($d_h$) & N/A & 64 & 64 \\
+Camadas Recorrentes & N/A & 1 & 1 \\
+Bidirecional & N/A & Sim & Sim \\
+Dropout & N/A & 0,2 & 0,2 \\
+Batch Normalization & N/A & Não & Sim \\
+Ativação (camada densa) & N/A & ReLU & LeakyReLU \\
+\midrule
+\multicolumn{4}{c}{\textit{Otimização}} \\
+\midrule
+Função de Perda & Squared Error & MSELoss & MSELoss \\
+Otimizador & Hist (nativo) & Adam ($wd=10^{-5}$) & Adam ($wd=10^{-5}$) \\
+Taxa de Aprendizagem & 0,01--0,1 (Grid) & 0,001 & 0,001 \\
+Épocas / Estimadores & 100--500 & 200 & 200 \\
+Batch Size & N/A & Full-batch & Full-batch \\
+Scheduler & N/A & Nenhum & ReduceLR\-OnPlateau \\
+\midrule
+\multicolumn{4}{c}{\textit{Regularização (XGBoost)}} \\
+\midrule
+\texttt{max\_depth} & $\{3, 5, 7\}$ & --- & --- \\
+\texttt{n\_estimators} & $\{100, 300, 500\}$ & --- & --- \\
+\texttt{subsample} & $\{0{,}8;\; 1{,}0\}$ & --- & --- \\
+\texttt{colsample\_bytree} & $\{0{,}8;\; 1{,}0\}$ & --- & --- \\
+\texttt{reg\_alpha} ($L_1$) & $\{0;\; 0{,}5;\; 1\}$ & --- & --- \\
+\texttt{reg\_lambda} ($L_2$) & $\{1;\; 2;\; 5\}$ & --- & --- \\
+\midrule
+\multicolumn{4}{c}{\textit{Dados}} \\
+\midrule
+Features de Entrada & 41 (tabular) & 42 (sequencial) & 42 (sequencial) \\
+Conjunto de Treino & 2.693 dias & 2.693 dias & 2.693 dias \\
+Conjunto de Teste & 365 dias & 365 dias & 365 dias \\
+Normalização & Não necessária & MinMaxScaler $[0,1]$ & MinMaxScaler $[0,1]$ \\
+\bottomrule
+\end{tabular}
+\normalsize
+\end{center}
+\small{Fonte: Elaborado pelos autores (2026).}
+\end{table}
+
+Uma diferença estrutural relevante entre os modelos de \textit{Deep Learning} reside no uso do \textit{Learning Rate Scheduler}: enquanto a Bi-LSTM mantém a taxa de aprendizagem constante em $\eta = 0{,}001$ ao longo das 200 épocas, a Bi-GRU emprega o \texttt{ReduceLROnPlateau} com paciência de 10 épocas e fator de redução de 50\%. Esse mecanismo adaptativo reduz automaticamente a taxa de aprendizagem quando a perda de validação estagna, permitindo ajustes mais finos nos estágios finais do treinamento. Adicionalmente, a Bi-GRU incorpora \textit{Batch Normalization} entre a camada densa intermediária e a ativação LeakyReLU, ao passo que a Bi-LSTM utiliza ReLU convencional sem normalização de lote.
+
+\section{Previsão Multi-Horizonte}\label{sec:previsao_x_dias}
+
+Além da avaliação padrão com horizonte de um passo à frente (\textit{one-step-ahead}) sobre 365 dias de teste, realizou-se uma análise complementar de \textbf{previsão multi-horizonte}, em que os três modelos são utilizados para prever os próximos $x$ dias simultaneamente, com $x \in \{1, 3, 7, 14\}$.
+
+\subsection{Protocolo de Divisão}
+
+Para cada horizonte $x$, o conjunto de treino corresponde a todos os dias do \textit{dataset} exceto os últimos $x$ dias; o conjunto de teste são exatamente esses $x$ dias finais. O objetivo é simular o uso operacional real dos modelos: dado o histórico disponível até o dia corrente, prever o comportamento da rede nos próximos $x$ dias.
+
+Para garantir comparabilidade entre horizontes, o treino de todos os modelos nesta análise utiliza os dados até 17/05/2025 (i.e., os 14 dias finais do \textit{dataset} são reservados como conjunto de teste máximo), e os subhorizontes $x < 14$ são avaliados sobre os primeiros $x$ dias desse período.
+
+\subsection{Estratégia de Previsão Recursiva para Modelos de Deep Learning}
+
+Os modelos Bi-LSTM e Bi-GRU foram projetados com saída de um único passo. Para gerar previsões em horizontes $x > 1$, adota-se a \textbf{estratégia recursiva auto-regressiva}:
+
+\begin{enumerate}
+    \item A janela de contexto inicial é formada pelos últimos $L = 14$ dias do conjunto de treino (valores reais);
+    \item O modelo prediz o valor de interrupções do dia seguinte ($\hat{y}_{t+1}$);
+    \item A janela é deslizada em um passo: o dia mais antigo é descartado e o novo dia é inserido com $\hat{y}_{t+1}$ na posição da variável-alvo, mantendo as demais \textit{features} do último dia disponível;
+    \item Os passos 2--3 são repetidos até completar $x$ previsões.
+\end{enumerate}
+
+Essa abordagem reflete o cenário operacional real: para os dias $t+2, t+3, \ldots, t+x$, o modelo não tem acesso aos valores reais de interrupções dos dias anteriores do período de previsão, utilizando apenas suas próprias estimativas. O erro se propaga e tende a aumentar com $x$, o que torna a análise da degradação do MAE por horizonte um indicador relevante da robustez de cada arquitetura.
+
+Para o XGBoost, as \textit{features} pré-computadas dos $x$ dias de teste são utilizadas diretamente, sem necessidade de ajuste recursivo, uma vez que as variáveis climáticas dos dias futuros são assumidas conhecidas (provenientes de previsão meteorológica).

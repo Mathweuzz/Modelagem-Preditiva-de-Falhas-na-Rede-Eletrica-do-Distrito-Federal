@@ -89,3 +89,41 @@ def plot_heteroscedasticity_scatter(df, output_dir='img'):
     plt.tight_layout()
     plt.savefig(os.path.join(output_dir, 'scatter_heteroscedasticity.png'), dpi=300)
     plt.close()
+
+
+def consolidate_predictions(results_dir):
+    """
+    Lê os CSVs `predictions_xgboost.csv`, `predictions_lstm_bi.csv` e
+    `predictions_gru_bi.csv` (gerados por evaluate_and_plot) e retorna
+    um DataFrame único com colunas Real_Outages, Pred_XGB, Pred_LSTM, Pred_GRU.
+    """
+    xgb = pd.read_csv(os.path.join(results_dir, 'predictions_xgboost.csv'),
+                      index_col='data', parse_dates=True)
+    lstm = pd.read_csv(os.path.join(results_dir, 'predictions_lstm_bi.csv'),
+                       index_col='data', parse_dates=True)
+    gru = pd.read_csv(os.path.join(results_dir, 'predictions_gru_bi.csv'),
+                      index_col='data', parse_dates=True)
+
+    df = pd.DataFrame(index=xgb.index)
+    df['Real_Outages'] = xgb['real']
+    df['Pred_XGB'] = xgb['pred']
+    # LSTM/GRU usam SEQ_LENGTH=14 e perdem os primeiros 14 dias do teste
+    df['Pred_LSTM'] = lstm['pred'].reindex(df.index)
+    df['Pred_GRU'] = gru['pred'].reindex(df.index)
+    df = df.dropna()
+    return df
+
+
+if __name__ == "__main__":
+    results_dir = '../../results/ml'
+    out_dir = '../../results/ml'
+    os.makedirs(out_dir, exist_ok=True)
+
+    df = consolidate_predictions(results_dir)
+    print(f"Linhas consolidadas: {len(df)}")
+
+    plot_residual_kde(df, output_dir=out_dir)
+    plot_zoomed_anomaly(df, start_date='2023-11-01', end_date='2023-12-15',
+                        output_dir=out_dir)
+    plot_heteroscedasticity_scatter(df, output_dir=out_dir)
+    print("[OK] Gráficos avançados gerados.")

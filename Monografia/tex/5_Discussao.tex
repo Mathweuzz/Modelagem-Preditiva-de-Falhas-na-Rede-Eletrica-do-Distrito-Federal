@@ -1,29 +1,236 @@
-A capacidade de extrapolação matemática não linear de Redes Neurais Bi-direcionais reside, primordialmente, na topologia com a qual os tensores de treino são moldados. Diferente de algoritmos de correlação simples (como Regressão Linear Múltipla Euclidiana) ou Árvores estáticas, as sequências climatológicas apresentam características inerentes de \textit{Memória Temporal de Longo Alcance}. Neste capítulo, debruça-se tecnicamente sobre os fundamentos estocásticos justificadores da expansão dimensional do modelo para englobar os 14 dias precursores aos blecautes.
+Este capítulo discute os resultados obtidos à luz da literatura existente, interpreta as implicações práticas dos achados, analisa as limitações do estudo e contextualiza o desempenho dos modelos em relação aos objetivos propostos na Introdução.
 
-\section{Autocorrelação Estatística Diária (ACF)}
+\section{Interpretação dos Resultados Preditivos}
 
-Fenômenos naturais, como massas ciclônicas de poeira e ciclos perenes de precipitação convectiva no Planalto Central, obedecem estritamente à dinâmica estocástica autorregressiva. Matematicamente, o calor latente de um dia chuvoso $t$ suprimirá estatisticamente a temperatura seca do dia vizinho $t+1$. Analogicamente, se a rede elétrica do Distrito Federal experimenta fadiga de estresse em seus condutores num período $t-2$, o risco residual de rompimento asintótico em $t$ torna-se não-nulo. 
+Os resultados apresentados no Capítulo~\ref{4_Resultados} revelaram um achado que contraria a hipótese inicial do trabalho: o modelo baseado em \textit{Gradient Boosting} (XGBoost) superou as duas arquiteturas de \textit{Deep Learning} (Bi-LSTM e Bi-GRU) em todas as métricas de avaliação no conjunto de teste. O XGBoost alcançou $R^2 = 0{,}520$, MAE $= 52{,}3$ e MAPE $= 16{,}1\%$, enquanto a Bi-LSTM obteve $R^2 = 0{,}410$ e a Bi-GRU $R^2 = 0{,}332$.
 
-O decaimento natural das intercorrências foi verificado durante a Análise Exploratória (EDA) utilizando a Função de Autocorrelação Clássica (ACF), cuja modelagem para defasagem $k$ é fixada por:
-\begin{equation}
-    ACF(k) = \frac{\sum_{t=k+1}^{N} (Y_t - \bar{Y})(Y_{t-k} - \bar{Y})}{\sum_{t=1}^{N} (Y_t - \bar{Y})^2}
-\end{equation}
+Essa superioridade pode ser atribuída a três fatores complementares:
 
-A extração empírica revelou que blecautes generalizados da Neoenergia (Eventos Diários $> 1000$ Ocorrências) mantinham coeficientes positivos massivos até a defasagem $k=3$ (três dias retroativos). Essa descoberta forçou o arcabouço final da \textit{Engenharia de Atributos} a não ser míope. Um modelo fundamentado unicamente na tempestade de "hoje" ($t_0$) seria incapaz de assimilar galhos podres já pendurados por ventos de ontem ($t_{-1}$), que finalmente despencaram sem chuva aparente no dia de "hoje".
+\begin{enumerate}
+    \item \textbf{Engenharia de atributos como equalizador:} A construção manual de 41 \textit{features} --- incluindo defasagens de 1 a 7 dias, médias móveis exponenciais e codificações harmônicas --- transferiu ao XGBoost, de forma explícita, grande parte da informação temporal que as redes recorrentes aprendem implicitamente. Com essa engenharia, o XGBoost opera sobre uma representação tabular já enriquecida com memória temporal, reduzindo a vantagem arquitetural das RNNs.
 
-\section{Retrovisor Climático (Lookback Windows de 14 Dias)}
+    \item \textbf{Regularização robusta:} O XGBoost dispõe de múltiplos mecanismos de regularização nativos ($L_1$, $L_2$, Gamma, \texttt{max\_depth}, \texttt{subsample}), calibrados via \textit{Grid Search} com validação cruzada temporal. Essa parametrização finamente ajustada impede o \textit{overfitting} de forma mais controlável do que o Dropout e o \textit{Weight Decay} das redes neurais.
 
-Embasado na necessidade de memória comprovada pela Função de Correlação Parcial (PACF), instituiu-se o parâmetro estrutural $\mathcal{L} = 14$ (\textit{Lookback Window}), instruindo a arquitetura PyTorch a fragmentar os vetores de \textit{input} em agrupamentos móveis.
-Para cada inferência pontual $\hat{Y}_{t}$, as células LSTMs foram instanciadas com:
+    \item \textbf{Tamanho limitado do conjunto de dados:} Com 2.693 dias de treinamento e 41 \textit{features}, o volume de dados é modesto para redes recorrentes profundas que tipicamente exigem milhares a milhões de amostras para convergir a representações internas superiores. O XGBoost, por sua natureza \textit{ensemble} de árvores rasas, é mais eficiente com amostras limitadas \cite{chen2016xgboost}.
+\end{enumerate}
+
+\section{XGBoost vs. Deep Learning: Análise de Trade-offs}
+
+A comparação entre os paradigmas vai além das métricas numéricas. A Tabela~\ref{tab:tradeoffs} sintetiza os \textit{trade-offs} práticos relevantes para uma eventual implantação operacional.
+
+\begin{table}[H]
+\caption{Trade-offs Práticos entre XGBoost e Redes Neurais Recorrentes}
+\label{tab:tradeoffs}
+\begin{center}
+\small
+\begin{tabular}{p{4cm} p{4.5cm} p{5cm}}
+\toprule
+\textbf{Critério} & \textbf{XGBoost} & \textbf{Bi-LSTM / Bi-GRU} \\
+\midrule
+Acurácia Geral (365 dias) & Superior ($R^2 = 0{,}52$) & Inferior ($R^2 = 0{,}41$ / $0{,}33$) \\
+Previsão 1 dia à frente & MAE $= 70{,}6$ & \textbf{Bi-LSTM: MAE} $= \mathbf{29{,}4}$ \\
+Velocidade de Treino & Minutos & Horas (200 épocas) \\
+Interpretabilidade & Alta (\textit{Feature Importance}) & Baixa (caixa-preta) \\
+Necessidade de GPU & Não & Recomendável \\
+Escalabilidade & Alta (paralelismo nativo) & Limitada pelo BPTT \\
+Sensibilidade a Outliers & Conservador (regularização) & Maior volatilidade \\
+Engenharia Manual & Necessária (41 features) & Potencialmente dispensável \\
+\bottomrule
+\end{tabular}
+\normalsize
+\end{center}
+\small{Fonte: Elaborado pelos autores (2026).}
+\end{table}
+
+Uma vantagem frequentemente subestimada do XGBoost é a \textbf{interpretabilidade}. Conforme evidenciado pela Figura~\ref{fig:importancia} (Capítulo~\ref{4_Resultados}), o modelo fornece nativamente a importância relativa de cada \textit{feature}, permitindo que engenheiros da Neoenergia identifiquem quais variáveis climáticas são mais determinantes para a previsão. Essa transparência é crítica em contextos regulados, onde decisões operacionais precisam ser justificadas perante a ANEEL \cite{rudin2019stop}.
+
+Em contrapartida, as redes recorrentes demonstraram uma propriedade relevante na distribuição residual (Seção~\ref{sec:residuais}): suas distribuições KDE são mais concentradas em torno de zero (mais leptocúrticas), indicando que ``acertam mais vezes'' nos dias normais, embora errem mais nos extremos. Isso sugere que, com dados adicionais e em cenários de maior complexidade temporal (resolução horária, por exemplo), as redes recorrentes poderiam superar o XGBoost.
+
+\section[Inversão da Hierarquia por Horizonte]{Inversão da Hierarquia no Contexto Multi-\hspace{0pt}Horizonte}\label{sec:discussao_multihorizonte}
+
+A análise multi-horizonte (Seção~\ref{sec:multihorizonte}, Capítulo~\ref{4_Resultados}) revelou uma nuance fundamental que não era visível na avaliação padrão de 365 dias: \textbf{a hierarquia de desempenho entre os modelos depende criticamente do horizonte de previsão considerado}.
+
+Para $x = 1$ dia à frente, a Bi-LSTM supera o XGBoost com margem expressiva (MAE de 29,4 contra 70,6), invertendo completamente o resultado observado no teste de longo prazo. Esse comportamento encontra explicação nas propriedades arquiteturais de cada modelo:
+
 \begin{itemize}
-    \item Matriz de Precipitações Agregadas de $t-14$ a $t$.
-    \item Dinâmica Térmica (Arrastões de Frente Fria) monitorada no bloco $[t-14, t]$.
-    \item Defasagem Vetorial Simples da própria variável dependente (Exemplo: Interrupções ocorridas há exatos 7 dias $Y_{t-7}$).
+    \item A \textbf{Bi-LSTM}, ao processar a janela de 14 dias anteriores de forma bidirecional, captura a inércia imediata da série — o padrão de interrupções dos últimos dias é um sinal fortíssimo para o dia seguinte, e a rede explorou esse sinal eficientemente em horizonte curto.
+    \item O \textbf{XGBoost}, apesar de conter \textit{features} de lag explícitas, não possui mecanismo de memória sequencial: cada previsão é feita de forma independente sobre um vetor de \textit{features} tabulares, sem acesso implícito à trajetória recente da série. Em horizonte de um único passo, essa limitação estrutural penaliza o modelo.
 \end{itemize}
 
-O fenômeno da causalidade climática distante tornou-se incisivo durante o \textbf{El Niño (Novembro de 2023)}. As secas atípicas extremadas (temperaturas superando consistentemente $34^\circ \text{C}$) ocorridas na primeira quinzena do mês saturaram mecanicamente as junções dos transformadores elétricos da Neoenergia via Efeito Joule e degradação ôhmica. Quando as chuvas convectivas retornaram abruptamente em 20 de Novembro, as peças, enfraquecidas estocasticamente 14 dias antes, colapsaram simultaneamente gerando $picos > 600$ interrupções diárias. Sem a "Janela Deslizante" (\textit{Sliding Window}) englobando essas duas semanas pregressas de escaldamento letal, tanto o XGBoost quanto as Redes Neurais colapsariam preditivamente num Erro Quadrático Médio ($\mathcal{L}_{MSE}$) inaceitável.
+A partir de $x = 3$ dias, o XGBoost recupera a liderança e a mantém até $x = 14$ dias. Esse comportamento está diretamente relacionado à \textbf{propagação de erro} nas previsões recursivas das redes neurais: ao usar a própria estimativa de $t+1$ como entrada para prever $t+2$, os erros se acumulam a cada passo, degradando progressivamente a precisão. O XGBoost, por sua vez, utiliza as \textit{features} pré-computadas de cada dia diretamente, sem dependência de suas previsões anteriores, tornando-o imune a esse efeito de cascata.
 
-\section{O Risco da Maldição da Dimensionalidade na Escala Temporal}
+Essa inversão tem uma implicação prática relevante para o uso operacional dos modelos: em sistemas de alerta de curtíssimo prazo (previsão do dia seguinte), a Bi-LSTM é a arquitetura preferível; para planejamento de médio prazo (3 a 14 dias), o XGBoost oferece maior robustez. Uma implantação operacional ideal poderia combinar os dois modelos de forma complementar, selecionando automaticamente a arquitetura conforme o horizonte de previsão requisitado.
 
-Ironicamente, expandir o tensor para $t-14$ de forma "força bruta" em $40+$ variáveis puras multiplicaria colossalmente as matrizes jacobianas das equações da LSTM, inflando para $\sim 560$ atributos por linha/amostra diária.
-É neste vácuo metodológico que as agregações estruturadas via SMA e Pearson (detalhadas no Capítulo~\ref{3_Metodologia}) demonstraram seu brilhantismo heurístico. Ao invés de alimentar os vetores diários esparsamente ao longo da quinzena pregressa, condensaram-se a "História do Clima e da Rede" em canais compactados estatisticamente de Longo Prazo, suprimindo o viés matricial (Colilinearidade) e acelerando assintoticamente a descida de gradiente por meio da eliminação pragmática de dimensões lineares perversas.
+\section{Análise da Importância das Variáveis}
+
+O gráfico de \textit{Feature Importance} do XGBoost (Figura~\ref{fig:importancia}) revela a hierarquia das variáveis mais influentes na previsão:
+
+\begin{enumerate}
+    \item \textbf{Defasagens das próprias interrupções} (\texttt{interrupcoes\_lag\_1}, \texttt{lag\_2}, \texttt{lag\_7}): As variáveis históricas da própria série dominam a predição, confirmando a forte autocorrelação temporal evidenciada na análise ACF (Seção~\ref{sec:autocorrelacao}). O número de interrupções de ontem ($t-1$) é o melhor preditor individual para o dia de hoje.
+
+    \item \textbf{Médias móveis exponenciais climáticas}: As EMAs de precipitação, temperatura e rajada de vento capturam a tendência de curto e médio prazo do estresse ambiental, informando ao modelo se a rede está num período de condições climáticas adversas sustentadas ou de normalidade.
+
+    \item \textbf{Variáveis climáticas defasadas}: Defasagens de precipitação, rajada de vento e temperatura aparecem com importância significativa, validando a hipótese de que o impacto climático não é instantâneo, mas possui inércia temporal: a chuva de ontem danifica estruturas que falham hoje; o calor acumulado de três dias degrada isoladores que cedem sob estresse mecânico posterior.
+
+    \item \textbf{Codificações cíclicas} (\texttt{mes\_sin}, \texttt{mes\_cos}): A sazonalidade foi capturada eficientemente pelas codificações harmônicas, demonstrando que o modelo utiliza informação sobre a posição no ciclo anual para modular suas previsões.
+\end{enumerate}
+
+\section{Comportamento Perante Eventos Extremos (El Niño 2023)}
+
+A análise do recorte temporal de novembro--dezembro de 2023 (Seção~\ref{sec:anomalia}) revelou um comportamento paradoxal: o XGBoost, apesar de métricas gerais superiores, foi mais \textbf{conservador} perante os picos extremos, enquanto a Bi-LSTM tentou acompanhar a escalada das interrupções, porém com superestimação significativa.
+
+Esse comportamento reflete uma diferença fundamental nos mecanismos de decisão:
+\begin{itemize}
+    \item O XGBoost, baseado em árvores de decisão, ``satura'' naturalmente: a profundidade limitada das árvores (\texttt{max\_depth}) e a regularização Gamma impedem previsões extremas que excedam os limiares observados nos nós folha do treinamento. Essa saturação funciona como uma contenção prudente em cenários inéditos.
+    \item A Bi-LSTM, com suas unidades de memória contínuas e ativações $\tanh$ (intervalo $[-1, 1]$), pode extrapolar para regiões fora do espaço de treinamento quando os sinais climáticos de entrada são suficientemente intensos. Essa capacidade de extrapolação é uma faca de dois gumes: permite acompanhar tendências ascendentes, mas arrisca superestimação quando os padrões excedem o histórico.
+\end{itemize}
+
+Essa dualidade é consistente com os achados de \cite{smith2021hybrid}, que também demonstraram a robustez de modelos baseados em árvores de decisão para predição de interrupções causadas por tempestades, especialmente quando combinados com representações climáticas adequadas.
+
+\section{Comparação com a Literatura}
+
+A Tabela~\ref{tab:comparacao_literatura} contextualiza os resultados deste trabalho em relação a estudos recentes da literatura internacional.
+
+\begin{table}[H]
+\caption{Comparação com Trabalhos Correlatos da Literatura}
+\label{tab:comparacao_literatura}
+\begin{center}
+\footnotesize
+\begin{tabularx}{\textwidth}{l l l X l}
+\toprule
+\textbf{Estudo} & \textbf{Melhor Modelo} & \textbf{Tarefa} & \textbf{Métrica Principal} & \textbf{Contexto} \\
+\midrule
+\textbf{Este trabalho} & XGBoost & Regressão & $R^2 = 0{,}52$; MAPE = 16,1\% & Diário, Brasil (DF) \\
+\cite{zhang2023deep} & MLP & Regressão & MAE = 0,013; RMSE = 0,048 & Diário, EUA \\
+\cite{smith2021hybrid} & Árvores+Vegetação & Regressão & MdAPE = 59\% & Diário, EUA \\
+\cite{saha2019machine} & PSO+XGBoost & Classif. & Acurácia = 96,2\% & Diário, China \\
+\cite{silva2021xgboost} & XGBoost/RF & Classif. & Acurácia = 98,4\% & Evento, Turquia \\
+\cite{roque2017weather} & AdaBoost+ & Regressão & MSE, MAE\textsuperscript{$\dagger$} & Mensal, EUA \\
+\bottomrule
+\multicolumn{5}{l}{\textsuperscript{$\dagger$}\scriptsize{Valores absolutos não disponíveis (paywall); autores reportam $R^2$ baixo.}} \\
+\end{tabularx}
+\normalsize
+\end{center}
+\small{Fonte: Compilado pelos autores (2026).}
+\end{table}
+
+O $R^2 = 0{,}520$ obtido neste trabalho representa uma contribuição relevante ao estado da arte, considerando as especificidades do contexto. A comparação direta de métricas entre estudos é limitada pelas diferenças metodológicas substanciais: os trabalhos da literatura variam em resolução temporal (diária, semanal, por evento), variáveis disponíveis, tamanho do conjunto de dados e região geográfica. \cite{zhang2023deep} utilizam dados socioeconômicos e de infraestrutura adicionais; \cite{smith2021hybrid} incorporam dados de vegetação de alta resolução; \cite{saha2019machine} empregam otimização por enxame de partículas para seleção de hiperparâmetros. A contribuição diferencial deste trabalho reside na aplicação ao bioma Cerrado, com seu regime climático bimodal único, e na comparação sistemática entre modelos tabulares e redes recorrentes bidirecionais sob um mesmo protocolo experimental.
+
+\section{Limitações do Estudo}\label{sec:limitacoes}
+
+O presente trabalho possui limitações que devem ser explicitadas para contextualizar adequadamente os resultados e orientar trabalhos futuros:
+
+\begin{enumerate}
+    \item \textbf{Resolução temporal diária:} A agregação diária oculta a dinâmica intra-diária das interrupções. Uma tempestade de 30 minutos no horário de pico pode causar mais impacto operacional do que chuvas distribuídas ao longo de 24 horas. Dados de resolução horária ou sub-horária permitiriam modelagens mais granulares.
+
+    \item \textbf{Restrição geográfica:} O estudo limita-se ao Distrito Federal, cuja topografia plana e clima de Cerrado apresentam especificidades que podem não se generalizar para regiões litorâneas (expostas a ventos marítimos e salinidade) ou amazônicas (regime pluviométrico distinto).
+
+    \item \textbf{Ausência de variáveis de vegetação:} A queda de árvores sobre a rede é uma das principais causas de interrupção, porém o estudo não incorpora dados de cobertura vegetal, índice de vegetação (NDVI) ou proximidade de árvores aos condutores. Dados de sensoriamento remoto poderiam enriquecer significativamente o modelo.
+
+    \item \textbf{Variável de direção do vento:} A direção do vento é uma variável circular (0°--360°), e a média aritmética simples utilizada neste trabalho é uma aproximação que pode introduzir artefatos quando os valores se distribuem próximos à transição 360°/0°. Métodos de estatística circular seriam mais apropriados.
+
+    \item \textbf{Estação meteorológica única:} Os dados climáticos provêm de uma única estação (A001 --- Brasília), que pode não representar adequadamente as condições microclimáticas de todas as regiões administrativas do DF. A incorporação de múltiplas estações ou de dados de reanálise (ERA5) proporcionaria cobertura espacial mais abrangente.
+
+    \item \textbf{Volume de dados para Deep Learning:} Os 2.693 dias de treinamento, embora suficientes para modelos tabulares como o XGBoost, são modestos para redes recorrentes profundas. A disponibilidade de séries mais longas ou de dados de múltiplas concessionárias poderia favorecer as arquiteturas neurais.
+\end{enumerate}
+
+\section{Implicações Práticas para a Neoenergia Brasília}
+
+Os resultados deste trabalho apresentam aplicabilidade direta para a gestão operacional da concessionária:
+
+\begin{itemize}
+    \item \textbf{Sistema de alerta precoce:} Um modelo XGBoost treinado com as 41 \textit{features} desenvolvidas neste trabalho poderia ser integrado aos sistemas SCADA (\textit{Supervisory Control and Data Acquisition}) da Neoenergia, emitindo alertas automáticos quando a previsão de interrupções para o dia seguinte superar um limiar pré-definido (por exemplo, o terceiro quartil histórico de 295 interrupções).
+
+    \item \textbf{Pré-posicionamento de equipes:} Com previsões de 24 horas de antecedência, a concessionária poderia realocar equipes de manutenção para as regiões administrativas historicamente mais afetadas durante eventos de tempestade previstos, reduzindo o tempo médio de restabelecimento do fornecimento.
+
+    \item \textbf{Gestão regulatória:} A capacidade de prever picos de interrupções permite à concessionária documentar proativamente os eventos climáticos causadores, fortalecendo as justificativas técnicas perante a ANEEL em processos de apuração de violação dos limites DEC e FEC.
+
+    \item \textbf{Planejamento de investimentos:} A identificação das variáveis climáticas mais impactantes (rajada de vento, precipitação) e dos períodos de maior vulnerabilidade (outubro a março) pode orientar investimentos em infraestrutura resiliente, como a substituição de redes aéreas por subterrâneas em áreas críticas ou a intensificação da poda preventiva de vegetação.
+\end{itemize}
+
+\section{Análise Comparativa do Custo Computacional}
+
+Além das métricas de acurácia, a viabilidade operacional dos modelos preditivos depende de seu custo computacional, especialmente para implantação em sistemas de previsão em tempo real. A Tabela~\ref{tab:custo_computacional} sumariza o custo relativo das três arquiteturas implementadas.
+
+\begin{table}[H]
+\caption{Comparativo de Custo Computacional das Arquiteturas}
+\label{tab:custo_computacional}
+\begin{center}
+\small
+\begin{tabular}{p{4.5cm} p{3cm} p{3cm} p{3cm}}
+\toprule
+\textbf{Critério} & \textbf{XGBoost} & \textbf{Bi-LSTM} & \textbf{Bi-GRU} \\
+\midrule
+Parâmetros treináveis & $\sim$5.000 nós & $\sim$63.600 & $\sim$49.900 \\
+Tempo de treino (CPU) & $<$ 2 min & $\sim$25 min & $\sim$20 min \\
+Necessidade de GPU & Nenhuma & Recomendável & Recomendável \\
+Tempo de inferência & $<$ 1 ms/dia & $\sim$5 ms/dia & $\sim$4 ms/dia \\
+Memória necessária & $\sim$50 MB & $\sim$200 MB & $\sim$180 MB \\
+\bottomrule
+\end{tabular}
+\normalsize
+\end{center}
+\small{Fonte: Estimado pelos autores com base nos experimentos realizados (2026).}
+\end{table}
+
+O XGBoost apresenta vantagem significativa em todos os critérios operacionais: treina em menos de 2 minutos em CPU convencional, não requer GPU, e realiza inferências em tempo desprezível ($<1$ ms por dia previsto). As redes recorrentes, por outro lado, demandam de 20 a 25 minutos de treinamento para 200 épocas (em CPU), com benefício substancial de aceleração via GPU. Embora os tempos de inferência das RNNs sejam aceitáveis para previsões diárias ($\sim$5 ms), a necessidade de retrainamento periódico (para incorporar dados recentes) torna o custo computacional das redes significativamente maior no ciclo de vida completo do modelo.
+
+Essa análise reforça a adequação do XGBoost para implantação operacional na Neoenergia Brasília, onde as previsões precisam ser geradas diariamente com recursos computacionais limitados e sem dependência de infraestrutura de GPU.
+
+\section{Análise do Efeito de Amplificação pela Agregação Temporal}
+
+Um dos achados mais consistentes deste trabalho é a \textbf{amplificação sistemática das correlações} na transição da escala diária para a semanal e mensal (Tabela~\ref{tab:correlacoes}, Capítulo~\ref{4_Resultados}). A precipitação, por exemplo, evolui de $r = 0{,}35$ (diário) para $r = 0{,}48$ (semanal) e $r = 0{,}54$ (mensal). Esse fenômeno não é um artefato estatístico, mas reflete características físicas fundamentais do sistema:
+
+\begin{enumerate}
+    \item \textbf{Efeito acumulativo do dano:} Uma chuva isolada pode causar falhas imediatas (queda de árvores) e falhas retardadas (infiltração em equipamentos, corrosão acelerada, saturação de solo que desestabiliza postes). Na escala diária, apenas o efeito imediato é capturado; na escala semanal e mensal, os efeitos retardados somam-se ao sinal, amplificando a correlação.
+
+    \item \textbf{Redução da variância aleatória:} A agregação temporal suaviza o ruído estocástico diário --- interrupções causadas por acidentes de trânsito, vandalismo, falhas de equipamentos envelhecidos --- que diluem a correlação clima--falhas no nível diário. Ao agregar, o componente climático (sistemático) prevalece sobre o componente aleatório.
+
+    \item \textbf{Efeito de \textit{threshold}:} Muitas falhas climáticas ocorrem quando limiares acumulados são ultrapassados. Um poste parcialmente comprometido por ventos moderados ao longo de uma semana pode colapsar sob uma rajada que, isoladamente, seria insuficiente para causar dano. A escala semanal captura essa dinâmica de acumulação.
+\end{enumerate}
+
+Esse achado possui implicação prática direta: modelos preditivos operando em \textbf{escala semanal} podem obter acurácias superiores àquelas reportadas neste trabalho (escala diária), ao custo de menor granularidade temporal. Para a concessionária, previsões semanais podem ser mais úteis para o planejamento logístico de equipes e materiais, enquanto previsões diárias são mais relevantes para a operação em tempo real.
+
+\section{Discussão sobre a Heteroscedasticidade}
+
+A análise do diagrama de dispersão residual (Figura~\ref{fig:scatter_hetero}, Capítulo~\ref{4_Resultados}) evidenciou uma \textbf{heteroscedasticidade} pronunciada: a variância do erro de previsão cresce proporcionalmente ao volume de interrupções reais. Esse comportamento é fisicamente coerente com a natureza do fenômeno modelado. Em dias de operação normal (100--200 interrupções), o sistema elétrico opera próximo ao seu regime estacionário, e as interrupções decorrem de causas previsíveis (envelhecimento de componentes, demanda regular). Em dias de crise ($>400$ interrupções), fatores caóticos e não-lineares dominam --- intensidade localizada das rajadas, queda em cascata de alimentadores, sobrecarga de equipes de manutenção --- tornando a previsão inerentemente mais incerta.
+
+Esse padrão heteroscedástico tem duas implicações metodológicas relevantes:
+
+\begin{enumerate}
+    \item \textbf{Função de perda:} A função MSE utilizada como critério de otimização penaliza desproporcionalmente os erros em dias extremos (por ser quadrática), o que enviesa os modelos para minimizar os erros nos picos em detrimento da precisão nos dias normais. Funções de perda alternativas, como o \textit{Huber Loss} ou o \textit{Quantile Loss}, poderiam produzir modelos com distribuições residuais mais homogêneas.
+
+    \item \textbf{Previsão probabilística:} A variância não-constante do erro torna as previsões pontuais insuficientes para a tomada de decisão operacional. Um modelo que prevê ``250 interrupções amanhã'' sem informar a incerteza associada não permite à concessionária calibrar seu nível de preparação. Previsões probabilísticas (intervalos de confiança) são uma extensão natural deste trabalho.
+\end{enumerate}
+
+\section{Implicações da Tendência de Crescimento das Interrupções}
+
+A tendência de crescimento de 65,3\% nas interrupções médias diárias ao longo de oito anos (2017--2025) constitui um achado com implicações significativas tanto para a modelagem preditiva quanto para a gestão da concessionária. Três fatores convergentes explicam essa tendência:
+
+\begin{enumerate}
+    \item \textbf{Envelhecimento da infraestrutura:} A rede de distribuição do Distrito Federal, com componentes instalados há décadas, apresenta degradação progressiva de isoladores, condutores e transformadores. O envelhecimento reduz a resiliência mecânica e elétrica dos equipamentos, tornando-os mais suscetíveis a falhas sob estresse climático que anteriormente seria tolerado.
+
+    \item \textbf{Intensificação dos eventos climáticos:} Dados do INMET para a região Centro-Oeste indicam um aumento na frequência de eventos convectivos extremos na última década, consistente com as projeções dos modelos climáticos do IPCC para regiões tropicais continentais \cite{inpe2021relatorio}. Tempestades mais frequentes e mais intensas impõem estresse mecânico e elétrico crescente sobre uma infraestrutura que não foi dimensionada para esses novos padrões climáticos.
+
+    \item \textbf{Expansão urbana e aumento da carga:} O crescimento populacional do DF e a expansão das regiões administrativas periféricas aumentam tanto a carga sobre a rede existente quanto a extensão da malha de distribuição, frequentemente em áreas com vegetação densa próxima aos condutores.
+\end{enumerate}
+
+Essa tendência tem uma implicação direta para os modelos preditivos: um modelo treinado com dados de 2017--2020 pode subestimar sistematicamente as interrupções em 2024--2025, uma vez que a distribuição da variável \textit{target} sofreu \textbf{deslocamento conceitual} (\textit{concept drift}). A inclusão de variáveis de tendência (codificações temporais, médias móveis de longo prazo) na engenharia de atributos mitiga parcialmente esse efeito, mas o retrainamento periódico do modelo com dados recentes permanece necessário para manter a acurácia ao longo do tempo.
+
+\section{O Papel do El Niño na Degradação dos Modelos}
+
+O ano de 2023, fortemente influenciado pelo fenômeno \textbf{El Niño--Oscilação Sul (ENSO)}, representou o maior desafio para os modelos preditivos. A análise do recorte novembro--dezembro de 2023 (Seção~\ref{sec:anomalia}, Capítulo~\ref{4_Resultados}) demonstrou que todos os modelos apresentaram degradação significativa de performance nesse período, com erros absolutos que chegaram a superar 300 interrupções em dias individuais.
+
+O El Niño 2023 foi classificado pelo Centro de Previsão de Tempo e Estudos Climáticos (CPTEC/INPE) como um evento de forte intensidade, com anomalias de temperatura da superfície do mar (TSM) no Oceano Pacífico Equatorial superiores a $+2{,}0$ °C. No Centro-Oeste brasileiro, os efeitos incluíram: (i) intensificação das linhas de instabilidade convectiva, com tempestades mais violentas e concentradas; (ii) aumento da temperatura média, elevando o estresse térmico sobre transformadores; e (iii) alteração dos padrões de direção do vento, com aumento de ventos de noroeste associados a sistemas convectivos de mesoescala \cite{marengo2024impactos}.
+
+O conjunto de treinamento (janeiro/2017 a maio/2024) inclui integralmente o período do El Niño forte de 2023--2024, o que permite que os modelos aprendam padrões associados a esse tipo de evento extremo. Contudo, trata-se de um único episódio de forte intensidade na série histórica, o que limita a capacidade de generalização para futuros eventos ENSO de intensidade similar ou superior. Essa limitação poderia ser mitigada com a inclusão de dados de períodos anteriores (El Niño 2015--2016) ou com a incorporação explícita de índices ENSO (como o Oceanic Niño Index --- ONI) como \textit{feature} de entrada.
+
+Embora o período do El Niño 2023 integre o conjunto de treinamento (anterior ao corte em junho/2024), sua presença como evento singular de forte intensidade na série levanta uma questão relevante sobre generalização: caso futuros eventos ENSO de intensidade similar ocorram durante o período de previsão, os modelos terão aprendido com apenas um exemplar desse tipo de anomalia. A incorporação de teleconexões climáticas --- como o Oceanic Niño Index (ONI) --- e de dados de períodos anteriores (El Niño 2015--2016) emerge como uma direção promissora para aumentar a robustez dos modelos preditivos perante perturbações climáticas de larga escala.
+
+\section{Reflexão sobre a Escolha Metodológica: Engenharia Manual vs. Automática}
+
+Uma reflexão metodológica importante emerge da comparação entre o XGBoost e as redes recorrentes: a \textbf{engenharia de atributos manual} (41 \textit{features} explicitamente construídas com conhecimento de domínio) não apenas igualou, mas superou a capacidade de \textbf{extração automática de representações} das RNNs. Esse resultado dialoga com o debate mais amplo na comunidade de \textit{Machine Learning} sobre a relação entre investimento em engenharia de dados versus complexidade arquitetural.
+
+O sucesso do XGBoost com \textit{features} manuais pode ser atribuído ao tamanho modesto do conjunto de dados (3.058 dias após engenharia de atributos). Em regimes de dados abundantes (milhões de observações), as redes neurais profundas tipicamente superam modelos tabulares ao extrair automaticamente representações hierárquicas que transcendem a capacidade de engenharia humana \cite{goodfellow2016deep}. Contudo, em regimes de dados escassos --- comuns em aplicações de engenharia elétrica onde séries históricas longas nem sempre estão disponíveis --- o conhecimento de domínio codificado em \textit{features} manuais compensa a limitação amostral.
+
+Essa evidência sugere que, para concessionárias brasileiras que desejem implementar modelos preditivos com dados históricos limitados ($<$10.000 dias), a abordagem recomendada é investir primariamente na engenharia de atributos informada por conhecimento de domínio (defasagens, médias móveis, codificações sazonais) e utilizar modelos tabulares robustos (XGBoost, LightGBM), reservando as redes neurais profundas para cenários onde dados abundantes e de alta resolução temporal estejam disponíveis.

@@ -12,9 +12,11 @@
 \usepackage{lscape}
 \usepackage{pdflscape}
 
+\usepackage{float}% para posicionamento fixo [H] de tabelas e figuras
 \usepackage{pdfpages}% incluir PDFs, usado no apêndice
 \usepackage{booktabs}% para tabelas profissionais com \toprule e \midrule
 \usepackage{longtable}% para tabelas extensas que quebram página
+\usepackage{tabularx}% para tabelas com largura automática
 \usepackage{xurl}% quebra URLs agressivamente em qualquer caractere
 \usepackage{amsfonts}% for mathbb
 \usepackage{tikz}
@@ -30,7 +32,23 @@
   showstringspaces=false,
   numbers=left,
   numberstyle=\tiny\color{gray},
-  frame=lines
+  frame=lines,
+  extendedchars=true,
+  literate=
+    {ã}{{\~{a}}}1 {Ã}{{\~{A}}}1
+    {é}{{\'e}}1   {É}{{\'E}}1
+    {ê}{{\^e}}1   {Ê}{{\^E}}1
+    {á}{{\'a}}1   {Á}{{\'A}}1
+    {à}{{\`a}}1   {À}{{\`A}}1
+    {â}{{\^a}}1   {Â}{{\^A}}1
+    {ó}{{\'o}}1   {Ó}{{\'O}}1
+    {ô}{{\^o}}1   {Ô}{{\^O}}1
+    {õ}{{\~o}}1   {Õ}{{\~O}}1
+    {ú}{{\'u}}1   {Ú}{{\'U}}1
+    {í}{{\'i}}1   {Í}{{\'I}}1
+    {ç}{{\c{c}}}1 {Ç}{{\c{C}}}1
+    {—}{{---}}1
+    {─}{{-}}1
 }
 
 \makeglossaries
@@ -49,10 +67,10 @@
 \membrobanca{\prof \dr Donald Knuth}{Stanford University}%
 \membrobanca{\dr Leslie Lamport}{Microsoft Research}%
 
-\autor{Mateus Gomes de}{Araújo}%
-\coautor{Giovanni Minari}{Zanetti}%
+\autor{Giovanni Minari}{Zanetti}%
+\coautor{Mateus Gomes de}{Araújo}%
 
-\titulo{Modelagem Preditiva de Falhas na Rede Elétrica do Distrito Federal: Um Estudo Comparativo entre XGBoost e Redes Neurais Recorrentes Bidirecionais}%
+\titulo{Predição de Interrupções no Fornecimento de Energia Elétrica no Distrito Federal: Um Estudo Comparativo entre XGBoost e Redes Neurais Recorrentes Bidirecionais}%
 
 \palavraschave{Aprendizado de Máquina, Inteligência Artificial, Redes Neurais Recorrentes, Interrupções de Energia, Climatologia, XGBoost, Séries Temporais}%
 \keywords{Machine Learning, Artificial Intelligence, Recurrent Neural Networks, Power Outages, Climatology, XGBoost, Time Series}%
@@ -67,7 +85,7 @@
     \capitulo{2_FundamentacaoTeorica}{Fundamentação Teórica}%
     \capitulo{3_Metodologia}{Metodologia}%
     \capitulo{4_Resultados}{Resultados}%
-    \capitulo{5_Discussao}{Engenharia de Features Temporais e Autocorrelação}%
+    \capitulo{5_Discussao}{Discussão}%
     \capitulo{6_Conclusao}{Conclusão}%
 
 % APÊNDICES

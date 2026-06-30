@@ -1,26 +1,49 @@
-Este apêndice documenta o código-fonte desenvolvido em \textit{Python} para o trâmite das engenharias de atributos e do processamento das arquiteturas de \textit{Deep Learning} baseadas na biblioteca \textit{PyTorch}. Os roteiros foram particionados conforme o ciclo do aprendizado.
+Este apêndice documenta o código-fonte desenvolvido em \textit{Python} para a engenharia de atributos e o treinamento das arquiteturas de \textit{Deep Learning} baseadas na biblioteca \textit{PyTorch}. Os scripts foram organizados conforme as etapas do \textit{pipeline} e estão disponíveis no diretório \texttt{Fonte/src/} do código-fonte anexado a este trabalho.
 
-\section{Configuração do \textit{DataLoader} e Normalização (PyTorch)}
-A rotina \texttt{TimeSeriesDataset} engendra o formato de redimensionamento da janela temporal para acomodar o hiper-parâmetro $Lookback$, construindo o arcabouço para o *Backpropagation* sobre as 42 *Features*.
+\section{Configuração do DataLoader e Normalização}
+A função \texttt{prepare\_data\_dl} carrega o \textit{dataset}, aplica a normalização \texttt{MinMaxScaler} ajustada exclusivamente nos dados de treinamento, e a função auxiliar \texttt{create\_sequences} transforma a série temporal em janelas deslizantes de tamanho $L = 14$ (\textit{lookback}), gerando tensores tridimensionais $(B \times L \times F)$ compatíveis com as camadas recorrentes do PyTorch.
 
-\lstinputlisting[language=Python, caption={Extrato do Preparador de Dados (data\_loader\_dl.py)}, label={lst:dataloader}]{../Fonte/src/models/data_loader_dl.py}
+\lstinputlisting[language=Python, caption={Preparador de Dados (data\_loader\_dl.py)}, label={lst:dataloader}]{../Fonte/src/models/data_loader_dl.py}
 
 \section{Rede Recorrente Bidirecional (LSTM-Bi)}
-A implementação física da arquitetura baseada em canais duplos de memória (LSTM) e portas de esquecimento (Forget Gates), suprimindo ruídos atípicos de tempestades do DF mediante Dropout estático e \textit{Gradient Clipping}.
+Implementação da arquitetura Bi-LSTM com processamento bidirecional e portas de esquecimento (\textit{Forget Gates}), utilizando Dropout ($p = 0{,}4$) e otimizador AdamW com \textit{Weight Decay} ($\lambda = 10^{-4}$) para regularização. O treinamento aplica \texttt{ReduceLROnPlateau} como \textit{learning rate scheduler} e \textit{gradient clipping} ($\|\nabla\| \leq 1{,}0$) para mitigar a explosão do gradiente característica de redes recorrentes profundas.
 
 \lstinputlisting[language=Python, caption={Modelo Completo LSTM (lstm\_bidirecional.py)}, label={lst:lstm}]{../Fonte/src/models/lstm_bidirecional.py}
 
-\section{Rede Gated Recurrent Unit Expandida (GRU)}
-Arquitetura paralela de \textit{Deep Learning} baseada em Gated Recurrent Units, focada em otimização do Gradiente Descendente através da eliminação da célula de estado ($C_t$), resultando numa convergência métrica ligeiramente mais instável perante El Niño, porém computacionalmente ágil.
+\section{Rede Gated Recurrent Unit Bidirecional (GRU-Bi)}
+Arquitetura alternativa baseada em \textit{Gated Recurrent Units}, que simplifica a LSTM ao eliminar a célula de estado ($C_t$) separada. Reaproveita as funções utilitárias \texttt{reverse\_scaling} e \texttt{plot\_loss} do módulo Bi-LSTM, e a função genérica \texttt{evaluate\_and\_plot} do módulo XGBoost para padronizar a avaliação e a geração de gráficos. Aplica \texttt{ReduceLROnPlateau} como \textit{scheduler} e \textit{gradient clipping} idêntico ao da Bi-LSTM.
 
 \lstinputlisting[language=Python, caption={Modelo Completo GRU (gru\_avancada.py)}, label={lst:gru}]{../Fonte/src/models/gru_avancada.py}
 
-\section{Motor de Árvores de Decisão Extremo (XGBoost)}
-O modelo *Baseline* orquestrado via \textit{eXtreme Gradient Boosting}, implementando nativamente a sintonia heurística (\textit{Grid Search}) no espaço parametrizado $\mathcal{H}_{xgb} = \{\eta \times \gamma \times \text{Depth} \times \text{ChildWeight}\}$.
+\section{Modelo XGBoost (\textit{Gradient Boosting})}
+Implementação do XGBoost com hiperparâmetros pré-selecionados após uma fase exploratória de \textit{Grid Search} sobre \texttt{TimeSeriesSplit} (5 \textit{folds}): $n\_estimators = 500$, $learning\_rate = 0{,}05$, $max\_depth = 6$, $subsample = 0{,}8$ e $colsample\_bytree = 0{,}8$, com \texttt{random\_state} fixado em 42 para reprodutibilidade. O módulo também define a função genérica \texttt{evaluate\_and\_plot}, reutilizada pelos modelos Bi-LSTM e Bi-GRU.
 
 \lstinputlisting[language=Python, caption={Rotina do XGBoost (baseline\_xgboost.py)}, label={lst:xgboost}]{../Fonte/src/models/baseline_xgboost.py}
 
-\section{Gerador Estocástico de Gráficos de Diagnóstico}
-Algoritmo de *Data Science* puro responsável pela compilação visual do comportamento multivariado dos erros (*Density KDE* e Zoom de Anomalia), essencial para a exploração heteroscedástica das tempestades.
+\section{Pipeline de Análise Exploratória (EDA)}
+Script responsável pela execução automatizada da análise exploratória dos dados, incluindo a geração da matriz de correlação de Pearson, diagramas de dispersão vento--interrupções e \textit{boxplots} de sazonalidade mensal.
 
-\lstinputlisting[language=Python, caption={Gerador Dinâmico de Distribuições (advanced\_plots.py)}, label={lst:plots}]{../Fonte/src/models/advanced_plots.py}
+\lstinputlisting[language=Python, caption={Pipeline de Exploração (script\_exploration\_pipeline.py)}, label={lst:eda}]{../Fonte/src/models/script_exploration_pipeline.py}
+
+\section{Gerador de Gráficos de Diagnóstico}
+Script responsável pela geração dos gráficos comparativos de análise residual: distribuição KDE dos resíduos dos três modelos, recorte temporal de anomalia (El Niño 2023) e dispersão de heteroscedasticidade (erro absoluto vs.\ volume real). Consome os arquivos \texttt{predictions\_*.csv} produzidos por cada modelo durante a avaliação.
+
+\lstinputlisting[language=Python, caption={Gerador de Gráficos (advanced\_plots.py)}, label={lst:plots}]{../Fonte/src/models/advanced_plots.py}
+
+\section{Previsão Multi-Horizonte}
+Script que implementa a avaliação dos três modelos nos horizontes de 1, 3, 7 e 14 dias (\texttt{Fonte/src/models/previsao\_multihorizonte.py}). Para o XGBoost, utiliza previsão direta com as \textit{features} pré-computadas de cada dia. Para Bi-LSTM e Bi-GRU, aplica a estratégia recursiva auto-regressiva: a previsão de $t+k$ é obtida alimentando a estimativa de $t+k-1$ de volta para a janela de entrada, acumulando os erros progressivamente. Os modelos são treinados uma única vez sobre os 3.044 dias anteriores ao período de avaliação de 14 dias. A listagem completa integra o pacote de código-fonte entregue.
+
+\section{Geração dos Gráficos Multi-Horizonte}
+Script complementar (\texttt{Fonte/src/models/plot\_multihorizonte.py}) que regenera os gráficos de degradação do erro (MAE e RMSE) por horizonte de previsão a partir do arquivo \texttt{previsao\_multihorizonte\_metricas.csv}, sem necessidade de re-executar os modelos. Produz três figuras: degradação do MAE com anotações manuais, degradação do RMSE e painel duplo MAE/RMSE. A listagem completa integra o pacote de código-fonte entregue.
+
+\section{Scripts Complementares de Análise Exploratória}
+Em complemento aos seis módulos acima, o diretório \texttt{Fonte/src/} contém quatro scripts dedicados à análise exploratória dos dados e à engenharia de atributos, cujo conteúdo é descrito no Capítulo~\ref{3_Metodologia} e no Capítulo~\ref{4_Resultados}:
+
+\begin{itemize}
+    \item \texttt{01\_eda\_sazonalidade.py}: decomposição STL aditiva e funções de autocorrelação (ACF/PACF) sobre a série diária de interrupções e precipitação.
+    \item \texttt{02\_correlacoes\_nao\_lineares.py}: matrizes de correlação de Spearman e Kendall e correlogramas cruzados (\textit{cross-correlation}) entre variáveis climáticas e interrupções.
+    \item \texttt{03\_feature\_engineering.py}: construção do \textit{dataset} final (\texttt{dataset\_engenharia\_features.csv}) a partir da base diária consolidada, aplicando defasagens, médias móveis exponenciais (EMA), desvio-padrão móvel e features cíclicas de calendário.
+    \item \texttt{04\_eda\_basica.py}: geração da série temporal completa, distribuição estatística, evolução anual, comparação multi-escala de correlações e \textit{violin plot} térmico por tercis de severidade.
+\end{itemize}
+
+A listagem completa desses scripts foi omitida deste apêndice por concisão, mas integra o pacote de código-fonte entregue.

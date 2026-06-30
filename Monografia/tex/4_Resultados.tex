@@ -1,60 +1,259 @@
-Este capítulo compila os resultados provenientes da correlação de interrupções diárias (e suas agregações) com clima e consumo e a avaliação quantitativa da estratégia de predição do modelo base (\textit{baseline}) e os modelos de aprendizagem profunda (\textit{Deep Learning}).
+Este capítulo compila os resultados provenientes da análise exploratória dos dados, das correlações estatísticas em múltiplas escalas temporais, da decomposição das séries temporais e da avaliação quantitativa dos modelos preditivos (XGBoost, Bi-LSTM e Bi-GRU).
 
-\section{Análises Causais e Estatísticas (Pearson)}\label{sec:pearson}
+\section{Visão Geral da Série Temporal}\label{sec:visao_geral}
 
-As observações foram categorizadas pelos estratos semanais e mensais. Revelou-se que o impacto climático na taxa de incidentes acentua seu viés nas agregações amplas. 
+A Figura~\ref{fig:serie_completa} apresenta a série temporal completa de interrupções diárias na Neoenergia Brasília ao longo dos 3.073 dias analisados, sobreposta à sua média móvel de 30 dias (SMA-30). A linha vertical tracejada indica o corte temporal entre os conjuntos de treinamento e teste (01/06/2024).
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{img/serie_temporal_completa.png}
+    \caption{Série temporal completa de interrupções diárias (cinza) com suavização SMA-30 (vermelho) e corte treino/teste (tracejado). Período: janeiro/2017 a maio/2025.}
+    \small{Fonte: Elaborado pelos autores a partir dos dados da ANEEL (2026).}
+    \label{fig:serie_completa}
+\end{figure}
+
+Observam-se dois padrões imediatos: (i) uma \textbf{tendência de crescimento} secular, com a SMA-30 ascendendo de $\sim$180 interrupções/dia em 2017 para $\sim$300 em 2024--2025; e (ii) uma \textbf{sazonalidade marcante}, com picos recorrentes entre outubro e março (estação chuvosa do Cerrado) e vales entre maio e agosto (estação seca). A amplitude sazonal também cresceu ao longo do tempo: os picos de verão de 2021--2024 excedem consistentemente 600 interrupções/dia, patamar raramente atingido em 2017--2018.
+
+A Figura~\ref{fig:evolucao_anual} ilustra a evolução anual das interrupções médias diárias com barras de desvio padrão, confirmando quantitativamente o crescimento de 65,3\% na média entre 2017 (183,5) e 2025 (303,4).
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{img/evolucao_anual_interrupcoes.png}
+    \caption{Evolução anual da média diária de interrupções ($\pm$ desvio padrão). Barras azuis: período de treinamento; barras vermelhas: período que inclui dados de teste.}
+    \small{Fonte: Elaborado pelos autores (2026).}
+    \label{fig:evolucao_anual}
+\end{figure}
+
+\subsection{Decomposição STL da Série de Interrupções}
+
+Para isolar formalmente as componentes de tendência, sazonalidade e resíduo, aplicou-se a decomposição STL (\textit{Seasonal and Trend decomposition using Loess}) à série diária de interrupções \cite{hyndman2018forecasting} (Figura~\ref{fig:decomposicao}). A decomposição confirma: (i) uma tendência monotonicamente crescente a partir de 2020; (ii) um ciclo sazonal anual com amplitude de $\sim$100 interrupções entre o vale (inverno seco) e o pico (verão chuvoso); e (iii) resíduos com variância heterogênea, mais acentuada nos anos recentes, refletindo a crescente imprevisibilidade dos eventos extremos.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.90\textwidth]{img/decomposicao_interrupcoes.png}
+    \caption{Decomposição STL da série diária de interrupções em componentes de tendência, sazonalidade e resíduo.}
+    \small{Fonte: Elaborado pelos autores (2026).}
+    \label{fig:decomposicao}
+\end{figure}
+
+\subsection{Distribuição Estatística das Interrupções}
+
+A Figura~\ref{fig:distribuicao} apresenta o histograma e a estimativa de densidade kernel (KDE) das interrupções diárias. A distribuição é nitidamente assimétrica positiva (cauda longa à direita), com média (243,6) superior à mediana (219), indicando que eventos extremos inflacionam a média. A moda situa-se em torno de 160--180 interrupções, representando o ``dia típico'' do sistema durante a estação seca.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{img/distribuicao_interrupcoes.png}
+    \caption{Distribuição das interrupções diárias: histograma com KDE, média (preta) e mediana (verde).}
+    \small{Fonte: Elaborado pelos autores (2026).}
+    \label{fig:distribuicao}
+\end{figure}
+
+\section{Autocorrelação e Dependência Temporal}\label{sec:autocorrelacao}
+
+A Função de Autocorrelação (ACF) da série de interrupções \cite{box2015time} (Figura~\ref{fig:acf_interrupcoes}) evidencia a presença de dependência temporal significativa. Os coeficientes de autocorrelação mantêm-se estatisticamente significativos (acima do intervalo de confiança de 95\%) até defasagens superiores a 14 dias, com destaque para o pico em $k=7$ (padrão semanal) e o decaimento gradual até $k=14$. Essa evidência empírica fundamenta diretamente a escolha do \textit{Lookback Window} de 14 dias adotado nas redes recorrentes.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{img/autocorrelacao_interrupcoes.png}
+    \caption{Função de Autocorrelação (ACF) da série diária de interrupções, evidenciando dependência temporal significativa até 14+ dias.}
+    \small{Fonte: Elaborado pelos autores (2026).}
+    \label{fig:acf_interrupcoes}
+\end{figure}
+
+\subsection{Correlação Cruzada com Variáveis Climáticas}
+
+A correlação cruzada (\textit{Cross-Correlation}) permite identificar a defasagem temporal ótima entre uma variável climática e as interrupções. As Figuras~\ref{fig:cross_chuva} e~\ref{fig:cross_vento} apresentam os correlogramas cruzados para precipitação e vento, respectivamente.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{img/cross_corr_chuva_interrupcoes.png}
+    \caption{Correlação cruzada entre precipitação diária e interrupções. O pico em $k=0$ indica efeito predominantemente instantâneo da chuva sobre as falhas.}
+    \small{Fonte: Elaborado pelos autores (2026).}
+    \label{fig:cross_chuva}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{img/cross_corr_vento_interrupcoes.png}
+    \caption{Correlação cruzada entre rajada máxima de vento e interrupções. Observa-se correlação significativa em $k=0$ (efeito imediato da rajada) com decaimento nos dias subsequentes.}
+    \small{Fonte: Elaborado pelos autores (2026).}
+    \label{fig:cross_vento}
+\end{figure}
+
+A precipitação apresenta pico de correlação cruzada em $k=0$ (efeito no mesmo dia), enquanto o vento exibe correlação máxima igualmente em $k=0$, porém com persistência significativa em $k=1$ e $k=2$, indicando que o dano mecânico causado por rajadas pode manifestar-se como interrupção até dois dias depois (árvores parcialmente tombadas que completam a queda posteriormente, ou condutores danificados que rompem sob estresse residual).
+
+\section{Análises de Correlação Multivariada}\label{sec:pearson}
+
+\subsection{Correlação de Pearson por Escala Temporal}
+
+As correlações entre interrupções e variáveis climáticas foram calculadas em três escalas temporais (diária, semanal e mensal). A Tabela~\ref{tab:correlacoes} e a Figura~\ref{fig:corr_escala} sintetizam os resultados.
+
+\begin{table}[H]
+\caption{Correlação de Pearson entre Interrupções e Variáveis Climáticas por Escala Temporal}
+\label{tab:correlacoes}
+\begin{center}
+\small
+\begin{tabular}{lccc}
+\toprule
+\textbf{Variável} & \textbf{Diário} & \textbf{Semanal} & \textbf{Mensal} \\
+\midrule
+Direção Média do Vento (°) & 0,366 & 0,496 & 0,588 \\
+Precipitação Total (mm) & 0,347 & 0,477 & 0,539 \\
+Consumo Total (kWh) & --- & --- & 0,476 \\
+Rajada Máxima (m/s) & 0,253 & 0,340 & 0,379 \\
+Temperatura Média (°C) & 0,102 & --- & 0,394 \\
+Vel. Média do Vento (m/s) & $-$0,194 & $-$0,314 & $-$0,364 \\
+\bottomrule
+\end{tabular}
+\normalsize
+\end{center}
+\small{Fonte: Calculado pelos autores com dados do INMET e ANEEL (2026).}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.90\textwidth]{img/correlacoes_escala_temporal.png}
+    \caption{Correlação de Pearson entre interrupções e variáveis climáticas em três escalas temporais. A agregação temporal amplifica consistentemente a força da correlação.}
+    \small{Fonte: Elaborado pelos autores (2026).}
+    \label{fig:corr_escala}
+\end{figure}
+
+Três achados emergem da análise:
 \begin{enumerate}
-    \item \textbf{Precipitação:} Verifica-se um crescimento evidente do Coeficiente de Pearson na proporção diário ($r \approx 0,35$), evoluindo ao passo semanal ($r \approx 0,48$) e se concretizando em máxima na frequência mensal ($r \approx 0,54$).  Isso sugere que em escalas amplas a maior probabilidade de tempo chuvoso coincide majoritariamente com os déficits de funcionalidade das linhas de eletricidade da concessionária.
-    \item \textbf{Aspectos Eólicos (Vento)} A direção média do Vento sobressaiu na averiguação consolidada e filtrada (dados do INMET), sendo avaliada sua correlação significante frente as falhas: Perfil semanal ($r \approx 0,50$) e expressiva aderência no mensal ($r \approx 0,59$).  A influência de deslocamentos fortes direacionais se tornou, junto a Precipitação, uma variável altamente descritiva dos incidentes do equipamento público.
-    \item \textbf{Consumo x Temperatura x Falhas:} No tocante ao Consumo na amostra analítica mensal, identificou-se que as interrupções guardam paridade visível frente aos aumentos de fornecimento da distribuidora ($r \approx 0,48$). Mês com excedente no volume (kWh) impõe severo estresse ao maquinário termodinâmico, possivelmente exacerbado pela associação \textit{moderada-alta} e positiva com o aquecimento das temperaturas médias ($r \approx 0,56$). Esta métrica comprova matematicamente que eventos climáticos severos continuam repercutindo na rede elétrica por dias após sua ocorrência (efeito chicote temporal).
+    \item \textbf{Amplificação pela agregação:} Todas as correlações intensificam-se na transição do diário para o semanal e para o mensal. A precipitação cresce de $r = 0{,}35$ (diário) para $r = 0{,}54$ (mensal), indicando que o efeito acumulado das chuvas ao longo do mês é mais determinante para a taxa de falhas do que eventos pontuais isolados.
+    \item \textbf{Direção do vento como preditor:} A direção média do vento ($r = 0{,}59$ mensal) superou todas as demais variáveis, incluindo a precipitação. Esse resultado reflete o fato de que ventos oriundos de direções específicas (noroeste, associados a frentes convectivas) carregam consigo chuva, temperatura e turbulência simultaneamente, atuando como indicador integrado de tempestade.
+    \item \textbf{Consumo e temperatura:} A correlação mensal entre consumo e temperatura ($r = 0{,}56$) confirma o mecanismo termodinâmico: meses mais quentes elevam o uso de climatização, sobrecarregando transformadores já estressados pelo calor ambiente ($r = 0{,}39$ entre temperatura e interrupções no nível mensal).
 \end{enumerate}
 
+\subsection{Relação Precipitação--Interrupções em Escala Semanal e Mensal}
+
+As Figuras~\ref{fig:precip_semanal} e~\ref{fig:precip_mensal} detalham a relação entre precipitação acumulada e total de interrupções nas escalas semanal e mensal, respectivamente. Observa-se que a relação é aproximadamente linear até volumes moderados de chuva, porém exibe saturação nos extremos: semanas com precipitação acima de 80 mm não necessariamente produzem mais interrupções do que semanas com 50--80 mm, sugerindo que fatores adicionais (intensidade horária das chuvas, presença simultânea de vento) modulam o efeito.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{img/interrupcoes_vs_precipitacao_semanal.png}
+    \caption{Interrupções semanais vs. precipitação acumulada semanal (mm).}
+    \small{Fonte: Elaborado pelos autores (2026).}
+    \label{fig:precip_semanal}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{img/interrupcoes_vs_precipitacao_mensal.png}
+    \caption{Interrupções mensais vs. precipitação acumulada mensal (mm).}
+    \small{Fonte: Elaborado pelos autores (2026).}
+    \label{fig:precip_mensal}
+\end{figure}
+
+\subsection{Relação Vento--Interrupções e Consumo--Interrupções}
+
+A Figura~\ref{fig:vento_diario} apresenta a relação diária entre rajada máxima de vento e interrupções. A dispersão evidencia que rajadas superiores a 15 m/s estão consistentemente associadas a dias com mais de 300 interrupções, confirmando a relação quadrática prevista pela equação da Força de Arrasto Aerodinâmico ($F_D \propto v^2$) discutida na Fundamentação Teórica.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{img/diario_interrupcoes_vs_rajada_max.png}
+    \caption{Interrupções diárias vs. rajada máxima de vento (m/s). Dias com rajadas $>15$ m/s concentram os maiores volumes de falhas.}
+    \small{Fonte: Elaborado pelos autores (2026).}
+    \label{fig:vento_diario}
+\end{figure}
+
+A Figura~\ref{fig:scatter_consumo} revela a associação mensal entre consumo de energia e interrupções, colorida por ano. A tendência positiva ($r = 0{,}48$) reflete o mecanismo de sobrecarga: meses de alto consumo (verão, com uso intensivo de ar-condicionado) coincidem com meses de alta temperatura e alta precipitação, criando um cenário de tripla pressão sobre a infraestrutura.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{img/scatter_consumo_vs_interrupcoes_por_ano.png}
+    \caption{Dispersão mensal: consumo de energia (kWh) vs. interrupções, colorido por ano. A tendência positiva reflete o estresse térmico-elétrico combinado.}
+    \small{Fonte: Elaborado pelos autores (2026).}
+    \label{fig:scatter_consumo}
+\end{figure}
+
+\subsection{Correlação Não-Linear de Spearman}
+
+A correlação de Pearson captura exclusivamente associações lineares. Para verificar a presença de relações monotônicas não-lineares entre as variáveis climáticas e as interrupções, computou-se adicionalmente a correlação de postos de Spearman ($\rho_s$). A Figura~\ref{fig:spearman} apresenta a matriz de correlação de Spearman para as variáveis primárias em escala diária.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.80\textwidth]{img/correlacao_spearman.png}
+    \caption{Matriz de correlação de Spearman ($\rho_s$) entre as variáveis climáticas e interrupções em escala diária. Spearman captura relações monotônicas não-lineares.}
+    \small{Fonte: Elaborado pelos autores (2026).}
+    \label{fig:spearman}
+\end{figure}
+
+Os coeficientes de Spearman são consistentemente superiores aos de Pearson para a maioria dos pares de variáveis, confirmando a presença de componentes não-lineares na relação clima--falhas. Essa evidência reforça a adequação de modelos não-lineares (XGBoost, LSTM, GRU) em detrimento de abordagens puramente lineares (regressão múltipla) para este problema.
+
+\subsection{Relação Temperatura--Consumo}
+
+A Figura~\ref{fig:temp_consumo} evidencia a associação mensal entre temperatura média e consumo total de energia no Distrito Federal. A correlação positiva ($r = 0{,}56$) reflete o uso intensivo de sistemas de climatização (ar-condicionado) nos meses mais quentes, elevando a carga nos transformadores de distribuição.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{img/scatter_temperatura_vs_consumo_por_ano.png}
+    \caption{Dispersão mensal: temperatura média (°C) vs. consumo total de energia (kWh), colorido por ano. A tendência positiva confirma o mecanismo de sobrecarga térmica.}
+    \small{Fonte: Elaborado pelos autores (2026).}
+    \label{fig:temp_consumo}
+\end{figure}
+
+Esse achado possui relevância operacional direta: nos meses de verão, a combinação de alta temperatura ambiente (que reduz a capacidade de dissipação térmica dos transformadores), alta carga elétrica (que eleva a geração interna de calor via Efeito Joule) e eventos convectivos frequentes (chuvas e ventos) configura um cenário de tripla pressão sobre a infraestrutura da Neoenergia Brasília.
+
+\subsection{Rajada Máxima Mensal e Interrupções}
+
+A Figura~\ref{fig:rajada_mensal} apresenta a relação entre a rajada máxima mensal e o total de interrupções no mês, complementando a análise diária com uma visão agregada que suaviza a variabilidade pontual.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{img/mensal_interrupcoes_vs_rajada_max.png}
+    \caption{Interrupções mensais vs. rajada máxima mensal de vento (m/s). A correlação mensal ($r = 0{,}38$) confirma o impacto persistente do vento sobre a rede.}
+    \small{Fonte: Elaborado pelos autores (2026).}
+    \label{fig:rajada_mensal}
+\end{figure}
+
 \section{Análise Exploratória de Dados (EDA) e Distribuição Sazonal}
-Para compreender a assimetria multivariável das tempestades que assolam o Distrito Federal, procedeu-se com uma Análise Exploratória de Dados (EDA) visual utilizando as bibliotecas \textit{Seaborn} e \textit{Matplotlib}. O intuito primário desta etapa estatística é evidenciar como o desvio padrão das quedas de energia reage agudamente a limiares não lineares de vento e precipitação.
+Para compreender as relações multivariadas entre as condições climáticas e as interrupções no Distrito Federal, realizou-se uma Análise Exploratória de Dados (EDA) utilizando as bibliotecas \textit{Seaborn} e \textit{Matplotlib}. O objetivo desta etapa é identificar visualmente como a variabilidade das interrupções responde a diferentes faixas de vento e precipitação.
 
 A Figura~\ref{fig:eda_boxplot} ilustra a sazonalidade através de \textit{Boxplots} mensais. Percebe-se claramente que o verão brasiliense (dezembro a março) concentra não apenas a maior mediana de distúrbios, mas também hospeda os \textit{outliers} mais severos da rede (representados pelos losangos dispersos acima das hastes superiores do quartil).
 
-\begin{figure}[htb]
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.85\textwidth]{./img/eda_boxplot_sazonalidade.png}
     \caption{Distribuição Sazonal e \textit{Outliers} de Interrupções por Mês (2017-2025)}
     \label{fig:eda_boxplot}
 \end{figure}
 
-Para mitigar a maldição da dimensionalidade antes de retroalimentar tensores de Redes Neurais, o mapa de calor (\textit{Heatmap}) da Equação de Pearson Linear (Figura~\ref{fig:eda_heatmap}) consolida a força vetorial $T=0$. A interação termodinâmica entre vento precipitado e interrupções cristaliza-se em vetores amarelados/avermelhados, justificando empiricamente o expurgo de variáveis nulas do escopo matricial da concessionária ANEEL.
+Para identificar relações lineares entre as variáveis e detectar multicolinearidade, a matriz de correlação de Pearson (Figura~\ref{fig:eda_heatmap}) apresenta os coeficientes de correlação entre todas as variáveis do conjunto de dados \cite{hastie2009elements}. Os coeficientes mais elevados (representados por cores quentes) entre variáveis climáticas e interrupções confirmam a relevância dessas covariáveis para a modelagem preditiva, enquanto correlações próximas de zero justificam a exclusão de variáveis com baixo poder preditivo.
 
-\begin{figure}[htb]
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.75\textwidth]{./img/eda_heatmap_pearson.png}
     \caption{Matriz de Associação e Multicolinearidade (Coeficiente de Pearson)}
     \label{fig:eda_heatmap}
 \end{figure}
 
-Extrapolando a métrica linear, a Figura~\ref{fig:eda_scatter} expõe a vulnerabilidade mecânica estrutural das torres de transmissão e chaves fusíveis perante a Força de Arrasto Aerodinâmico. O gráfico de dispersão ratifica que, à medida que os nós atmosféricos (m/s) superam o patamar tolerável ($>8$ m/s), impulsionados por pesados lençóis freáticos (círculos expansivos), ocorre uma detonação exponencial de defeitos simultâneos na rede, colapsando a topologia de religadores automáticos operados em falha.
+A Figura~\ref{fig:eda_scatter} evidencia a relação entre a velocidade do vento e as interrupções, com os pontos dimensionados proporcionalmente à precipitação acumulada no dia. Observa-se que, à medida que a rajada máxima supera $8$ m/s, o número de interrupções cresce de forma acentuada, especialmente quando acompanhado de precipitação elevada (círculos maiores). Essa interação sinérgica entre vento e chuva --- típica das tempestades convectivas do Cerrado --- amplifica o risco de falhas na rede de distribuição.
 
-\begin{figure}[htb]
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.85\textwidth]{./img/eda_scatter_ventos.png}
     \caption{Impacto Multivariado Expandido: Arrasto Eólico vs Quedas Operacionais}
     \label{fig:eda_scatter}
 \end{figure}
 
-Por fim, cruzando a severidade puramente técnica da rede com os patamares térmicos da capital (Figura~\ref{fig:eda_violin}), o Gráfico de Violino comprova a densidade bimodal durante colapsos estressantes. Dias rotulados como "Caos Severo" detêm as cinturas termométricas mais alargadas, significando que as cristas de onda de calor extremas dilapidam os isoladores dos postes antes da chuva ocorrer.
+A Figura~\ref{fig:eda_violin} apresenta a distribuição da temperatura média diária agrupada por tercis de severidade das interrupções (baixa, média e severa). As medianas térmicas das três faixas situam-se em torno de 21--22\,°C e as larguras dos violinos são comparáveis, indicando que, em escala diária, a temperatura por si só não distingue de forma robusta dias de baixa e alta carga de falhas. Esse resultado refina a leitura do mecanismo termodinâmico discutido na Seção~\ref{sec:fisica_atmosferica}: a dilatação térmica dos condutores opera predominantemente de forma indireta --- via amplificação do consumo (correlação $r = 0{,}56$ temperatura--consumo) e em interação com vento e chuva --- e não como gatilho isolado em escala diária.
 
-\begin{figure}[htb]
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.85\textwidth]{./img/eda_violin_anomalias.png}
-    \caption{Distribuição Bimodal Térmica sobre os Estratos de Severidade da Rede}
+    \caption{Distribuição da temperatura média diária por tercis de severidade das interrupções.}
+    \small{Fonte: Elaborado pelos autores (2026).}
     \label{fig:eda_violin}
 \end{figure}
 
 \section{Performance dos Modelos Preditivos}\label{sec:modelos}
-A inferência na série temporal diária de interrupções exigiu uma abordagem experimental robusta, isolando rigorosamente o conjunto de teste (os últimos 365 dias de dados contínuos) e pré-processando 42 atributos climáticos avançados, incluindo médias móveis exponenciais (EMA) e defasagens (\textit{Lags}) temporais.
+A avaliação preditiva na série temporal diária de interrupções seguiu o protocolo de separação temporal estrita descrito na Seção~\ref{sec:protocolo_validacao}, isolando rigorosamente os últimos 365 dias como conjunto de teste e utilizando 41 atributos climáticos e temporais, incluindo médias móveis exponenciais (EMA) e defasagens (\textit{Lags}).
 
-Para comprovar a superioridade do aprendizado profundo, implementamos três arquiteturas distintas: um modelo clássico de árvores baseadas em gradiente (XGBoost) como \textit{baseline} de alto rendimento, e duas arquiteturas de Deep Learning avançadas: \textit{Bidirectional Long Short-Term Memory} (Bi-LSTM) e \textit{Bidirectional Gated Recurrent Unit} (Bi-GRU).
+Para comparar as abordagens de aprendizado de máquina e aprendizado profundo, implementaram-se três arquiteturas distintas: um modelo de \textit{Gradient Boosting} (XGBoost) como \textit{baseline} de alto rendimento, e duas arquiteturas de redes neurais recorrentes bidirecionais: Bi-LSTM e Bi-GRU \cite{chen2016xgboost, hochreiter1997long, cho2014learning}.
 
 \subsection{Comparativo de Métricas}
-Os modelos foram validados prevento ocorrências completamente invisíveis a seus ciclos de treinamento. As métricas comparativas destacam o Mean Absolute Percentage Error (MAPE) e o Coeficiente de Determinação ($R^2$):
+Os modelos foram avaliados prevendo ocorrências do conjunto de teste, completamente ausentes do treinamento. As métricas comparativas destacam o Mean Absolute Percentage Error (MAPE) e o Coeficiente de Determinação ($R^2$):
 
 \begin{table}[htb]
 \caption{Métricas de Validação dos Modelos Preditivos (Test Set)}
@@ -70,71 +269,298 @@ Bi-GRU & 65,68 & 106,55 & 0,332 & 21,19 \% \\
 \bottomrule
 \end{tabular}
 \end{center}
-\vspace{-0.2cm}
 \small{Fonte: Elaborado pelos autores (2026).}
 \end{table}
 
-A análise da Tabela~\ref{tab:metricas_modelos} evidencia que o modelo \textbf{XGBoost} obteve a melhor calibragem perante variações abruptas, alcançando um R² de 0,520 e errando, em média, apenas 16\% em suas previsões. Notadamente, a introdução de camadas \textit{Bidirecionais} nas Redes Neurais (Bi-LSTM e Bi-GRU) permitiu que as redes compreendessem a dependência dupla temporal, fazendo com que a Bi-LSTM contivesse o erro absoluto (MAE) na faixa de 59 falhas magnéticas, um resultado consideravelmente competitivo contra as florestas randômicas de hiper-parâmetros otimizados.
+A análise da Tabela~\ref{tab:metricas_modelos} evidencia que o modelo \textbf{XGBoost} obteve o melhor desempenho em todas as métricas, alcançando $R^2 = 0{,}520$ e MAPE de 16,06\%, errando, em média, cerca de 52 interrupções por dia. A Bi-LSTM obteve o segundo melhor resultado, com MAE de 59,30 interrupções diárias, demonstrando que as camadas bidirecionais permitem capturar dependências temporais nos dois sentidos da janela de entrada \cite{schuster1997bidirectional}.
 
-Observa-se que, apesar da Bi-GRU ser arquiteturalmente mais \textit{leve} que a Bi-LSTM (ausência do \textit{Cell State}), essa supressão a conduziu a um rendimento levemente inferior nesse ecossistema multivariado (MAPE de 21,19\%), ratificando a premissa de que fenômenos elétricos com memória meteorológica longa exigem portas de esquecimento (forgets gates) altamente especializadas presentes na célula LSTM.
+Observa-se que, apesar da Bi-GRU ser arquiteturalmente mais leve que a Bi-LSTM (dois portões em vez de três, conforme detalhado na Tabela~\ref{tab:lstm_vs_gru}), essa simplificação resultou em desempenho inferior neste problema (MAPE de 21,19\% vs. 18,83\%). Esse resultado sugere que a presença do \textit{Cell State} e do \textit{Forget Gate} especializados na LSTM é vantajosa para capturar dependências de longo prazo em séries temporais climáticas com memória sazonal pronunciada.
+
+\subsection{Séries Temporais Preditas vs. Reais}
+
+Para avaliar visualmente a aderência das previsões ao comportamento real da série, as Figuras~\ref{fig:ts_xgboost},~\ref{fig:ts_lstm} e~\ref{fig:ts_gru} confrontam as predições de cada modelo contra os valores observados no conjunto de teste.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{img/ts_pred_xgboost.png}
+    \caption{Série temporal de predição do XGBoost (laranja) vs. valores reais (azul) no conjunto de teste. O modelo acompanha a tendência geral e a sazonalidade, porém suaviza os picos extremos.}
+    \small{Fonte: Elaborado pelos autores (2026).}
+    \label{fig:ts_xgboost}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{img/ts_pred_lstm_bi.png}
+    \caption{Série temporal de predição da Bi-LSTM (verde) vs. valores reais (azul) no conjunto de teste. A rede bidirecional captura oscilações de alta frequência, porém exibe maior volatilidade nas previsões.}
+    \small{Fonte: Elaborado pelos autores (2026).}
+    \label{fig:ts_lstm}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{img/ts_pred_gru_bi.png}
+    \caption{Série temporal de predição da Bi-GRU (vermelho) vs. valores reais (azul) no conjunto de teste. A ausência do \textit{Cell State} resulta em previsões ligeiramente menos estáveis em períodos de transição sazonal.}
+    \small{Fonte: Elaborado pelos autores (2026).}
+    \label{fig:ts_gru}
+\end{figure}
+
+Visualmente, o XGBoost (Figura~\ref{fig:ts_xgboost}) demonstra maior estabilidade nas previsões, acompanhando a envoltória geral da série sem oscilações erráticas. A Bi-LSTM (Figura~\ref{fig:ts_lstm}) captura melhor as flutuações diárias, porém ao custo de maior volatilidade. A Bi-GRU (Figura~\ref{fig:ts_gru}) apresenta comportamento intermediário, com ligeira tendência a subestimar os picos extremos.
+
+\subsection{Diagramas de Dispersão: Predito vs. Real}
+
+Os diagramas de dispersão das Figuras~\ref{fig:scatter_xgb},~\ref{fig:scatter_lstm_pred} e~\ref{fig:scatter_gru_pred} plotam os valores preditos contra os reais para cada modelo. A reta diagonal (linha de identidade $y = x$) representa a previsão perfeita.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.65\textwidth]{img/scatter_pred_xgboost.png}
+    \caption{Dispersão Predito vs. Real --- XGBoost. A concentração próxima à diagonal indica boa calibração geral, com dispersão crescente nos extremos.}
+    \small{Fonte: Elaborado pelos autores (2026).}
+    \label{fig:scatter_xgb}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.65\textwidth]{img/scatter_pred_lstm_bi.png}
+    \caption{Dispersão Predito vs. Real --- Bi-LSTM. A nuvem apresenta maior dispersão vertical nos valores altos, refletindo a dificuldade da rede em prever eventos extremos com precisão.}
+    \small{Fonte: Elaborado pelos autores (2026).}
+    \label{fig:scatter_lstm_pred}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.65\textwidth]{img/scatter_pred_gru_bi.png}
+    \caption{Dispersão Predito vs. Real --- Bi-GRU. Padrão similar à Bi-LSTM, porém com maior concentração na faixa intermediária (150--350 interrupções).}
+    \small{Fonte: Elaborado pelos autores (2026).}
+    \label{fig:scatter_gru_pred}
+\end{figure}
+
+Os três modelos exibem um padrão comum de \textbf{compressão para a média}: para valores reais muito altos ($>600$ interrupções), as previsões tendem a ser substancialmente inferiores ao real, indicando que os modelos são conservadores em cenários extremos. Esse comportamento é esperado, uma vez que eventos extremos são raros no conjunto de treinamento e a função de perda MSE naturalmente favorece previsões próximas à média \cite{goodfellow2016deep}.
+
+\subsection{Segmentação do Erro por Faixa de Severidade}
+
+Para quantificar a dependência do erro em relação à magnitude das interrupções, segmentou-se o conjunto de teste em três faixas de severidade e calculou-se o MAE de cada modelo em cada faixa, conforme a Tabela~\ref{tab:erro_faixa}.
+
+\begin{table}[H]
+\caption{MAE dos Modelos Segmentado por Faixa de Severidade das Interrupções}
+\label{tab:erro_faixa}
+\begin{center}
+\small
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Faixa} & \textbf{Dias (\%)} & \textbf{XGBoost} & \textbf{Bi-LSTM} & \textbf{Bi-GRU} \\
+\midrule
+Normal ($< 200$) & 20,0\% & 29,1 & 37,4 & 37,1 \\
+Moderada (200--400) & 66,3\% & 37,4 & 43,7 & 44,0 \\
+Severa ($> 400$) & 13,7\% & 139,7 & 149,0 & 148,1 \\
+\bottomrule
+\end{tabular}
+\normalsize
+\end{center}
+\small{Fonte: Elaborado pelos autores (2026).}
+\end{table}
+
+Os resultados confirmam que a acurácia de todos os modelos degrada-se substancialmente nos dias de operação severa ($>400$ interrupções), onde o MAE do XGBoost quintuplica em relação à faixa normal (139,7 vs. 29,1). O \textbf{XGBoost mantém superioridade consistente em todas as faixas}, com MAE inferior ao das redes recorrentes em todas as categorias de severidade. Na faixa moderada (200--400 interrupções), que representa a maioria dos dias de teste (66,3\%), o XGBoost alcança MAE de 37,4 contra 43,7 da Bi-LSTM e 44,0 da Bi-GRU. A concentração de 66,3\% dos dias na faixa moderada reflete o período de teste (junho/2024 a maio/2025), que abrange tanto a estação seca quanto a chuvosa do Cerrado.
 
 \section{Análise da Distribuição Residual (KDE)}\label{sec:residuais}
-A fim de ratificar matematicamente as variações probabilísticas de cada arquitetura, abstraiu-se a Função de Densidade de Probabilidade (PDF) do Erro Residual ($e_t = y_t - \hat{y}_t$) de toda a partição do Bloco de Testes. A estimativa não-paramétrica \textit{Kernel Density Estimation} (KDE) foi parametrizada com largura de banda Gaussiana, conforme atestado visualmente na Figura~\ref{fig:kde_residuos}.
+A fim de ratificar matematicamente as variações probabilísticas de cada arquitetura, abstraiu-se a Função de Densidade de Probabilidade (PDF) do Erro Residual ($e_t = y_t - \hat{y}_t$) de toda a partição do Bloco de Testes. A estimativa não-paramétrica \textit{Kernel Density Estimation} (KDE) foi computada com \textit{kernel} Gaussiano, conforme apresentado na Figura~\ref{fig:kde_residuos}.
 
-\begin{figure}[htb]
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.85\textwidth]{img/kde_residuos_modelos.png}
     \caption{Distribuição de Densidade Kernel (KDE) dos Erros Residuais no Conjunto de Testes.}
-    \vspace{-0.2cm}
     \small{Fonte: Elaborado pelos autores (2026).}
     \label{fig:kde_residuos}
 \end{figure}
 
-Observa-se que ambos os tensores de aprendizado profundo (Bi-LSTM e Bi-GRU) apresentam distribuições altamente leptocúrticas centradas precisamente na origem perfeita (0). Tal fenômeno quantifica que seu "chute" médio tende a ser majoritariamente exato nos dias corriqueiros. Todavia, a distribuição \textit{XGBoost} detém caldas mais extensas à direta (curtose platicúrtica simétrica), elucidando sua penalidade contínua quando confrontada por subestimação.
+Observa-se que as redes recorrentes (Bi-LSTM e Bi-GRU) apresentam distribuições residuais mais leptocúrticas (picos mais elevados e concentrados em torno de zero), indicando que seus erros são frequentemente pequenos nos dias de operação normal. Já a distribuição do XGBoost é mais platicúrtica (pico mais achatado), porém com caudas mais controladas, refletindo sua menor variância nos erros extremos. Essa complementaridade evidencia que as redes neurais são mais precisas nos dias típicos, enquanto o XGBoost é mais robusto perante anomalias.
 
 Para averiguar a premissa linear clássica da homocedasticidade (variância constante do erro), compilou-se o Diagrama de Dispersão Residual do modelo vencedor neural (Bi-LSTM) (Figura~\ref{fig:scatter_hetero}). É nítida a característica heterocedástica imposta pela natureza intermitente da rede elétrica: quanto maior a escala de interrupções reais num dado temporal agressivo, maior dilata-se o cone de dispersão preditiva.
 
-\begin{figure}[htb]
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.7\textwidth]{img/scatter_heteroscedasticity.png}
     \caption{Dispersão do Erro Absoluto vs. Volume de Falhas (Bi-LSTM), evidenciando Heterocedasticidade.}
-    \vspace{-0.2cm}
     \small{Fonte: Elaborado pelos autores (2026).}
     \label{fig:scatter_hetero}
 \end{figure}
 
 \section{Estudo de Caso Analítico: Picos Climáticos (El Niño 2023)}\label{sec:anomalia}
-A averiguação em um recorte contínuo exposto a \textit{Outliers} severos traduz o teste real ao estresse das topologias parametrizadas. Entre novembro e dezembro de 2023, o Distrito Federal fora afligido por anomalias termodinâmicas vinculadas ao *El Niño*. Extraiu-se fragmentos desse lapso temporal na Figura~\ref{fig:zoom_anomalia}.
+Entre novembro e dezembro de 2023, o Distrito Federal foi afetado por anomalias climáticas associadas ao fenômeno \textit{El Niño} de forte intensidade \cite{marengo2024impactos}. Esse período, que integra o conjunto de treinamento (anterior ao corte em 01/06/2024), registrou os maiores picos de interrupções da série histórica. A Figura~\ref{fig:zoom_anomalia} apresenta um recorte temporal desse período, evidenciando a severidade dos eventos.
 
-\begin{figure}[htb]
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{img/zoom_serie_2023_anomalia.png}
-    \caption{Recorte Categórico: Desempenho dos algoritmos perante Picos Climáticos Extremos.}
-    \vspace{-0.2cm}
+    \caption{Recorte Temporal: Picos climáticos extremos durante o El Niño 2023 (período de treinamento).}
     \small{Fonte: Elaborado pelos autores (2026).}
     \label{fig:zoom_anomalia}
 \end{figure}
 
-O exame desse extrato pontua inequivocamente que a rede \textbf{Bi-LSTM} acompanhou agilmente as subidas sazonais rotineiras, porém superestimou gravemente o ponto exato da tempestade (linha tracejada fugindo do limiar verdadeiro). Contraintuitivamente, é neste recorte bimodal estressante que o rigor do parâmetro \textit{Gamma} ($\gamma$) de regularização do vetor \textbf{XGBoost} evitou que o modelo explodisse seu chute para o patamar inalcançável gerado pelas falsas-ativações da matriz de chuvas. Seu conservadorismo perante a incerteza probabilística garantiu o menor erro quadrático na crise de tempestades.
+A inclusão desse período extremo no conjunto de treinamento permitiu que os modelos aprendessem padrões de eventos severos associados ao El Niño. Contudo, por se tratar de um único evento de forte intensidade no histórico, a capacidade de generalização para futuros episódios ENSO permanece uma questão em aberto. A análise das predições de treinamento nesse recorte evidencia que o \textbf{XGBoost}, com sua regularização via $\gamma$ e \texttt{max\_depth}, produziu estimativas mais contidas durante os picos, enquanto as redes recorrentes tentaram acompanhar as variações extremas com maior volatilidade. Esse comportamento reflete a natureza das árvores de decisão, que saturam nos limites observados nos nós folha \cite{chen2016xgboost}.
 
-\section{Conclusões Parciais das Predições}
-Conclui-se através das curvas de aprendizado (\textit{Learning Curves}, detalhadas na Figura~\ref{fig:learning_curves}) que a adição de camadas \textit{Dropout} (0.3) e otimizadores com decaimento de peso adaptável (AdamW) suprimiram grande parcela do \textit{Overfitting} intrínseco às Redes Neurais sobre dados climáticos. O XGBoost revelou-se a base recomendada para a Neoenergia operar previsões diárias com severa margem de cautela contra anomalias (conforme relevância amostral na Figura~\ref{fig:importancia}).
+\section{Análise das Curvas de Aprendizado}\label{sec:learning_curves}
 
-\begin{figure}[htb]
+As curvas de aprendizado (\textit{Learning Curves}) permitem diagnosticar se os modelos neurais sofrem de \textit{underfitting} (subajuste) ou \textit{overfitting} (sobreajuste). A Figura~\ref{fig:learning_curves} apresenta a evolução da perda MSE ao longo das 200 épocas de treinamento para Bi-LSTM e Bi-GRU.
+
+Para a \textbf{Bi-LSTM} (Figura~\ref{fig:learning_curves}, esquerda), observa-se que a perda de treinamento decresce continuamente ao longo das 200 épocas, enquanto a perda de validação estabiliza-se após aproximadamente 80--100 épocas. A lacuna entre as duas curvas permanece controlada, indicando que o Dropout ($p = 0{,}2$) e o \textit{Weight Decay} ($\lambda = 10^{-5}$) cumpriram seu papel de regularização. Não há evidência de \textit{overfitting} severo.
+
+Para a \textbf{Bi-GRU} (Figura~\ref{fig:learning_curves}, direita), o comportamento é similar, porém com convergência ligeiramente mais rápida --- consistente com seu menor número de parâmetros. O \textit{Learning Rate Scheduler} (ReduceLROnPlateau) é visível nas reduções discretas da taxa de decaimento após platôs de estagnação, permitindo ajustes mais finos nos estágios finais.
+
+\section{Importância das Variáveis no XGBoost}\label{sec:feature_importance}
+
+A interpretabilidade intrínseca do XGBoost permite identificar quais variáveis contribuem mais para a predição. A Figura~\ref{fig:importancia} apresenta o ranking de importância das \textit{features}, computado pela métrica de ganho médio de informação (\textit{gain}) nas divisões arbóreas.
+
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.48\textwidth]{img/learning_curve_lstm_bidirecional.png}
     \includegraphics[width=0.48\textwidth]{img/learning_curve_gru_bidirecional.png}
     \caption{Curvas de Aprendizado (MSE) para Bi-LSTM (Esq.) e Bi-GRU (Dir.).}
-    \vspace{-0.2cm}
     \small{Fonte: Elaborado pelos autores (2026).}
     \label{fig:learning_curves}
 \end{figure}
 
-\begin{figure}[htb]
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.7\textwidth]{img/feature_importance_xgboost.png}
     \caption{Importância Atribuída pelo modelo XGBoost às Variáveis Climáticas e Históricas.}
-    \vspace{-0.2cm}
     \small{Fonte: Elaborado pelos autores (2026).}
     \label{fig:importancia}
 \end{figure}
+
+A análise da Figura~\ref{fig:importancia} revela uma hierarquia clara: as \textbf{defasagens da própria série de interrupções} (\texttt{lag\_1}, \texttt{lag\_2}, \texttt{lag\_7}) dominam o ranking de importância, confirmando que o número de falhas dos dias anteriores é o melhor preditor individual. Esse resultado é consistente com a forte autocorrelação evidenciada na análise ACF (Seção~\ref{sec:autocorrelacao}), onde os coeficientes permanecem significativos até $k=14$. As \textbf{médias móveis exponenciais climáticas} de precipitação, temperatura e rajada de vento ocupam posições intermediárias, indicando que a tendência de curto e médio prazo das condições climáticas --- se a região está num período de estresse ambiental sustentado ou de normalidade --- é informativa para a predição.
+
+Entre as variáveis climáticas, destacam-se a \textbf{precipitação defasada} e a \textbf{rajada máxima de vento defasada}, ambas com \textit{lag} de um dia. A presença dessas variáveis valida a hipótese de inércia temporal do dano climático: a chuva de ontem danifica estruturas que falham hoje; o vento forte do dia anterior derruba parcialmente árvores que completam a queda nas horas subsequentes. As \textbf{codificações harmônicas cíclicas} (\texttt{mes\_sin}, \texttt{mes\_cos}) aparecem com importância significativa, demonstrando que o modelo utiliza a posição no ciclo sazonal anual para modular suas previsões --- evidência de que a sazonalidade do Cerrado foi capturada eficientemente pela engenharia de atributos.
+
+\section{Comparação Visual com Baselines e entre Redes Recorrentes}\label{sec:comparacao_visual}
+
+Para contextualizar o desempenho das redes recorrentes, a Figura~\ref{fig:comparacao_zoom} sobrepõe as previsões da Bi-LSTM e da Bi-GRU contra os valores reais e dois \textit{baselines} simples --- Persistência ($y[t-1]$) e Média Móvel de 7 dias --- num recorte de um ano do conjunto de teste.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{img/comparacao_previsoes_zoom_1ano.png}
+    \caption{Comparação das previsões de LSTM e GRU contra os valores reais e dois \textit{baselines} simples (Persistência e Média Móvel de 7 dias) no conjunto de teste.}
+    \small{Fonte: Elaborado pelos autores (2026).}
+    \label{fig:comparacao_zoom}
+\end{figure}
+
+A sobreposição revela que ambas as redes recorrentes acompanham a tendência geral da série com desempenho similar entre si, superando os dois \textit{baselines} na maioria dos períodos. A Persistência (em laranja) funciona bem em dias de operação estável, mas falha nos picos extremos por simplesmente repetir o valor anterior. A Média Móvel (em verde) suaviza demais a série, não capturando as variações abruptas. As divergências entre os modelos concentram-se nos picos extremos ($>500$ interrupções) e nos vales atípicos ($<100$), onde a Bi-LSTM e a Bi-GRU tendem a subestimar os valores por viés conservador da função de perda MSE.
+
+A Figura~\ref{fig:dl_zoom} detalha exclusivamente as previsões das redes de \textit{Deep Learning} (Bi-LSTM e Bi-GRU), permitindo uma comparação mais granular entre as duas arquiteturas recorrentes.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{img/previsao_dl_zoom_1ano.png}
+    \caption{Comparação detalhada entre Bi-LSTM e Bi-GRU no conjunto de teste. Ambas as redes apresentam padrões temporais similares, porém com diferenças pontuais nos extremos.}
+    \small{Fonte: Elaborado pelos autores (2026).}
+    \label{fig:dl_zoom}
+\end{figure}
+
+A comparação direta entre Bi-LSTM e Bi-GRU revela que, apesar da diferença de 8 pontos percentuais no $R^2$ (0,410 vs. 0,332), os padrões temporais das previsões são notavelmente similares. Ambas as redes capturam os mesmos picos e vales, divergindo principalmente na amplitude das oscilações. A Bi-LSTM demonstra ligeira superioridade na captura dos picos extremos, possivelmente favorecida pelo mecanismo de \textit{Cell State} que preserva dependências de longo prazo que a Bi-GRU, com apenas as portas \textit{Reset} e \textit{Update}, não consegue reter com a mesma fidelidade.
+
+\section{Análise Sazonal Detalhada}\label{sec:sazonalidade_detalhada}
+
+Para aprofundar a compreensão dos padrões sazonais, as Figuras~\ref{fig:mm_2021} e~\ref{fig:mm_2023} apresentam as médias móveis diárias de interrupções para os anos de 2021 e 2023, respectivamente --- dois anos com comportamentos climáticos contrastantes.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.90\textwidth]{img/mm_diario_interrupcoes_2021.png}
+    \caption{Média móvel diária de interrupções em 2021. Observam-se picos pronunciados entre outubro e dezembro, coincidindo com o início da estação chuvosa.}
+    \small{Fonte: Elaborado pelos autores (2026).}
+    \label{fig:mm_2021}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.90\textwidth]{img/mm_diario_interrupcoes_2023.png}
+    \caption{Média móvel diária de interrupções em 2023. O pico anômalo em novembro--dezembro reflete o impacto do fenômeno El Niño sobre a rede elétrica do DF.}
+    \small{Fonte: Elaborado pelos autores (2026).}
+    \label{fig:mm_2023}
+\end{figure}
+
+Em 2021, o padrão sazonal segue o ciclo típico do Cerrado: valores baixos entre maio e agosto (estação seca, com média móvel inferior a 200 interrupções/dia), elevação progressiva a partir de setembro, e picos entre outubro e dezembro. O ano de 2023, por outro lado, exibe um perfil distinto: os picos de novembro--dezembro são significativamente mais acentuados, atingindo patamares superiores a 500 interrupções na média móvel. Esse comportamento anômalo coincide temporalmente com o fenômeno \textbf{El Niño 2023}, que intensificou os eventos convectivos no Centro-Oeste brasileiro, provocando tempestades mais frequentes e mais intensas do que a média climatológica.
+
+A Figura~\ref{fig:precip_2023} apresenta a precipitação diária ao longo de 2023, evidenciando a concentração de eventos pluviométricos extremos no período outubro--dezembro.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.90\textwidth]{img/mm_diario_precipitacao_2023.png}
+    \caption{Precipitação diária em 2023 (mm). A concentração de eventos extremos no final do ano reflete a influência do El Niño sobre o regime pluviométrico do Cerrado.}
+    \small{Fonte: Elaborado pelos autores a partir dos dados do INMET (2026).}
+    \label{fig:precip_2023}
+\end{figure}
+
+A comparação entre as Figuras~\ref{fig:mm_2023} e~\ref{fig:precip_2023} confirma visualmente a correlação entre precipitação e interrupções: os picos de chuva em novembro e dezembro de 2023 alinham-se temporalmente com os picos de interrupções, com defasagem de 0 a 1 dia --- consistente com a análise de correlação cruzada apresentada na Seção~\ref{sec:autocorrelacao}. A temperatura média diária de 2023 (Figura~\ref{fig:temp_2023}) complementa o quadro, evidenciando que os meses de maior instabilidade elétrica (outubro--dezembro) coincidem com as temperaturas mais elevadas do ano, configurando o cenário de tripla pressão (calor + chuva + vento) discutido na análise de correlação.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.90\textwidth]{img/mm_diario_temperatura_2023.png}
+    \caption{Temperatura média diária em 2023 (°C). Os meses mais quentes (setembro--novembro) coincidem com o período de maior vulnerabilidade da rede elétrica.}
+    \small{Fonte: Elaborado pelos autores a partir dos dados do INMET (2026).}
+    \label{fig:temp_2023}
+\end{figure}
+
+\section{Análise Multi-Horizonte}\label{sec:multihorizonte}
+
+Para avaliar o comportamento dos modelos em cenários de uso operacional, os três modelos foram avaliados em horizontes de previsão variáveis ($x \in \{1, 3, 7, 14\}$ dias), conforme a metodologia descrita na Seção~\ref{sec:previsao_x_dias}. A Tabela~\ref{tab:multihorizonte} consolida os resultados de MAE e RMSE para cada combinação de modelo e horizonte.
+
+\begin{table}[H]
+\caption{MAE e RMSE por Modelo e Horizonte de Previsão (dias)}
+\label{tab:multihorizonte}
+\begin{center}
+\small
+\begin{tabular}{l cc cc cc cc}
+\toprule
+ & \multicolumn{2}{c}{\textbf{x = 1 dia}} & \multicolumn{2}{c}{\textbf{x = 3 dias}} & \multicolumn{2}{c}{\textbf{x = 7 dias}} & \multicolumn{2}{c}{\textbf{x = 14 dias}} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}
+\textbf{Modelo} & MAE & RMSE & MAE & RMSE & MAE & RMSE & MAE & RMSE \\
+\midrule
+XGBoost & 70,55 & 70,55 & 68,20 & 85,81 & 46,62 & 60,84 & \textbf{40,57} & \textbf{52,71} \\
+Bi-LSTM & \textbf{29,39} & \textbf{29,39} & 73,64 & 93,01 & 54,12 & 68,70 & 44,18 & 58,51 \\
+Bi-GRU  & 62,39 & 62,39 & 82,07 & 98,33 & 59,24 & 71,96 & 50,42 & 64,09 \\
+\bottomrule
+\end{tabular}
+\normalsize
+\end{center}
+\small{Fonte: Elaborado pelos autores (2026).}
+\end{table}
+
+A Figura~\ref{fig:multihorizonte_degradacao} apresenta as curvas de degradação do MAE em função do horizonte para os três modelos.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.90\textwidth]{img/previsao_multihorizonte_degradacao.png}
+    \caption{Degradação do MAE por horizonte de previsão. A Bi-LSTM apresenta o menor erro em $x=1$ dia, enquanto o XGBoost se torna progressivamente mais preciso a partir de $x=3$ dias.}
+    \label{fig:multihorizonte_degradacao}
+\end{figure}
+
+O resultado mais expressivo desta análise é a \textbf{inversão da hierarquia de desempenho} entre os modelos conforme o horizonte se amplia. Para $x=1$ dia, a Bi-LSTM apresenta MAE de 29,39 — significativamente inferior ao XGBoost (70,55), sugerindo que a memória bidirecional captura melhor a inércia imediata da série. A partir de $x=3$ dias, o XGBoost assume a liderança e a mantém até $x=14$ dias, beneficiado pela ausência de propagação de erro recursivo: suas previsões utilizam as \textit{features} pré-computadas dos dias futuros diretamente, sem depender de estimativas anteriores.
+
+As redes recorrentes, por sua vez, sofrem com a acumulação de erro na previsão recursiva: o valor previsto no passo $t+1$ é inserido como entrada para $t+2$, carregando imprecisões que se amplificam a cada passo. Esse comportamento é visível no salto do MAE da Bi-LSTM de 29,39 (x=1) para 73,64 (x=3). A Bi-GRU apresenta degradação similar, enquanto o XGBoost exibe uma curva de queda monótona — fenômeno explicado pelo aumento do tamanho efetivo da amostra de avaliação à medida que $x$ cresce, suavizando o efeito de dias atípicos.
+
+\section{Síntese dos Resultados}\label{sec:sintese_resultados}
+
+A Tabela~\ref{tab:sintese} consolida os principais achados empíricos deste capítulo, organizados por dimensão de análise.
+
+\begin{table}[H]
+\caption{Síntese dos Principais Achados Empíricos}
+\label{tab:sintese}
+\begin{center}
+\small
+\begin{tabular}{p{3.8cm} p{9cm}}
+\toprule
+\textbf{Dimensão} & \textbf{Achado Principal} \\
+\midrule
+Tendência Temporal & Crescimento de 65,3\% na média diária de interrupções entre 2017 (183,5) e 2025 (303,4) \\
+Sazonalidade & Picos entre outubro e março (chuvosa: 292,0) vs. vales entre maio e agosto (seca: 182,3) \\
+Autocorrelação & Dependência temporal significativa até $k=14$ dias, validando o \textit{Lookback Window} \\
+Correlação Climática & Direção do vento ($r=0{,}59$ mensal) e precipitação ($r=0{,}54$ mensal) como preditores dominantes \\
+Melhor Modelo & XGBoost ($R^2=0{,}520$, MAPE$=16{,}1\%$), favorecido pela engenharia de 41 \textit{features} explícitas \\
+Distribuição Residual & Redes recorrentes mais concentradas em zero (leptocúrticas); XGBoost mais disperso nos extremos \\
+Eventos Extremos & XGBoost conservador (saturação arbórea); Bi-LSTM superestima picos inéditos \\
+Importância & Lags da própria série dominam; variáveis climáticas defasadas validam inércia temporal \\
+Multi-Horizonte & Bi-LSTM domina em $x=1$ dia (MAE$=29$); XGBoost assume liderança a partir de $x=3$ dias \\
+\bottomrule
+\end{tabular}
+\normalsize
+\end{center}
+\small{Fonte: Elaborado pelos autores (2026).}
+\end{table}
