@@ -6,88 +6,122 @@
   <br>
 </h1>
 
-<h4 align="center">Um Estudo Comparativo entre XGBoost e Redes Neurais Recorrentes Bidirecionais (Bi-LSTM / Bi-GRU) sob Estresse Hidrometeorológico.</h4>
+<h4 align="center">Um Estudo Comparativo entre XGBoost e Redes Neurais Recorrentes Bidirecionais (Bi-LSTM / Bi-GRU)</h4>
 
 <p align="center">
-  <a href="#-sobre-o-projeto">Sobre</a> •
-  <a href="#%EF%B8%8F-arquitetura-e-metodologia">Arquitetura</a> •
-  <a href="#-tensores-e-datasets">Datasets</a> •
-  <a href="#-resultados-preditivos">Resultados</a> •
-  <a href="#-estrutura-do-repositório">Repositório</a> •
-  <a href="#-tecnologias">Tecnologias</a>
+  Giovanni Minari Zanetti &nbsp;•&nbsp; Mateus Gomes de Araújo<br>
+  Orientador: Prof. Jan Mendonça Corrêa (CIC/UnB) &nbsp;•&nbsp; Brasília, 2026
+</p>
+
+<p align="center">
+  <a href="#sobre">Sobre</a> •
+  <a href="#metodologia">Metodologia</a> •
+  <a href="#resultados">Resultados</a> •
+  <a href="#estrutura">Estrutura</a> •
+  <a href="#como-executar">Como Executar</a> •
+  <a href="#tecnologias">Tecnologias</a>
 </p>
 
 ---
 
-## ⚡ Sobre o Projeto
+## Sobre
 
-Este repositório abriga o código-fonte, a modelagem termodinâmica e o texto integral (LaTeX) do Trabalho de Conclusão de Curso (TCC) em Ciência da Computação defendido na Universidade de Brasília (UnB). 
+Este repositório contém o código-fonte, os dados processados e o texto integral em LaTeX do TCC em Ciência da Computação defendido na Universidade de Brasília (UnB).
 
-O trabalho propõe a substituição do paradigma de **Manutenção Reativa Forense** adotado nativamente na *Smart Grid* do Brasil Central por **Defensivas Preventivas Algorítmicas**. Num cruzamento massivo de telemetria meteorológica oficial e despachos punitivos da matriz energética, investigamos o esvaziamento silencioso do ciclo de vida eletromecânico das subestações provocado pelas severas flutuações radiativas e hidrológicas do *El Niño* sobre o Cerrado.
-
-Ao alistar arquiteturas rasas padronizadas (XGBoost) em um duelo balístico contra Unidades Ocultas Bidirecionais Gated (*Bi-GRU/Bi-LSTM*), submetidas via *Backpropagation Through Time* (BPTT), a monografia desvenda matrizes colineares invisíveis unindo rajadas de vento, inércia térmica (*Time Lags*) e a detonação estocástica ininterrupta de transformadores envelhecidos.
+O trabalho desenvolve e avalia modelos preditivos para estimar o número diário de interrupções no fornecimento de energia elétrica no Distrito Federal, integrando dados de três fontes governamentais abertas ao longo de **3.073 dias consecutivos (2017–2025)**. O objetivo é fornecer à concessionária uma ferramenta de apoio à decisão para pré-posicionamento de equipes de manutenção antes de eventos climáticos adversos.
 
 ---
 
-## 🏗️ Arquitetura e Metodologia
+## Metodologia
 
-O *pipeline* analítico deste estudo foi desenhado sob pesados axiomas matriciais, fragmentados na extração cíclica bruta dos Diários Oficiais:
+1. **Dados integrados**: INMET (meteorologia), ANEEL (interrupções) e SAMP/CCEE (consumo energético), totalizando 3.073 dias brutos e 3.058 dias após engenharia de atributos.
 
-1. **Ingestão Autônoma Híbrida**: Fusão (*Merging*) puramente referenciada ao longo de eixos de *Timestamp* UTC entre arquivos diários do Governo (2015-2025).
-2. **Engenharia de Tensores (*Feature Engineering*)**: 
-    - Extração do Arrasto de Rajada Aerodinâmico (`> 80 km/h`), independentemente da velocidade rotineira do vento.
-    - Transformações Trigonométricas ($\sin$ e $\cos$) em ciclos estacionais anuais orbitais para atenuamento de saltos temporais de Dezembro à Janeiro.
-3. **Mecânica das *Sliding Windows* (Janelas Climatológicas Deslizantes)**:
-   - Expansão da regressão estática na construção dimensional de blocos pregressos de resiliência $t-1$, $t-3$, $t-7$ e o crucial $t-14$, encapsulando o esvaziamento da integridade da resina isoladora da malha devido à Ondas de Calor estacionárias.
-4. **Descompasso Estocástico Out-Of-Sample**: Teste implacável limitando o treinamento aos hiatos do *La Niña* pré-2023, forçando generalização "cega" dos algoritmos sobre a ebulição violenta do *El Niño* tardio na janela inferencial.
+2. **Engenharia de atributos**: pipeline com 41 features derivadas — defasagens de 1 a 7 dias, médias móveis exponenciais (spans 3, 7 e 14 dias), desvio-padrão móvel e codificações harmônicas cíclicas de calendário.
 
----
+3. **Modelos comparados** sob protocolo de separação temporal estrita (*Out-of-Sample*):
+   - **XGBoost** com Grid Search temporal (5 folds, 7 hiperparâmetros)
+   - **Bi-LSTM** em PyTorch (2 camadas, hidden=64, Dropout=0.4, AdamW)
+   - **Bi-GRU** em PyTorch (mesma arquitetura da Bi-LSTM)
 
-## 📊 Tensores e Datasets
-
-Os *DataFrames* consolidados totalizaram 3.073 dias de vetores ininterruptos cruzando as seguintes APIs Abertas Estatais:
-
-| Fonte Operacional | Classe do Parâmetro Dimensional | Tipo Estocástico |
-|:---:|:---|:---:|
-| **ANEEL** (Interrupções de Energia Elétrica) | *Target $Y$*. Falhas mecânicas comissionadas sem interferência antrópica (Manutenção/Furto de Condutores deletados). Foco isolado no fato gerador *Descargas Atmosféricas/Árvores*. | Variável Dependente |
-| **INMET** (Dados Históricos A001) | Matriz Ambiental $X$. Termodinâmica Seca ($^\circ\text{C}$), Precipitação ($\text{mm}$) e Cinemática Eólica ($\text{m/s}$). | Variável Independente |
-| **ANEEL** (SAMP - Balanço) | Perfil transversal do tracionamento diário metropolitano ($\text{MWh}$) impulsionando correntes sub-transientes na malha. | *Feature* de Carga |
+4. **Avaliação multi-horizonte**: os três modelos foram avaliados em horizontes de previsão de 1, 3, 7 e 14 dias, usando previsão direta (XGBoost) e estratégia recursiva auto-regressiva (Bi-LSTM e Bi-GRU).
 
 ---
 
-## 📈 Resultados Preditivos
+## Resultados
 
-A modelagem determinística comprovou que o XGBoost — a despeito das penalidades Jacobianas Newtonianas aplicadas via L1/L2 foliar — sucumbe sob a extremidade do "ruído térmico" convectivo. Em dia de céu límpido o aprendizado base por árvores atende demandas estáveis (*Underfitting* homoscedástico), todavia subestima colapsos tempestuosos massivos (*Extremos Outliers*). 
+### Avaliação padrão (365 dias de teste)
 
-Por preceito inverso, as **Redes Neurais Bi-LSTM e Bi-GRU**, instanciadas na base estrutural do *PyTorch*, valeram-se majestosamente de seu portão de esquecimento (*Forget Gate $f_t$*). Ao reter a memória estrutural do vento de dias anteriores e blindarem falsas inferências por calmaria pontual matutina, garantiram aderência formidável em prever quedas, solidificando as séries temporais numa topologia inquebrável por distorções de horizonte.
+| Modelo | MAE | RMSE | R² | MAPE |
+|:---|:---:|:---:|:---:|:---:|
+| **XGBoost** | 52.31 | 89.85 | 0.520 | 16.06% |
+| Bi-LSTM | 59.30 | 100.07 | 0.410 | 18.83% |
+| Bi-GRU | 65.68 | 106.55 | 0.332 | 21.19% |
+
+### Avaliação multi-horizonte (MAE por dias à frente)
+
+| Horizonte | XGBoost | Bi-LSTM | Bi-GRU |
+|:---:|:---:|:---:|:---:|
+| 1 dia | 70.6 | **29.4** | 62.4 |
+| 3 dias | **68.2** | 73.6 | 82.1 |
+| 7 dias | **46.6** | 54.1 | 59.2 |
+| 14 dias | **40.6** | 44.2 | 50.4 |
+
+> **Achado principal**: a Bi-LSTM supera o XGBoost em previsão de 1 dia à frente (inversão de hierarquia). A partir de 3 dias, o XGBoost retoma e mantém a liderança — efeito da propagação de erros na estratégia recursiva das redes neurais.
 
 ---
 
-## 📁 Estrutura do Repositório
+## Estrutura
 
-Organização modular para replicabilidade matemática impecável por futuros pesquisadores acadêmicos.
-
-```text
-📦 TCC
- ┣ 📂 Fonte                 # Source Code (Extração e Inteligência Artificial Python)
- ┃ ┣ 📂 data/               # Repositórios CSV Governamentais limpos
- ┃ ┣ 📂 notebooks/          # Kernel Jupyter (Análise Exploratória EDA)
- ┃ ┗ 📂 src/                # Motor Preditivo (Scripts XGBoost, Bi-LSTM, Bi-GRU)
- ┃
- ┣ 📂 Monografia            # TeX Dist (Código-Fonte integral do Documento ABNT)
- ┃ ┣ 📂 img/                # Pipeline de Plotagem Hiper-Matricial (TiKz e Matplotlib)
- ┃ ┣ 📂 tex/                # Capítulos Modulares da Dissertação (1 ao 6)
- ┃ ┣ 📜 bibliografia.bib    # >28 Referenciais Acadêmicos Nativos (Nature, IEEE, Oxford)
- ┃ ┣ 📜 monografia.tex      # Entrypoint (Classe UnB-CIC, Makeglossaries)
- ┃ ┗ 📜 monografia.pdf      # A Definitiva Documentação de 76 Páginas
- ┃
- ┣ 📂 TerceiroPedido        # Artefatos da Extração, Consolidação Visual e CSVs auxiliares
- ┗ 📜 README.md             # Documentação Global
+```
+TCC/
+├── Monografia/              # Texto integral em LaTeX (146 páginas)
+│   ├── tex/                 # Capítulos 1 a 6 + apêndices
+│   ├── img/                 # Figuras geradas em Python
+│   ├── monografia.tex       # Entrypoint (classe UnB-CIC)
+│   └── monografia.pdf       # PDF final compilado
+│
+├── Fonte/                   # Código-fonte e dados
+│   ├── data/                # CSVs processados
+│   ├── src/                 # Scripts Python
+│   │   ├── 01_eda_sazonalidade.py
+│   │   ├── 02_correlacoes_nao_lineares.py
+│   │   ├── 03_feature_engineering.py
+│   │   ├── 04_eda_basica.py
+│   │   └── models/
+│   │       ├── baseline_xgboost.py
+│   │       ├── lstm_bidirecional.py
+│   │       ├── gru_avancada.py
+│   │       ├── previsao_multihorizonte.py   # avaliação multi-horizonte
+│   │       ├── plot_multihorizonte.py       # gráficos de degradação
+│   │       └── advanced_plots.py
+│   └── results/             # Gráficos e métricas gerados
+│       ├── eda/
+│       └── ml/
+│
+├── RespostasJan/            # Respostas às dúvidas do orientador
+└── ROTEIRO_PROFESSOR.md     # Mapeamento figura/tabela → script gerador
 ```
 
 ---
 
-## 💻 Tecnologias Empregadas
+## Como Executar
+
+Consulte [`Fonte/README.md`](Fonte/README.md) para instruções detalhadas de instalação, reprodução e mapeamento de scripts.
+
+```bash
+cd Fonte/src/models
+
+python baseline_xgboost.py          # XGBoost (~1 min CPU)
+python lstm_bidirecional.py         # Bi-LSTM (~5-10 min CPU/GPU)
+python gru_avancada.py              # Bi-GRU  (~5-10 min CPU/GPU)
+python previsao_multihorizonte.py   # análise multi-horizonte
+```
+
+**Reprodutibilidade**: XGBoost é determinístico (`random_state=42`). PyTorch pode apresentar pequenas variações entre execuções por non-determinism do cuDNN.
+
+---
+
+## Tecnologias
 
 <div align="center">
   <img width="55" src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" alt="Python" title="Python"/> &nbsp;&nbsp;
@@ -100,8 +134,8 @@ Organização modular para replicabilidade matemática impecável por futuros pe
   <img width="65" src="Monografia/img/scikit_logo.svg" alt="Scikit-Learn" title="Scikit-Learn"/>
 </div>
 
----
+<br>
 
 <p align="center">
- Desenvolvido com profunda dedicação algorítmica e rigor ciêntifico.
+  Universidade de Brasília — Departamento de Ciência da Computação, 2026
 </p>
