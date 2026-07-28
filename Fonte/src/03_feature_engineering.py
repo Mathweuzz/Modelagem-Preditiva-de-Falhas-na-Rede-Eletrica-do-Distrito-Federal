@@ -6,29 +6,26 @@ Constrói o dataset final usado pelos modelos preditivos
 (`dataset_engenharia_features.csv`) a partir da base diária consolidada
 INMET + ANEEL.
 
-Operações aplicadas (todas determinísticas, ver Cap. 3 da monografia):
+Operacoes aplicadas (todas determinísticas, ver Cap. 3 da monografia):
 
-  1. Features de calendário: mes, dia_semana, dia_ano
-  2. Codificação cíclica do mês: mes_sin = sin(2π·mes/12), mes_cos = cos(2π·mes/12)
+  0. Reindexacao para frequencia diaria estrita + interpolacao linear de
+     variaveis meteorologicas (1 NaN em temperatura_media 03/01/2018).
+     n_registros (variavel de completude da medicao, nao prospectiva) e removida.
+  1. Features de calendario: mes, dia_semana, dia_ano
+  2. Codificacao ciclica do mes: mes_sin, mes_cos
   3. Defasagens (lags) de 1, 2, 3 e 7 dias para:
-       - interrupcoes
-       - precipitacao_total_mm
-       - temperatura_media
-       - vento_rajada_max_ms
-  4. Médias móveis exponenciais (EMA) de 3, 7 e 14 dias para:
-       - precipitacao_total_mm
-       - temperatura_media
-       - vento_rajada_max_ms
-  5. Desvio-padrão móvel (rolling std) de 7 dias para as mesmas 3 variáveis
-  6. Drop de NaNs (rows iniciais sem janela completa) -> 3.073 -> 3.059 dias
+       - interrupcoes, precipitacao_total_mm, temperatura_media, vento_rajada_max_ms
+  4. Medias moveis exponenciais (EMA) de 3, 7 e 14 dias
+  5. Desvio-padrao movel (rolling std) de 7 dias
+  6. Drop de NaNs das primeiras 7 linhas (janela incompleta)
 
 Fonte de dados:
   ../data/base_diaria_interrupcoes_clima_vento.csv
 
-Saída:
-  ../data/dataset_engenharia_features.csv  (mesmo arquivo já presente)
+Saida:
+  ../data/dataset_engenharia_features.csv
 
-Execução:
+Execucao:
   cd Fonte/src && python 03_feature_engineering.py
 """
 import pandas as pd
@@ -44,12 +41,51 @@ LAG_COLUMNS = ['interrupcoes', 'precipitacao_total_mm',
 EMA_COLUMNS = ['precipitacao_total_mm', 'temperatura_media', 'vento_rajada_max_ms']
 STD_COLUMNS = ['precipitacao_total_mm', 'temperatura_media', 'vento_rajada_max_ms']
 
+# Variaveis meteorologicas que podem ser interpoladas linearmente.
+# interrupcoes NAO e interpolada: NaN de contagem nao tem valor fisico interpolavel.
+METEO_COLUMNS = ['temperatura_media', 'precipitacao_total_mm',
+                 'vento_velocidade_media_ms', 'vento_velocidade_max_ms',
+                 'vento_rajada_max_ms', 'vento_direcao_media_gr',
+                 'vento_direcao_moda_gr']
+
 
 def load_base(filepath):
     df = pd.read_csv(filepath)
     df['data'] = pd.to_datetime(df['data'])
     df.set_index('data', inplace=True)
     df = df.sort_index()
+    return df
+
+
+def fix_continuity(df):
+    """
+    Reindexar para frequencia diaria estrita e interpolar variaveis meteorologicas.
+    Remove n_registros (variavel de completude da medicao, nao disponivel na previsao).
+    """
+    full_idx = pd.date_range(df.index.min(), df.index.max(), freq='D')
+    df = df.reindex(full_idx)
+    df.index.name = 'data'
+
+    # Remove coluna de completude de medicao
+    if 'n_registros' in df.columns:
+        df = df.drop(columns=['n_registros'])
+
+    # Interpolar apenas variaveis meteorologicas
+    meteo_present = [c for c in METEO_COLUMNS if c in df.columns]
+    n_before = df[meteo_present].isnull().sum().sum()
+    df[meteo_present] = df[meteo_present].interpolate(method='linear',
+                                                      limit_direction='both')
+    n_after = df[meteo_present].isnull().sum().sum()
+    print(f"Interpolacao meteorologica: {n_before} NaN -> {n_after} NaN")
+
+    # Verificacoes de integridade
+    diffs = df.index.to_series().diff().dropna()
+    gaps = diffs[diffs > pd.Timedelta(days=1)]
+    assert len(gaps) == 0, f"Ainda ha gaps temporais: {gaps}"
+
+    nan_meteo = df[meteo_present].isnull().sum().sum()
+    assert nan_meteo == 0, f"NaNs meteorologicos restantes: {nan_meteo}"
+
     return df
 
 
@@ -86,6 +122,9 @@ def build_feature_dataset(filepath_in, filepath_out):
     df = load_base(filepath_in)
     print(f"Base de entrada: {df.shape[0]} dias, {df.shape[1]} colunas")
 
+    df = fix_continuity(df)
+    print(f"Apos reindexacao/interpolacao: {df.shape[0]} dias, {df.shape[1]} colunas")
+
     df = add_calendar_features(df)
     df = add_lags(df, LAG_COLUMNS, LAG_DAYS)
     df = add_emas(df, EMA_COLUMNS, EMA_SPANS)
@@ -93,6 +132,13 @@ def build_feature_dataset(filepath_in, filepath_out):
 
     df = df.dropna()
     print(f"Dataset final:  {df.shape[0]} dias, {df.shape[1]} colunas")
+
+    # Verificacao final
+    assert df.isnull().sum().sum() == 0, "NaNs restantes no dataset final!"
+    diffs = df.index.to_series().diff().dropna()
+    gaps = diffs[diffs > pd.Timedelta(days=1)]
+    assert len(gaps) == 0, f"Gaps temporais no dataset final: {gaps}"
+    print("Verificacao OK: sem NaNs, sem gaps temporais.")
 
     df.to_csv(filepath_out)
     print(f"  -> {filepath_out}")
@@ -106,4 +152,4 @@ if __name__ == "__main__":
         filepath_out='../data/dataset_engenharia_features.csv'
     )
 
-    print("\n[OK] Engenharia de atributos concluída.")
+    print("\n[OK] Engenharia de atributos concluida.")

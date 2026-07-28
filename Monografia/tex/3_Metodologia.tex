@@ -44,7 +44,7 @@ O processo de triagem está representado no Diagrama de Fluxo (Figura~\ref{fig:p
 
 \section{Fonte de Dados e Estrutura de Armazenamento}\label{sec:bases}
 
-A espinha dorsal deste projeto de \textit{Machine Learning} sustenta-se na fusão horizontal de três fontes de dados coletados num horizonte contínuo de \textbf{3.073 dias} (compreendendo rigorosamente o período entre 01/01/2017 e 31/05/2025). Após a engenharia de atributos (defasagens, médias móveis e desvios padrão em janela deslizante), o conjunto final possui \textbf{3.058 observações} válidas (a partir de 08/01/2017), totalizando 42 colunas (41 \textit{features} de entrada + 1 variável alvo). Esse horizonte temporal abrange múltiplos ciclos anuais completos, incluindo eventos climáticos relevantes como o El Niño de 2023--2024 e as transições sazonais características do bioma Cerrado.
+A espinha dorsal deste projeto de \textit{Machine Learning} sustenta-se na fusão horizontal de três fontes de dados coletados num horizonte contínuo de \textbf{3.073 dias} (compreendendo rigorosamente o período entre 01/01/2017 e 31/05/2025). Após a engenharia de atributos (defasagens, médias móveis e desvios padrão em janela deslizante) e o tratamento de lacunas temporais por interpolação linear, o conjunto final possui \textbf{3.066 observações} válidas (a partir de 08/01/2017), totalizando 41 colunas (40 \textit{features} de entrada + 1 variável alvo). Esse horizonte temporal abrange múltiplos ciclos anuais completos, incluindo eventos climáticos relevantes como o El Niño de 2023--2024 e as transições sazonais características do bioma Cerrado.
 
 Os dados foram obtidos exclusivamente de portais abertos governamentais, em conformidade com a Lei de Acesso à Informação. As variáveis preditoras (climáticas) foram extraídas do portal de Dados Históricos do Instituto Nacional de Meteorologia --- INMET (\url{https://portal.inmet.gov.br/dadoshistoricos}), utilizando os registros horários da Estação Meteorológica Automática de Brasília (código A001). Essa estação foi selecionada por sua localização central no Distrito Federal e pela completude de seus registros no período analisado.
 
@@ -201,7 +201,7 @@ A GPU foi empregada para acelerar o treinamento das redes neurais recorrentes (L
 A Configuração 1 foi utilizada no desenvolvimento e treinamento dos modelos principais apresentados neste trabalho. A Configuração 2, com maior capacidade de processamento, foi empregada na implementação complementar da previsão multi-horizonte, mantendo o mesmo ambiente de software e versionamento de bibliotecas para garantir a reprodutibilidade dos resultados.
 
 \subsection{Reprodutibilidade e Controle de Versão}\label{sec:reprodutibilidade}
-Para garantir a reprodutibilidade dos experimentos, o código-fonte integral do \textit{pipeline} de dados, do treinamento dos modelos e da geração de gráficos está disponível em repositório público no GitHub\footnote{\url{https://github.com/Mathweuzz/Modelagem-Preditiva-de-Falhas-na-Rede-Eletrica-do-Distrito-Federal}}. O XGBoost foi instanciado com semente fixa (\texttt{random\_state=42}), assegurando resultados determinísticos. As versões das bibliotecas utilizadas são: Python 3.14, PyTorch 2.10, XGBoost 3.2, Scikit-Learn 1.8, Pandas 3.0 e NumPy 2.4.
+Para garantir a reprodutibilidade dos experimentos, o código-fonte integral do \textit{pipeline} de dados, do treinamento dos modelos e da geração de gráficos está disponível em repositório público no GitHub\footnote{\url{https://github.com/Mathweuzz/Modelagem-Preditiva-de-Falhas-na-Rede-Eletrica-do-Distrito-Federal}}. O XGBoost foi instanciado com semente fixa (\texttt{random\_state=42}). As redes neurais utilizam controle completo de aleatoriedade (\texttt{SEED=42}): \texttt{random.seed}, \texttt{numpy.random.seed}, \texttt{torch.manual\_seed}, \texttt{torch.cuda.manual\_seed\_all}, com \texttt{cudnn.deterministic=True} e \texttt{cudnn.benchmark=False}, assegurando resultados determinísticos em GPU. As versões das bibliotecas utilizadas são: Python 3.14, PyTorch 2.10, XGBoost 3.2, Scikit-Learn 1.8, Pandas 3.0 e NumPy 2.4.
 
 \subsection{Enquadramento Legal dos Dados}\label{sec:legal}
 Todos os conjuntos de dados utilizados neste trabalho são de domínio público e estão disponíveis em portais de dados abertos mantidos por órgãos do governo federal brasileiro. A utilização desses dados é respaldada por dois marcos legais:
@@ -241,14 +241,14 @@ A variável \texttt{mês} foi codificada em coordenadas polares via funções ha
 As variáveis \texttt{dia\_semana} e \texttt{dia\_ano} foram mantidas como inteiros, sendo que o XGBoost (baseado em árvores de decisão) é capaz de capturar padrões não-lineares sem necessidade de codificação adicional \cite{chen2016xgboost}.
 
 \subsection{Matriz Extensiva de Engenharia de Atributos (Feature Engineering)}
-O processo de engenharia de atributos expandiu a base de dados original (10 variáveis brutas após a integração INMET--ANEEL) para um conjunto de \textbf{41 \textit{features} de entrada} mais a variável alvo, totalizando 42 colunas no \textit{dataset} final. As categorias de atributos incluem: variáveis base meteorológicas e eólicas, codificações temporais (inteiras e cíclicas), defasagens de 1 a 7 dias, médias móveis exponenciais (EMA) de 3, 7 e 14 dias, e desvios padrão em janela deslizante de 7 dias.
+O processo de engenharia de atributos expandiu a base de dados original (8 variáveis meteorológicas brutas após a integração INMET--ANEEL) para um conjunto de \textbf{40 \textit{features} de entrada} mais a variável alvo, totalizando 41 colunas no \textit{dataset} final. As categorias de atributos incluem: variáveis base meteorológicas e eólicas, codificações temporais (inteiras e cíclicas), defasagens de 1 a 7 dias, médias móveis exponenciais (EMA) de 3, 7 e 14 dias, e desvios padrão em janela deslizante de 7 dias.
 
 A Tabela~\ref{tab:longtable_features} apresenta o dicionário completo de todos os atributos, conforme extraídos do arquivo \texttt{dataset\_engenharia\_features.csv} utilizado na modelagem.
 
 \begin{center}
 \footnotesize
 \begin{longtable}{p{6cm} p{1.2cm} p{5.8cm}}
-\caption{Dicionário Completo de Atributos (41 Features + Target)} \label{tab:longtable_features} \\
+\caption{Dicionário Completo de Atributos (40 Features + Target)} \label{tab:longtable_features} \\
 
 \toprule
 \textbf{Nome do Atributo} & \textbf{Tipo} & \textbf{Descrição} \\
@@ -268,7 +268,7 @@ A Tabela~\ref{tab:longtable_features} apresenta o dicionário completo de todos 
 \bottomrule
 \endlastfoot
 
-\multicolumn{3}{c}{\textbf{Variáveis Base (9 + Target)}} \\
+\multicolumn{3}{c}{\textbf{Variáveis Meteorológicas Base (7 + Target)}} \\
 \midrule
 \textbf{interrupcoes} & \textit{Target} & Número diário de interrupções no fornecimento. Variável dependente. \\
 \textbf{temperatura\_media} & \textit{Float} & Média aritmética diária da temperatura (°C). \\
@@ -278,7 +278,6 @@ A Tabela~\ref{tab:longtable_features} apresenta o dicionário completo de todos 
 \textbf{vento\_rajada\_max\_ms} & \textit{Float} & Rajada máxima diária (m/s). Principal variável eólica preditiva. \\
 \textbf{vento\_direcao\_media\_gr} & \textit{Float} & Direção média do vento em graus (0--360°). \\
 \textbf{vento\_direcao\_moda\_gr} & \textit{Float} & Moda da direção horária do vento (graus). \\
-\textbf{n\_registros} & \textit{Integer} & Número de observações horárias no dia (controle de completude). \\
 \midrule
 \multicolumn{3}{c}{\textbf{Variáveis Temporais (5: 3 inteiras + 2 cíclicas)}} \\
 \midrule
@@ -433,7 +432,7 @@ O protocolo adotado neste trabalho segue o paradigma de \textbf{separação temp
 \node at (9.5,1.6) {\small\textbf{Corte}};
 
 % Labels
-\node at (5,-1.1) {\small 2.693 dias};
+\node at (5,-1.1) {\small 2.701 dias};
 \node at (11.5,-1.1) {\small 365 dias};
 
 \end{tikzpicture}
@@ -441,7 +440,7 @@ O protocolo adotado neste trabalho segue o paradigma de \textbf{separação temp
 \label{fig:time_split}
 \end{figure}
 
-Dentro do conjunto de treinamento (2.693 dias), o XGBoost utilizou \textbf{validação cruzada temporal} com 5 \textit{splits} (via \texttt{TimeSeriesSplit} do Scikit-Learn), onde cada \textit{fold} subsequente avança temporalmente, garantindo que a informação futura nunca contamine a avaliação.
+Dentro do conjunto de treinamento (2.701 dias), o XGBoost utilizou \textbf{validação cruzada temporal} com 5 \textit{splits} (via \texttt{TimeSeriesSplit} do Scikit-Learn), onde cada \textit{fold} subsequente avança temporalmente, garantindo que a informação futura nunca contamine a avaliação.
 
 \subsection{Justificativa do Ponto de Corte}
 
@@ -472,16 +471,18 @@ O treinamento das redes Bi-LSTM e Bi-GRU utilizou o otimizador \textbf{Adam} \ci
 Complementarmente, aplicou-se \textit{Dropout} ($p = 0{,}2$) entre as camadas recorrentes e a camada densa, desativando aleatoriamente 20\% dos neurônios a cada iteração para reduzir a co-adaptação entre unidades \cite{goodfellow2016deep}. As redes foram treinadas em modo \textit{full-batch}, processando todo o conjunto de treinamento em uma única passagem por época.
 
 \subsection{Sintonia de Hiperparâmetros (Grid Search em Espaço Discreto)}
-Para o XGBoost, os hiperparâmetros foram otimizados via \textit{Grid Search} com validação cruzada temporal (\texttt{TimeSeriesSplit}, 5 \textit{folds}), utilizando exclusivamente o conjunto de treinamento. Os principais hiperparâmetros otimizados foram:
+Para o XGBoost, os hiperparâmetros foram otimizados via \textit{Grid Search} com validação cruzada temporal (\texttt{TimeSeriesSplit}, 5 \textit{folds}), utilizando exclusivamente o conjunto de treinamento. A métrica de seleção foi o MAE negativo (\texttt{neg\_mean\_absolute\_error}). Os hiperparâmetros otimizados e seus valores candidatos foram:
 \begin{enumerate}
-    \item \textbf{Taxa de Aprendizagem ($\eta$):} Avaliada em $\{0{,}01;\, 0{,}05;\, 0{,}1\}$. Controla a contribuição de cada árvore ao \textit{ensemble}.
-    \item \textbf{Profundidade da Árvore (\texttt{max\_depth}):} Testada em $\{3, 5, 7\}$. Limita a complexidade de cada árvore individual.
-    \item \textbf{Número de Estimadores (\texttt{n\_estimators}):} Testado em $\{100, 300, 500\}$. Define o total de árvores no \textit{ensemble}.
-    \item \textbf{Subamostragem (\texttt{subsample}):} Testada em $\{0{,}8;\, 1{,}0\}$. Fração dos dados usada para treinar cada árvore.
-    \item \textbf{Subamostragem de Colunas (\texttt{colsample\_bytree}):} Testada em $\{0{,}8;\, 1{,}0\}$. Fração das \textit{features} amostradas por árvore.
-    \item \textbf{Regularização $L_1$ (\texttt{reg\_alpha}):} Testada em $\{0;\, 0{,}5;\, 1\}$. Penalização \textit{Lasso} sobre os pesos das folhas.
-    \item \textbf{Regularização $L_2$ (\texttt{reg\_lambda}):} Testada em $\{1;\, 2;\, 5\}$. Penalização \textit{Ridge} sobre os pesos das folhas.
+    \item \textbf{Taxa de Aprendizagem ($\eta$):} Avaliada em $\{0{,}03;\, 0{,}05;\, 0{,}1\}$. Controla a contribuição de cada árvore ao \textit{ensemble}.
+    \item \textbf{Profundidade da Árvore (\texttt{max\_depth}):} Testada em $\{4, 6, 8\}$. Limita a complexidade de cada árvore individual.
+    \item \textbf{Número de Estimadores (\texttt{n\_estimators}):} Testado em $\{300, 500\}$. Define o total de árvores no \textit{ensemble}.
+    \item \textbf{Subamostragem (\texttt{subsample}):} Testada em $\{0{,}7;\, 0{,}8\}$. Fração dos dados usada para treinar cada árvore.
+    \item \textbf{Subamostragem de Colunas (\texttt{colsample\_bytree}):} Testada em $\{0{,}7;\, 0{,}8\}$. Fração das \textit{features} amostradas por árvore.
+    \item \textbf{Peso Mínimo por Folha (\texttt{min\_child\_weight}):} Testado em $\{1, 3\}$. Controla a criação de nós folha com poucas amostras.
+    \item \textbf{Perda Mínima de Divisão (\texttt{gamma}):} Testado em $\{0;\, 0{,}1\}$. Regularização que exige ganho mínimo para cada divisão adicional.
 \end{enumerate}
+
+A configuração ótima encontrada pela busca em grade foi: $\eta=0{,}03$, \texttt{max\_depth}$=4$, \texttt{n\_estimators}$=500$, \texttt{subsample}$=0{,}8$, \texttt{colsample\_bytree}$=0{,}7$, \texttt{min\_child\_weight}$=3$, \texttt{gamma}$=0$.
 
 \section{Análise Descritiva do Conjunto de Dados}\label{sec:descritiva}
 
@@ -556,34 +557,34 @@ A Tabela~\ref{tab:hiperparametros} consolida os hiperparâmetros finais de cada 
 \midrule
 Lookback (dias) & N/A & 14 & 14 \\
 Dimensão Oculta ($d_h$) & N/A & 64 & 64 \\
-Camadas Recorrentes & N/A & 1 & 1 \\
+Camadas Recorrentes & N/A & 2 & 2 \\
 Bidirecional & N/A & Sim & Sim \\
-Dropout & N/A & 0,2 & 0,2 \\
-Batch Normalization & N/A & Não & Sim \\
-Ativação (camada densa) & N/A & ReLU & LeakyReLU \\
+Dropout & N/A & 0,4 & 0,4 \\
+Batch Normalization & N/A & Não & Não \\
+Ativação (camada densa) & N/A & ReLU & ReLU \\
 \midrule
 \multicolumn{4}{c}{\textit{Otimização}} \\
 \midrule
 Função de Perda & Squared Error & MSELoss & MSELoss \\
-Otimizador & Hist (nativo) & Adam ($wd=10^{-5}$) & Adam ($wd=10^{-5}$) \\
-Taxa de Aprendizagem & 0,01--0,1 (Grid) & 0,001 & 0,001 \\
-Épocas / Estimadores & 100--500 & 200 & 200 \\
-Batch Size & N/A & Full-batch & Full-batch \\
-Scheduler & N/A & Nenhum & ReduceLR\-OnPlateau \\
+Otimizador & Hist (nativo) & AdamW ($wd=10^{-4}$) & AdamW ($wd=10^{-4}$) \\
+Taxa de Aprendizagem & 0,03--0,1 (Grid) & 0,001 & 0,001 \\
+Épocas / Estimadores & 300--500 & 150 & 150 \\
+Batch Size & N/A & 32 & 32 \\
+Scheduler & N/A & ReduceLR\-OnPlateau & ReduceLR\-OnPlateau \\
 \midrule
 \multicolumn{4}{c}{\textit{Regularização (XGBoost)}} \\
 \midrule
-\texttt{max\_depth} & $\{3, 5, 7\}$ & --- & --- \\
-\texttt{n\_estimators} & $\{100, 300, 500\}$ & --- & --- \\
-\texttt{subsample} & $\{0{,}8;\; 1{,}0\}$ & --- & --- \\
-\texttt{colsample\_bytree} & $\{0{,}8;\; 1{,}0\}$ & --- & --- \\
-\texttt{reg\_alpha} ($L_1$) & $\{0;\; 0{,}5;\; 1\}$ & --- & --- \\
-\texttt{reg\_lambda} ($L_2$) & $\{1;\; 2;\; 5\}$ & --- & --- \\
+\texttt{max\_depth} & $\{4, 6, 8\}$ $\to$ \textbf{4} & --- & --- \\
+\texttt{n\_estimators} & $\{300, 500\}$ $\to$ \textbf{500} & --- & --- \\
+\texttt{subsample} & $\{0{,}7;\; 0{,}8\}$ $\to$ \textbf{0,8} & --- & --- \\
+\texttt{colsample\_bytree} & $\{0{,}7;\; 0{,}8\}$ $\to$ \textbf{0,7} & --- & --- \\
+\texttt{min\_child\_weight} & $\{1;\; 3\}$ $\to$ \textbf{3} & --- & --- \\
+\texttt{gamma} & $\{0;\; 0{,}1\}$ $\to$ \textbf{0} & --- & --- \\
 \midrule
 \multicolumn{4}{c}{\textit{Dados}} \\
 \midrule
-Features de Entrada & 41 (tabular) & 42 (sequencial) & 42 (sequencial) \\
-Conjunto de Treino & 2.693 dias & 2.693 dias & 2.693 dias \\
+Features de Entrada & 40 (tabular) & 41 (sequencial) & 41 (sequencial) \\
+Conjunto de Treino & 2.701 dias & 2.701 dias & 2.701 dias \\
 Conjunto de Teste & 365 dias & 365 dias & 365 dias \\
 Normalização & Não necessária & MinMaxScaler $[0,1]$ & MinMaxScaler $[0,1]$ \\
 \bottomrule
@@ -599,23 +600,13 @@ Uma diferença estrutural relevante entre os modelos de \textit{Deep Learning} r
 
 Além da avaliação padrão com horizonte de um passo à frente (\textit{one-step-ahead}) sobre 365 dias de teste, realizou-se uma análise complementar de \textbf{previsão multi-horizonte}, em que os três modelos são utilizados para prever os próximos $x$ dias simultaneamente, com $x \in \{1, 3, 7, 14\}$.
 
-\subsection{Protocolo de Divisão}
+\subsection{Protocolo de Previsão Direta (\textit{Direct Multi-Step Forecasting})}
 
-Para cada horizonte $x$, o conjunto de treino corresponde a todos os dias do \textit{dataset} exceto os últimos $x$ dias; o conjunto de teste são exatamente esses $x$ dias finais. O objetivo é simular o uso operacional real dos modelos: dado o histórico disponível até o dia corrente, prever o comportamento da rede nos próximos $x$ dias.
+Adotou-se o protocolo de \textbf{previsão direta} para todos os modelos. Para cada horizonte $h \in \{1, 3, 7, 14\}$, um modelo independente é treinado especificamente para prever as interrupções $h$ dias à frente:
 
-Para garantir comparabilidade entre horizontes, o treino de todos os modelos nesta análise utiliza os dados até 17/05/2025 (i.e., os 14 dias finais do \textit{dataset} são reservados como conjunto de teste máximo), e os subhorizontes $x < 14$ são avaliados sobre os primeiros $x$ dias desse período.
+\begin{itemize}
+    \item \textbf{XGBoost:} o vetor-alvo é deslocado $h$ passos ($\texttt{shift(-h)}$), de modo que a linha do dia $t$ contém o alvo do dia $t+h$. O treinamento usa dias cujo alvo pertence ao período anterior a 01/06/2024; o teste usa dias cujo alvo está entre 01/06/2024 e 31/05/2025, totalizando $\approx$365 previsões por horizonte.
+    \item \textbf{Bi-LSTM e Bi-GRU:} a janela de entrada $[t{-}13, \ldots, t]$ é mantida, mas o alvo passa a ser $y_{t+h}$ (em vez de $y_{t+1}$). Isso é implementado deslocando o índice de destino na construção das sequências. Os últimos 14 dias do treinamento são concatenados como contexto antes das 365 observações de teste, produzindo até 365 previsões por horizonte ($\approx$365$-h+1$ para $h>1$).
+\end{itemize}
 
-\subsection{Estratégia de Previsão Recursiva para Modelos de Deep Learning}
-
-Os modelos Bi-LSTM e Bi-GRU foram projetados com saída de um único passo. Para gerar previsões em horizontes $x > 1$, adota-se a \textbf{estratégia recursiva auto-regressiva}:
-
-\begin{enumerate}
-    \item A janela de contexto inicial é formada pelos últimos $L = 14$ dias do conjunto de treino (valores reais);
-    \item O modelo prediz o valor de interrupções do dia seguinte ($\hat{y}_{t+1}$);
-    \item A janela é deslizada em um passo: o dia mais antigo é descartado e o novo dia é inserido com $\hat{y}_{t+1}$ na posição da variável-alvo, mantendo as demais \textit{features} do último dia disponível;
-    \item Os passos 2--3 são repetidos até completar $x$ previsões.
-\end{enumerate}
-
-Essa abordagem reflete o cenário operacional real: para os dias $t+2, t+3, \ldots, t+x$, o modelo não tem acesso aos valores reais de interrupções dos dias anteriores do período de previsão, utilizando apenas suas próprias estimativas. O erro se propaga e tende a aumentar com $x$, o que torna a análise da degradação do MAE por horizonte um indicador relevante da robustez de cada arquitetura.
-
-Para o XGBoost, as \textit{features} pré-computadas dos $x$ dias de teste são utilizadas diretamente, sem necessidade de ajuste recursivo, uma vez que as variáveis climáticas dos dias futuros são assumidas conhecidas (provenientes de previsão meteorológica).
+Essa estratégia elimina a propagação de erros da abordagem recursiva e garante comparabilidade direta entre os três modelos: cada um recebe apenas informação disponível até o dia $t$ e prevê diretamente o alvo $h$ dias à frente, sem depender de estimativas intermediárias.

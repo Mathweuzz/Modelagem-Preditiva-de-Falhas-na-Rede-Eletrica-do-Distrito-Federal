@@ -22,6 +22,7 @@ Execução:
   cd Fonte/src/models && python gru_avancada.py
 """
 import os
+import random
 import numpy as np
 import pandas as pd
 import torch
@@ -30,7 +31,7 @@ import torch.optim as optim
 
 from data_loader_dl import prepare_data_dl
 from baseline_xgboost import evaluate_and_plot
-from lstm_bidirecional import reverse_scaling, plot_loss
+from lstm_bidirecional import reverse_scaling, plot_loss, set_seeds, SEED
 
 
 class AdvancedGRU(nn.Module):
@@ -109,6 +110,7 @@ def train_gru_model(model, X_train, y_train, epochs=150, batch_size=32, lr=0.001
 
 
 if __name__ == "__main__":
+    set_seeds(SEED)
     os.makedirs('../../results/ml', exist_ok=True)
     data_path = '../../data/dataset_engenharia_features.csv'
 

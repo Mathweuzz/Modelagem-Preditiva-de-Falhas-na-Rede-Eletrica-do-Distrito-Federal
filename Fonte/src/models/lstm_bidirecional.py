@@ -21,6 +21,7 @@ Execução:
   cd Fonte/src/models && python lstm_bidirecional.py
 """
 import os
+import random
 import numpy as np
 import pandas as pd
 import torch
@@ -30,6 +31,17 @@ import matplotlib.pyplot as plt
 
 from data_loader_dl import prepare_data_dl
 from baseline_xgboost import evaluate_and_plot
+
+SEED = 42
+
+def set_seeds(seed=SEED):
+    """Fixa todas as sementes para reproducibilidade deterministica."""
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
 
 
 class AdvancedLSTM(nn.Module):
@@ -129,10 +141,11 @@ def plot_loss(loss_history, model_name, save_path):
 
 
 if __name__ == "__main__":
+    set_seeds(SEED)
     os.makedirs('../../results/ml', exist_ok=True)
     data_path = '../../data/dataset_engenharia_features.csv'
 
-    SEQ_LENGTH = 14   # janela de 14 dias de histórico
+    SEQ_LENGTH = 14   # janela de 14 dias de historico
     (X_train_t, y_train_t, X_test_t, y_test_t,
      scaler, target_idx, test_dates) = prepare_data_dl(data_path,
                                                        seq_length=SEQ_LENGTH)

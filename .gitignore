@@ -34,3 +34,10 @@ venv/
 # OS Files
 .DS_Store
 Thumbs.db
+
+# Claude Code memory (local only)
+.claude/
+
+# Arquivos temporários/locais
+TCC_codigo_fonte_dados.zip
+Monografia/monografia_novo_pc.pdf

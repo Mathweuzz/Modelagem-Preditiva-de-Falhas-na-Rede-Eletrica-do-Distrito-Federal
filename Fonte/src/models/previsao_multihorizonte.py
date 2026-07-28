@@ -1,265 +1,268 @@
 """
-Previsão Multi-Horizonte — Degradação do MAE por Horizonte
-===========================================================
+Previsao Multi-Horizonte — Avaliacao Direta (Direct Multi-Step)
+===============================================================
 
-Treina cada modelo uma vez (com os últimos MAX_HORIZONTE dias reservados)
-e avalia em múltiplos horizontes: x = 1, 3, 7, 14 dias.
+Para cada horizonte h em {1, 3, 7, 14}:
 
-Abordagem:
-  - XGBoost: previsão direta com as features pré-computadas
-  - Bi-LSTM / Bi-GRU: previsão recursiva (auto-regressiva)
-      janela inicial = últimos SEQ_LENGTH dias do treino (valores reais)
-      para cada passo h: prediz, insere previsão na janela, desliza
+  - Alvo: interrupcoes deslocadas h passos adiante (shift(-h))
+  - Features: estado do dia t (causais, disponiveis no fim do dia t)
+  - Treino: dias cuja DATA-ALVO e anterior ao periodo de teste
+  - Teste: 365 dias-alvo (01/06/2024 a 31/05/2025), mesmos para todos os modelos
 
-Artefatos gerados em results/ml/:
-  - previsao_multihorizonte_degradacao.png    (MAE por horizonte, todos os modelos)
-  - previsao_multihorizonte_barras_x3.png     (real vs previsto, x=3 dias)
-  - previsao_multihorizonte_metricas.csv      (MAE e RMSE por modelo e horizonte)
+Estrategia direta (sem recursao) para TODOS os modelos:
+  - XGBoost: ajuste direto com target deslocado
+  - Bi-LSTM / Bi-GRU: janela termina em t, target e t+h (nao t+1)
+    Implementado via deslocamento do vetor-alvo na construcao das sequencias.
 
-Execução:
+Saidas:
+  results/ml/predictions_all.csv         (modelo, data_origem, data_alvo, horizonte, y_real, y_pred)
+  results/ml/metrics_multihorizon.csv    (modelo, horizonte, n, MAE, RMSE, R2, MAPE)
+  results/ml/previsao_multihorizonte_metricas.csv  (alias para compatibilidade com plot_multihorizonte.py)
+
+Execucao:
   cd Fonte/src/models && python previsao_multihorizonte.py
 """
 
 import os
-import sys
+import gc
+import random
 import numpy as np
 import pandas as pd
 import torch
+import torch.nn as nn
+import torch.optim as optim
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import MinMaxScaler
-from sklearn.metrics import mean_absolute_error, mean_squared_error
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 import xgboost as xgb
 
-sys.path.insert(0, os.path.dirname(__file__))
-from data_loader_dl import create_sequences
-from lstm_bidirecional import AdvancedLSTM, train_dl_model
-from gru_avancada import AdvancedGRU
+from lstm_bidirecional import AdvancedLSTM, train_dl_model, reverse_scaling, set_seeds, SEED
+from gru_avancada import AdvancedGRU, train_gru_model
 
 plt.style.use('seaborn-v0_8-whitegrid')
 plt.rcParams.update({'figure.dpi': 300, 'font.size': 12})
 
-# ── Configuração ─────────────────────────────────────────────────────────────
 HORIZONTES    = [1, 3, 7, 14]
-MAX_HORIZONTE = max(HORIZONTES)
 SEQ_LENGTH    = 14
 TARGET_COL    = 'interrupcoes'
+TEST_SIZE     = 365
 DATA_PATH     = '../../data/dataset_engenharia_features.csv'
 SAVE_PATH     = '../../results/ml'
 
-
-# ── Dados ────────────────────────────────────────────────────────────────────
-
-def carregar(filepath):
-    df = pd.read_csv(filepath, index_col='data', parse_dates=True)
-    split = len(df) - MAX_HORIZONTE
-    train_df = df.iloc[:split].copy()
-    test_df  = df.iloc[split:].copy()
-    print(f"Treino: {len(train_df)} dias  ({train_df.index[0].date()} → {train_df.index[-1].date()})")
-    print(f"Teste:  {len(test_df)} dias   ({test_df.index[0].date()} → {test_df.index[-1].date()})")
-    return train_df, test_df
+TEST_START    = pd.Timestamp('2024-06-01')
 
 
-def rmse(y_true, y_pred):
-    return np.sqrt(mean_squared_error(y_true, y_pred))
+def mape(y_true, y_pred):
+    y_true, y_pred = np.array(y_true), np.array(y_pred)
+    return np.mean(np.abs((y_true - y_pred) / (y_true + 1e-8))) * 100
 
 
-# ── XGBoost ──────────────────────────────────────────────────────────────────
+def calcular_metricas(y_true, y_pred):
+    return {
+        'n':    len(y_true),
+        'MAE':  mean_absolute_error(y_true, y_pred),
+        'RMSE': np.sqrt(mean_squared_error(y_true, y_pred)),
+        'R2':   r2_score(y_true, y_pred),
+        'MAPE': mape(y_true, y_pred),
+    }
 
-def rodar_xgboost(train_df, test_df):
-    print("\n── XGBoost ──────────────────────────────")
-    X_train = train_df.drop(columns=[TARGET_COL])
-    y_train = train_df[TARGET_COL]
-    X_test  = test_df.drop(columns=[TARGET_COL])
-    y_test  = test_df[TARGET_COL].values
 
-    model = xgb.XGBRegressor(
-        n_estimators=500, learning_rate=0.05, max_depth=6,
-        subsample=0.8, colsample_bytree=0.8,
-        random_state=42, objective='reg:squarederror'
-    )
-    model.fit(X_train, y_train)
-    y_pred = np.maximum(0, model.predict(X_test))
+def carregar_dataset():
+    df = pd.read_csv(DATA_PATH, index_col='data', parse_dates=True)
+    print(f"Dataset: {len(df)} dias ({df.index.min().date()} -> {df.index.max().date()})")
+    return df
 
-    metricas = {}
+
+# ---------------------------------------------------------------------------
+# XGBoost — previsao direta por horizonte
+# ---------------------------------------------------------------------------
+
+def rodar_xgboost_direto(df):
+    print("\n=== XGBoost (direto) ===")
+    resultados = []
+
     for h in HORIZONTES:
-        mae_h  = mean_absolute_error(y_test[:h], y_pred[:h])
-        rmse_h = rmse(y_test[:h], y_pred[:h])
-        metricas[h] = (mae_h, rmse_h)
-        print(f"  x={h:2d}d → MAE: {mae_h:.2f}  RMSE: {rmse_h:.2f}")
+        print(f"  Horizonte h={h}...")
+        X = df.drop(columns=[TARGET_COL]).copy()
+        y_shifted = df[TARGET_COL].shift(-h)  # alvo = interrupcoes[t+h]
 
-    return y_pred, y_test, test_df.index, metricas
+        # Remover linhas onde o alvo e NaN (ultimos h dias)
+        valid = y_shifted.notna()
+        X_v   = X[valid]
+        y_v   = y_shifted[valid]
+
+        # Separar por data-alvo: treino = data_alvo < TEST_START
+        # data_alvo do dia t = t + h dias
+        datas_alvo = X_v.index + pd.Timedelta(days=h)
+        mask_treino = datas_alvo < TEST_START
+        mask_teste  = datas_alvo >= TEST_START
+
+        X_tr, y_tr = X_v[mask_treino], y_v[mask_treino]
+        X_te, y_te = X_v[mask_teste],  y_v[mask_teste]
+        datas_alvo_te = datas_alvo[mask_teste]
+        datas_origem_te = X_te.index
+
+        model = xgb.XGBRegressor(
+            n_estimators=500, learning_rate=0.05, max_depth=6,
+            subsample=0.8, colsample_bytree=0.8,
+            random_state=42, objective='reg:squarederror', n_jobs=-1
+        )
+        model.fit(X_tr, y_tr)
+        y_pred = np.maximum(0, model.predict(X_te))
+
+        for origem, alvo, real, pred in zip(
+            datas_origem_te, datas_alvo_te, y_te.values, y_pred
+        ):
+            resultados.append({
+                'modelo': 'XGBoost', 'horizonte': h,
+                'data_origem': origem.date(), 'data_alvo': alvo.date(),
+                'y_real': real, 'y_pred': pred,
+            })
+
+        m = calcular_metricas(y_te.values, y_pred)
+        print(f"    n={m['n']} | MAE={m['MAE']:.2f} | RMSE={m['RMSE']:.2f} | "
+              f"R2={m['R2']:.3f} | MAPE={m['MAPE']:.2f}%")
+
+    return resultados
 
 
-# ── DL recursivo ─────────────────────────────────────────────────────────────
+# ---------------------------------------------------------------------------
+# DL — previsao direta por horizonte (janela [t-13..t] -> y[t+h])
+# ---------------------------------------------------------------------------
 
-def prever_recursivo(model, train_scaled, test_df, scaler, target_idx, device):
-    n_features = train_scaled.shape[1]
-    janela = train_scaled[-SEQ_LENGTH:].copy()
-    y_test = test_df[TARGET_COL].values
+def criar_sequencias_diretas(data_scaled, target_idx, seq_length, h):
+    """
+    X[i] = data[i : i+seq_length]   (janela terminando em t)
+    y[i] = data[i + seq_length + h - 1, target_idx]  (alvo em t+h)
+    """
+    xs, ys = [], []
+    for i in range(len(data_scaled) - seq_length - h + 1):
+        xs.append(data_scaled[i : i + seq_length])
+        ys.append(data_scaled[i + seq_length + h - 1, target_idx])
+    return np.array(xs), np.array(ys)
 
-    previsoes_norm = []
-    for _ in range(MAX_HORIZONTE):
-        x_t = torch.from_numpy(janela).float().unsqueeze(0).to(device)
+
+def rodar_dl_direto(df, ModelClass, TrainFn, nome):
+    print(f"\n=== {nome} (direto) ===")
+    resultados = []
+
+    for h in HORIZONTES:
+        print(f"  Horizonte h={h}...")
+        set_seeds(SEED)
+
+        # Scaler ajustado SEM os ultimos TEST_SIZE dias
+        split_idx = len(df) - TEST_SIZE
+        train_df  = df.iloc[:split_idx]
+        test_df   = df.iloc[split_idx:]
+
+        scaler = MinMaxScaler()
+        train_scaled = scaler.fit_transform(train_df)
+        test_scaled  = scaler.transform(test_df)
+
+        # Treino: sequencias diretas dentro do treino
+        X_tr_np, y_tr_np = criar_sequencias_diretas(
+            train_scaled, train_df.columns.get_loc(TARGET_COL), SEQ_LENGTH, h
+        )
+
+        # Teste: usar contexto (ultimos seq_length dias do treino) + test
+        contexto    = train_scaled[-SEQ_LENGTH:]
+        bloco_teste = np.vstack([contexto, test_scaled])
+        X_te_np, y_te_np = criar_sequencias_diretas(
+            bloco_teste, train_df.columns.get_loc(TARGET_COL), SEQ_LENGTH, h
+        )
+
+        # As datas de origem: primeira janela de teste começa em test_df.index[0]
+        # X_te_np[i] usa bloco_teste[i:i+SEQ_LENGTH]
+        # bloco_teste[0:SEQ_LENGTH] = contexto => origem = test_df.index[0]
+        # bloco_teste[1:SEQ_LENGTH+1] = contexto[1:]+test[0] => origem = test_df.index[0]+1 dia
+        n_te = len(X_te_np)
+        datas_origem_te = test_df.index[:n_te]
+        datas_alvo_te   = datas_origem_te + pd.Timedelta(days=h)
+
+        # Converter para tensores
+        X_tr_t = torch.from_numpy(X_tr_np).float()
+        y_tr_t = torch.from_numpy(y_tr_np).float().unsqueeze(1)
+
+        input_dim = X_tr_t.shape[2]
+        model = ModelClass(input_size=input_dim, hidden_size=64, num_layers=2,
+                           output_size=1, dropout_rate=0.4)
+        model, _ = TrainFn(model, X_tr_t, y_tr_t, epochs=150, batch_size=32)
+
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        model.eval()
         with torch.no_grad():
-            pred_norm = model(x_t).cpu().numpy().flatten()[0]
-        previsoes_norm.append(pred_norm)
+            preds_norm = model(
+                torch.from_numpy(X_te_np).float().to(device)
+            ).cpu().numpy().flatten()
 
-        novo_dia = janela[-1].copy()
-        novo_dia[target_idx] = pred_norm
-        janela = np.vstack([janela[1:], novo_dia])
+        # Inverter escala
+        n_cols = train_df.shape[1]
+        target_idx = train_df.columns.get_loc(TARGET_COL)
+        dummy = np.zeros((len(preds_norm), n_cols))
+        dummy[:, target_idx] = preds_norm
+        y_pred_real = np.maximum(0, scaler.inverse_transform(dummy)[:, target_idx])
 
-    dummy = np.zeros((MAX_HORIZONTE, n_features))
-    dummy[:, target_idx] = previsoes_norm
-    y_pred = np.maximum(0, scaler.inverse_transform(dummy)[:, target_idx])
+        dummy2 = np.zeros((len(y_te_np), n_cols))
+        dummy2[:, target_idx] = y_te_np
+        y_real_real = scaler.inverse_transform(dummy2)[:, target_idx]
 
-    metricas = {}
-    for h in HORIZONTES:
-        mae_h  = mean_absolute_error(y_test[:h], y_pred[:h])
-        rmse_h = rmse(y_test[:h], y_pred[:h])
-        metricas[h] = (mae_h, rmse_h)
-        print(f"  x={h:2d}d → MAE: {mae_h:.2f}  RMSE: {rmse_h:.2f}")
+        for origem, alvo, real, pred in zip(
+            datas_origem_te, datas_alvo_te, y_real_real, y_pred_real
+        ):
+            resultados.append({
+                'modelo': nome, 'horizonte': h,
+                'data_origem': origem.date(), 'data_alvo': alvo.date(),
+                'y_real': real, 'y_pred': pred,
+            })
 
-    return y_pred, metricas
+        m = calcular_metricas(y_real_real, y_pred_real)
+        print(f"    n={m['n']} | MAE={m['MAE']:.2f} | RMSE={m['RMSE']:.2f} | "
+              f"R2={m['R2']:.3f} | MAPE={m['MAPE']:.2f}%")
 
+        # Liberar memoria entre horizontes
+        del model, X_tr_t, y_tr_t, X_tr_np, y_tr_np, X_te_np, y_te_np
+        del train_scaled, test_scaled, contexto, bloco_teste
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+        gc.collect()
 
-def rodar_lstm(train_df, test_df):
-    print("\n── Bi-LSTM ──────────────────────────────")
-    scaler = MinMaxScaler()
-    train_scaled = scaler.fit_transform(train_df)
-    target_idx = train_df.columns.get_loc(TARGET_COL)
-
-    X_tr, y_tr = create_sequences(train_scaled, target_idx, SEQ_LENGTH)
-    X_tr_t = torch.from_numpy(X_tr).float()
-    y_tr_t = torch.from_numpy(y_tr).float().unsqueeze(1)
-
-    input_dim = X_tr_t.shape[2]
-    model = AdvancedLSTM(input_size=input_dim, hidden_size=64, num_layers=2,
-                         output_size=1, dropout_rate=0.4)
-    model, _ = train_dl_model(model, X_tr_t, y_tr_t, epochs=150, batch_size=32)
-
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model.eval()
-    return prever_recursivo(model, train_scaled, test_df, scaler, target_idx, device)
+    return resultados
 
 
-def rodar_gru(train_df, test_df):
-    print("\n── Bi-GRU ───────────────────────────────")
-    scaler = MinMaxScaler()
-    train_scaled = scaler.fit_transform(train_df)
-    target_idx = train_df.columns.get_loc(TARGET_COL)
-
-    X_tr, y_tr = create_sequences(train_scaled, target_idx, SEQ_LENGTH)
-    X_tr_t = torch.from_numpy(X_tr).float()
-    y_tr_t = torch.from_numpy(y_tr).float().unsqueeze(1)
-
-    input_dim = X_tr_t.shape[2]
-    model = AdvancedGRU(input_size=input_dim, hidden_size=64, num_layers=2,
-                        output_size=1, dropout_rate=0.4)
-    model, _ = train_dl_model(model, X_tr_t, y_tr_t, epochs=150, batch_size=32)
-
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model.eval()
-    return prever_recursivo(model, train_scaled, test_df, scaler, target_idx, device)
-
-
-# ── Visualizações ─────────────────────────────────────────────────────────────
-
-def grafico_degradacao(todas_metricas, save_path):
-    """Curva MAE × horizonte para cada modelo."""
-    fig, ax = plt.subplots(figsize=(9, 5))
-    cores = {'XGBoost': 'tab:orange', 'Bi-LSTM': 'tab:green', 'Bi-GRU': 'tab:red'}
-    marcadores = {'XGBoost': 'o', 'Bi-LSTM': 's', 'Bi-GRU': '^'}
-
-    for modelo, metricas in todas_metricas.items():
-        maes = [metricas[h][0] for h in HORIZONTES]
-        ax.plot(HORIZONTES, maes, marker=marcadores[modelo], label=modelo,
-                color=cores[modelo], linewidth=2, markersize=8)
-        for h, mae in zip(HORIZONTES, maes):
-            ax.annotate(f'{mae:.0f}', (h, mae),
-                        textcoords='offset points', xytext=(0, 8),
-                        ha='center', fontsize=10, color=cores[modelo])
-
-    ax.set_xlabel('Horizonte de previsão (dias)')
-    ax.set_ylabel('MAE (interrupções/dia)')
-    ax.set_title('Degradação do Erro (MAE) por Horizonte de Previsão')
-    ax.set_xticks(HORIZONTES)
-    ax.legend()
-    plt.tight_layout()
-    out = f"{save_path}/previsao_multihorizonte_degradacao.png"
-    plt.savefig(out, dpi=300)
-    plt.close()
-    print(f"Gráfico de degradação salvo: {out}")
-
-
-def grafico_barras_x3(preds, y_real, datas, save_path):
-    """Gráfico de barras comparando real vs modelos para x=3."""
-    h = 3
-    fig, ax = plt.subplots(figsize=(10, 5))
-    dias = [f"t+{i+1}\n({d.strftime('%d/%m')})" for i, d in enumerate(datas[:h])]
-    x = np.arange(h)
-    larg = 0.18
-
-    cores   = {'XGBoost': 'tab:orange', 'Bi-LSTM': 'tab:green', 'Bi-GRU': 'tab:red'}
-    offsets = {'XGBoost': -larg, 'Bi-LSTM': 0, 'Bi-GRU': larg}
-
-    ax.bar(x, y_real[:h], width=larg * 4.5, label='Real',
-           color='tab:blue', alpha=0.25, zorder=2)
-
-    for nome, y_pred in preds.items():
-        ax.bar(x + offsets[nome], y_pred[:h], width=larg, label=nome,
-               color=cores[nome], alpha=0.85, zorder=3)
-
-    ax.set_xticks(x)
-    ax.set_xticklabels(dias)
-    ax.set_ylabel('Interrupções diárias')
-    ax.set_title('Previsão dos Próximos 3 Dias — Real vs Modelos')
-    ax.legend()
-    plt.tight_layout()
-    out = f"{save_path}/previsao_multihorizonte_barras_x3.png"
-    plt.savefig(out, dpi=300)
-    plt.close()
-    print(f"Gráfico x=3 salvo: {out}")
-
-
-def salvar_metricas(todas_metricas, save_path):
-    rows = []
-    for modelo, metricas in todas_metricas.items():
-        for h, (mae_v, rmse_v) in metricas.items():
-            rows.append({'Modelo': modelo, 'Horizonte': h,
-                         'MAE': round(mae_v, 2), 'RMSE': round(rmse_v, 2)})
-    df = pd.DataFrame(rows)
-    out = f"{save_path}/previsao_multihorizonte_metricas.csv"
-    df.to_csv(out, index=False)
-    print(f"\nMétricas salvas: {out}")
-    print(df.pivot(index='Horizonte', columns='Modelo', values='MAE')
-            .rename_axis('MAE por Horizonte').to_string())
-
-
-# ── Main ─────────────────────────────────────────────────────────────────────
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
+    set_seeds(SEED)
     os.makedirs(SAVE_PATH, exist_ok=True)
-    print(f"=== Previsão Multi-Horizonte: {HORIZONTES} dias ===\n")
 
-    train_df, test_df = carregar(DATA_PATH)
+    df = carregar_dataset()
 
-    xgb_pred, y_real, datas, xgb_met = rodar_xgboost(train_df, test_df)
-    lst_pred, lst_met                 = rodar_lstm(train_df, test_df)
-    gru_pred, gru_met                 = rodar_gru(train_df, test_df)
+    todos = []
+    todos += rodar_xgboost_direto(df)
+    todos += rodar_dl_direto(df, AdvancedLSTM, train_dl_model, 'Bi-LSTM')
+    todos += rodar_dl_direto(df, AdvancedGRU,  train_gru_model, 'Bi-GRU')
 
-    todas_metricas = {
-        'XGBoost': xgb_met,
-        'Bi-LSTM': lst_met,
-        'Bi-GRU':  gru_met,
-    }
-    preds = {
-        'XGBoost': xgb_pred,
-        'Bi-LSTM': lst_pred,
-        'Bi-GRU':  gru_pred,
-    }
+    df_pred = pd.DataFrame(todos)
+    df_pred.to_csv(f"{SAVE_PATH}/predictions_all.csv", index=False)
+    print(f"\nPrevisoes -> {SAVE_PATH}/predictions_all.csv")
 
-    grafico_degradacao(todas_metricas, SAVE_PATH)
-    grafico_barras_x3(preds, y_real, datas, SAVE_PATH)
-    salvar_metricas(todas_metricas, SAVE_PATH)
+    # Metricas agregadas por modelo e horizonte
+    rows = []
+    for (modelo, h), grp in df_pred.groupby(['modelo', 'horizonte']):
+        m = calcular_metricas(grp['y_real'].values, grp['y_pred'].values)
+        rows.append({'Modelo': modelo, 'Horizonte': h, **m})
 
-    print("\n[OK] Concluído.")
+    df_met = pd.DataFrame(rows).sort_values(['Modelo', 'Horizonte'])
+    df_met.to_csv(f"{SAVE_PATH}/metrics_multihorizon.csv", index=False)
+
+    # Alias para compatibilidade com plot_multihorizonte.py
+    df_met[['Modelo', 'Horizonte', 'MAE', 'RMSE']].to_csv(
+        f"{SAVE_PATH}/previsao_multihorizonte_metricas.csv", index=False
+    )
+
+    print(f"Metricas -> {SAVE_PATH}/metrics_multihorizon.csv")
+    print("\n=== RESUMO ===")
+    print(df_met.to_string(index=False))
+    print("\n[OK] Analise multi-horizonte concluida.")

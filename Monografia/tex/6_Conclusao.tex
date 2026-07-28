@@ -2,14 +2,14 @@ Este capítulo sintetiza os principais achados do trabalho, avalia o cumprimento
 
 \section{Síntese dos Achados}
 
-Este trabalho de conclusão de curso desenvolveu e avaliou modelos preditivos para estimar o número diário de interrupções no fornecimento de energia elétrica no Distrito Federal, integrando dados climáticos do INMET, registros de ocorrências da ANEEL e dados de consumo energético ao longo de 3.073 dias consecutivos de dados brutos (janeiro de 2017 a maio de 2025), reduzidos a 3.058 dias após a engenharia de atributos.
+Este trabalho de conclusão de curso desenvolveu e avaliou modelos preditivos para estimar o número diário de interrupções no fornecimento de energia elétrica no Distrito Federal, integrando dados climáticos do INMET, registros de ocorrências da ANEEL e dados de consumo energético ao longo de 3.073 dias consecutivos de dados brutos (janeiro de 2017 a maio de 2025), reduzidos a 3.066 dias após a engenharia de atributos.
 
 Os principais achados são:
 
 \begin{enumerate}
     \item \textbf{Correlação clima--falhas confirmada quantitativamente:} A análise de correlação em múltiplas escalas temporais demonstrou que a precipitação ($r = 0{,}54$ mensal), a direção do vento ($r = 0{,}59$ mensal) e o consumo de energia ($r = 0{,}48$ mensal) são preditores significativos das interrupções. A correlação intensifica-se consistentemente na transição do nível diário para o semanal e o mensal, indicando que os efeitos climáticos são cumulativos.
 
-    \item \textbf{XGBoost como modelo superior:} Contrariando a hipótese inicial de superioridade das redes neurais profundas, o modelo XGBoost obteve o melhor desempenho em todas as métricas ($R^2 = 0{,}520$, MAE $= 52{,}3$, MAPE $= 16{,}1\%$), favorecido pela engenharia de atributos explícita que equalizou a vantagem temporal das RNNs.
+    \item \textbf{XGBoost como modelo superior (avaliação de um ano):} Contrariando a hipótese inicial de superioridade das redes neurais profundas, o modelo XGBoost obteve o melhor desempenho em todas as métricas no conjunto de teste de 365 dias ($R^2 = 0{,}550$, MAE $= 50{,}4$, MAPE $= 15{,}6\%$), favorecido pela engenharia de atributos explícita que equalizou a vantagem temporal das RNNs.
 
     \item \textbf{Redes recorrentes com distribuição residual mais concentrada:} As redes Bi-LSTM e Bi-GRU, embora inferiores em métricas agregadas, apresentaram distribuições residuais mais leptocúrticas (concentradas em zero), sugerindo maior precisão nos dias ``normais'' com penalização nos eventos extremos.
 
@@ -17,7 +17,7 @@ Os principais achados são:
 
     \item \textbf{Defasagens temporais validadas empiricamente:} A análise de autocorrelação (ACF) e de correlação cruzada confirmou a dependência temporal significativa até 14 dias, validando a escolha do \textit{Lookback Window} de 14 dias e justificando a engenharia de \textit{Lags} e médias móveis exponenciais.
 
-    \item \textbf{Inversão de hierarquia em horizonte curto:} A análise multi-horizonte (1, 3, 7 e 14 dias à frente) revelou que a Bi-LSTM supera o XGBoost em previsão de 1 dia (MAE de 29,4 contra 70,6), enquanto o XGBoost retoma e mantém a liderança a partir de $x = 3$ dias. Esse resultado demonstra que a escolha do modelo deve ser guiada pelo horizonte operacional desejado.
+    \item \textbf{Redes recorrentes superiores em previsão multi-horizonte:} A análise multi-horizonte com protocolo de previsão direta (1, 3, 7 e 14 dias à frente, $\approx$365 origens cada) revelou que a Bi-LSTM supera o XGBoost em $h=1$ (MAE$=62{,}7$ vs.\ $68{,}7$) e $h=3$ (72,3 vs.\ 76,5), e a Bi-GRU supera o XGBoost em $h=7$ (72,6 vs.\ 81,9) e $h=14$ (64,3 vs.\ 70,3). O XGBoost é o pior modelo em $h=7$ ($R^2\approx0$). Esse resultado demonstra que a escolha do modelo deve ser guiada pelo horizonte operacional desejado.
 \end{enumerate}
 
 \section{Cumprimento dos Objetivos}
@@ -25,19 +25,19 @@ Os principais achados são:
 Em relação aos objetivos específicos propostos na Seção~\ref{sec:objetivos}:
 
 \begin{enumerate}
-    \item \textbf{Base de dados integrada:} Construiu-se uma base multivariada inédita de 3.073 dias a partir de três fontes governamentais (INMET, ANEEL e SAMP), expandida para 41 atributos derivados via engenharia de \textit{features}, inteiramente disponibilizada nos apêndices e repositório do projeto. \textit{Objetivo cumprido.}
+    \item \textbf{Base de dados integrada:} Construiu-se uma base multivariada inédita de 3.073 dias brutos a partir de três fontes governamentais (INMET, ANEEL e SAMP), reduzida a 3.066 dias após engenharia de atributos com 40 \textit{features} derivadas, inteiramente disponibilizada nos apêndices e repositório do projeto. \textit{Objetivo cumprido.}
 
     \item \textbf{Agregações em múltiplas escalas:} Realizaram-se análises em escala diária, semanal e mensal, revelando que a agregação temporal amplifica as correlações clima--falhas e facilita a identificação de padrões sazonais. \textit{Objetivo cumprido.}
 
-    \item \textbf{Engenharia de atributos temporais:} Desenvolveu-se um \textit{pipeline} de 41 \textit{features} derivadas incluindo defasagens de 1 a 7 dias, EMAs de 3, 7 e 14 dias, desvios padrão em janela de 7 dias e codificações harmônicas cíclicas. \textit{Objetivo cumprido.}
+    \item \textbf{Engenharia de atributos temporais:} Desenvolveu-se um \textit{pipeline} de 40 \textit{features} derivadas incluindo defasagens de 1 a 7 dias, EMAs de 3, 7 e 14 dias, desvios padrão em janela de 7 dias e codificações harmônicas cíclicas. \textit{Objetivo cumprido.}
 
-    \item \textbf{Modelo de referência XGBoost:} Implementou-se o XGBoost com \textit{Grid Search} temporal (5 splits) e 7 hiperparâmetros otimizados, alcançando $R^2 = 0{,}520$ no conjunto de teste. \textit{Objetivo cumprido.}
+    \item \textbf{Modelo de referência XGBoost:} Implementou-se o XGBoost com \textit{Grid Search} temporal (\texttt{TimeSeriesSplit}, 5 \textit{folds}, 7 hiperparâmetros), encontrando configuração ótima com \texttt{max\_depth}$=4$, $\eta=0{,}03$ e \texttt{n\_estimators}$=500$, alcançando $R^2 = 0{,}550$ no conjunto de teste. \textit{Objetivo cumprido.}
 
-    \item \textbf{Redes Neurais Recorrentes Bidirecionais:} Implementaram-se Bi-LSTM e Bi-GRU em PyTorch com 200 épocas, Dropout 0,2, \textit{Weight Decay} e otimizador Adam, comparando sistematicamente contra o XGBoost. \textit{Objetivo cumprido.}
+    \item \textbf{Redes Neurais Recorrentes Bidirecionais:} Implementaram-se Bi-LSTM e Bi-GRU em PyTorch com 150 épocas, Dropout 0,4, \textit{Weight Decay} $10^{-4}$, semente aleatória fixa e otimizador AdamW com \texttt{ReduceLROnPlateau}, comparando sistematicamente contra o XGBoost. \textit{Objetivo cumprido.}
 
     \item \textbf{Análises de correlação:} Conduziram-se análises de Pearson em três escalas temporais, autocorrelação (ACF), correlação cruzada e correlação entre consumo, temperatura e falhas. \textit{Objetivo cumprido.}
 
-    \item \textbf{Avaliação multi-horizonte:} Avaliou-se o comportamento dos três modelos em horizontes de previsão de 1, 3, 7 e 14 dias, quantificando a degradação do erro e identificando a inversão de hierarquia em $x = 1$ dia, conforme descrito na Seção~\ref{sec:multihorizonte}. \textit{Objetivo cumprido.}
+    \item \textbf{Avaliação multi-horizonte:} Avaliou-se o comportamento dos três modelos em horizontes de previsão de 1, 3, 7 e 14 dias com protocolo de previsão direta ($\approx$365 origens por horizonte), quantificando o desempenho relativo e identificando a superioridade das redes recorrentes sobre o XGBoost em todos os horizontes, conforme descrito na Seção~\ref{sec:multihorizonte}. \textit{Objetivo cumprido.}
 \end{enumerate}
 
 \section{Trabalhos Futuros}\label{sec:futuros}
@@ -64,7 +64,7 @@ Os resultados e limitações identificados neste trabalho abrem diversas frentes
 
 \section{Considerações Finais}
 
-Este trabalho demonstrou que a previsão de falhas na rede elétrica do Distrito Federal é viável com as técnicas atuais de aprendizado de máquina, alcançando um MAPE de 16,1\% com o modelo XGBoost --- acurácia suficiente para orientar decisões operacionais de pré-posicionamento de equipes e dimensionamento de recursos. O achado central de que a engenharia de atributos temporais equaliza a vantagem das redes neurais recorrentes reforça a importância de investir em conhecimento de domínio antes de escalar a complexidade arquitetural dos modelos.
+Este trabalho demonstrou que a previsão de falhas na rede elétrica do Distrito Federal é viável com as técnicas atuais de aprendizado de máquina, alcançando MAPE de 15,6\% com o XGBoost na avaliação de um ano e desempenho superior das redes recorrentes em todos os horizontes da análise multi-horizonte --- indicando que a escolha do modelo deve considerar o horizonte operacional desejado. O achado central de que a engenharia de atributos temporais equaliza a vantagem das redes neurais na avaliação \textit{one-step}, mas não na previsão multi-horizonte direta, reforça a importância de investir tanto em conhecimento de domínio quanto em arquiteturas recorrentes para horizontes além de um passo.
 
 A tendência de crescimento de 65,3\% nas interrupções ao longo de oito anos sinaliza uma urgência operacional: sem investimentos significativos em infraestrutura resiliente e sem a adoção de ferramentas preditivas como as desenvolvidas neste trabalho, a qualidade do fornecimento tenderá a deteriorar-se progressivamente, com impactos econômicos e sociais crescentes para os mais de 1,1 milhão de consumidores atendidos pela Neoenergia Brasília.
 

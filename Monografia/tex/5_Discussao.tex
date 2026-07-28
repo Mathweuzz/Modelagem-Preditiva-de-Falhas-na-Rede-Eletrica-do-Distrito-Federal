@@ -2,16 +2,16 @@ Este capítulo discute os resultados obtidos à luz da literatura existente, int
 
 \section{Interpretação dos Resultados Preditivos}
 
-Os resultados apresentados no Capítulo~\ref{4_Resultados} revelaram um achado que contraria a hipótese inicial do trabalho: o modelo baseado em \textit{Gradient Boosting} (XGBoost) superou as duas arquiteturas de \textit{Deep Learning} (Bi-LSTM e Bi-GRU) em todas as métricas de avaliação no conjunto de teste. O XGBoost alcançou $R^2 = 0{,}520$, MAE $= 52{,}3$ e MAPE $= 16{,}1\%$, enquanto a Bi-LSTM obteve $R^2 = 0{,}410$ e a Bi-GRU $R^2 = 0{,}332$.
+Os resultados apresentados no Capítulo~\ref{4_Resultados} revelaram um achado que contraria a hipótese inicial do trabalho: o modelo baseado em \textit{Gradient Boosting} (XGBoost) superou as duas arquiteturas de \textit{Deep Learning} (Bi-LSTM e Bi-GRU) em todas as métricas de avaliação no conjunto de teste de um ano. O XGBoost alcançou $R^2 = 0{,}550$, MAE $= 50{,}4$ e MAPE $= 15{,}6\%$, enquanto a Bi-LSTM obteve $R^2 = 0{,}420$ e a Bi-GRU $R^2 = 0{,}156$.
 
 Essa superioridade pode ser atribuída a três fatores complementares:
 
 \begin{enumerate}
-    \item \textbf{Engenharia de atributos como equalizador:} A construção manual de 41 \textit{features} --- incluindo defasagens de 1 a 7 dias, médias móveis exponenciais e codificações harmônicas --- transferiu ao XGBoost, de forma explícita, grande parte da informação temporal que as redes recorrentes aprendem implicitamente. Com essa engenharia, o XGBoost opera sobre uma representação tabular já enriquecida com memória temporal, reduzindo a vantagem arquitetural das RNNs.
+    \item \textbf{Engenharia de atributos como equalizador:} A construção manual de 40 \textit{features} --- incluindo defasagens de 1 a 7 dias, médias móveis exponenciais e codificações harmônicas --- transferiu ao XGBoost, de forma explícita, grande parte da informação temporal que as redes recorrentes aprendem implicitamente. Com essa engenharia, o XGBoost opera sobre uma representação tabular já enriquecida com memória temporal, reduzindo a vantagem arquitetural das RNNs.
 
     \item \textbf{Regularização robusta:} O XGBoost dispõe de múltiplos mecanismos de regularização nativos ($L_1$, $L_2$, Gamma, \texttt{max\_depth}, \texttt{subsample}), calibrados via \textit{Grid Search} com validação cruzada temporal. Essa parametrização finamente ajustada impede o \textit{overfitting} de forma mais controlável do que o Dropout e o \textit{Weight Decay} das redes neurais.
 
-    \item \textbf{Tamanho limitado do conjunto de dados:} Com 2.693 dias de treinamento e 41 \textit{features}, o volume de dados é modesto para redes recorrentes profundas que tipicamente exigem milhares a milhões de amostras para convergir a representações internas superiores. O XGBoost, por sua natureza \textit{ensemble} de árvores rasas, é mais eficiente com amostras limitadas \cite{chen2016xgboost}.
+    \item \textbf{Tamanho limitado do conjunto de dados:} Com 2.701 dias de treinamento e 40 \textit{features}, o volume de dados é modesto para redes recorrentes profundas que tipicamente exigem milhares a milhões de amostras para convergir a representações internas superiores. O XGBoost, por sua natureza \textit{ensemble} de árvores rasas, é mais eficiente com amostras limitadas \cite{chen2016xgboost}.
 \end{enumerate}
 
 \section{XGBoost vs. Deep Learning: Análise de Trade-offs}
@@ -27,14 +27,14 @@ A comparação entre os paradigmas vai além das métricas numéricas. A Tabela~
 \toprule
 \textbf{Critério} & \textbf{XGBoost} & \textbf{Bi-LSTM / Bi-GRU} \\
 \midrule
-Acurácia Geral (365 dias) & Superior ($R^2 = 0{,}52$) & Inferior ($R^2 = 0{,}41$ / $0{,}33$) \\
-Previsão 1 dia à frente & MAE $= 70{,}6$ & \textbf{Bi-LSTM: MAE} $= \mathbf{29{,}4}$ \\
+Acurácia Geral (365 dias) & Superior ($R^2 = 0{,}55$) & Inferior ($R^2 = 0{,}42$ / $0{,}16$) \\
+Previsão 1 dia à frente & MAE $= 68{,}7$ & \textbf{Bi-LSTM: MAE} $= \mathbf{62{,}7}$ \\
 Velocidade de Treino & Minutos & Horas (200 épocas) \\
 Interpretabilidade & Alta (\textit{Feature Importance}) & Baixa (caixa-preta) \\
 Necessidade de GPU & Não & Recomendável \\
 Escalabilidade & Alta (paralelismo nativo) & Limitada pelo BPTT \\
 Sensibilidade a Outliers & Conservador (regularização) & Maior volatilidade \\
-Engenharia Manual & Necessária (41 features) & Potencialmente dispensável \\
+Engenharia Manual & Necessária (40 features) & Potencialmente dispensável \\
 \bottomrule
 \end{tabular}
 \normalsize
@@ -48,18 +48,17 @@ Em contrapartida, as redes recorrentes demonstraram uma propriedade relevante na
 
 \section[Inversão da Hierarquia por Horizonte]{Inversão da Hierarquia no Contexto Multi-\hspace{0pt}Horizonte}\label{sec:discussao_multihorizonte}
 
-A análise multi-horizonte (Seção~\ref{sec:multihorizonte}, Capítulo~\ref{4_Resultados}) revelou uma nuance fundamental que não era visível na avaliação padrão de 365 dias: \textbf{a hierarquia de desempenho entre os modelos depende criticamente do horizonte de previsão considerado}.
+A análise multi-horizonte (Seção~\ref{sec:multihorizonte}, Capítulo~\ref{4_Resultados}), conduzida com o protocolo de \textbf{previsão direta} sobre $\approx$365 origens distintas por horizonte, revelou uma nuance fundamental: \textbf{a hierarquia de desempenho entre os modelos não é invariante ao horizonte de previsão, e as redes recorrentes são competitivas ou superiores ao XGBoost em todos os horizontes avaliados com este protocolo}.
 
-Para $x = 1$ dia à frente, a Bi-LSTM supera o XGBoost com margem expressiva (MAE de 29,4 contra 70,6), invertendo completamente o resultado observado no teste de longo prazo. Esse comportamento encontra explicação nas propriedades arquiteturais de cada modelo:
+Para $h = 1$ dia à frente, a Bi-LSTM supera o XGBoost (MAE de 62,7 contra 68,7), confirmando que a memória bidirecional captura melhor a inércia imediata da série. Para $h = 3$ dias, a Bi-LSTM mantém a vantagem (MAE de 72,3 contra 76,5 do XGBoost). A Bi-GRU assume a liderança nos horizontes mais longos: MAE de 72,6 em $h=7$ (contra 81,9 do XGBoost) e 64,3 em $h=14$ (contra 70,3 do XGBoost). Em particular, o XGBoost registra $R^2 \approx 0{,}004$ em $h=7$, indicando ausência de poder preditivo nesse horizonte específico.
 
 \begin{itemize}
-    \item A \textbf{Bi-LSTM}, ao processar a janela de 14 dias anteriores de forma bidirecional, captura a inércia imediata da série — o padrão de interrupções dos últimos dias é um sinal fortíssimo para o dia seguinte, e a rede explorou esse sinal eficientemente em horizonte curto.
-    \item O \textbf{XGBoost}, apesar de conter \textit{features} de lag explícitas, não possui mecanismo de memória sequencial: cada previsão é feita de forma independente sobre um vetor de \textit{features} tabulares, sem acesso implícito à trajetória recente da série. Em horizonte de um único passo, essa limitação estrutural penaliza o modelo.
+    \item A \textbf{Bi-LSTM}, ao processar a janela de 14 dias anteriores de forma bidirecional, captura dependências temporais que se manifestam em horizontes de curto prazo ($h=1$, $h=3$), onde o padrão recente da série ainda é informativo.
+    \item A \textbf{Bi-GRU}, com sua estrutura mais compacta, generaliza melhor para horizontes intermediários e longos ($h=7$, $h=14$), possivelmente por ser menos suscetível ao sobreajuste a padrões de curto prazo específicos do período de treinamento.
+    \item O \textbf{XGBoost}, embora contenha \textit{features} de lag explícitas, realiza previsões independentes por dia sem mecanismo de memória sequencial implícita. Isso limita sua capacidade de capturar dinâmicas temporais no horizonte de previsão direta.
 \end{itemize}
 
-A partir de $x = 3$ dias, o XGBoost recupera a liderança e a mantém até $x = 14$ dias. Esse comportamento está diretamente relacionado à \textbf{propagação de erro} nas previsões recursivas das redes neurais: ao usar a própria estimativa de $t+1$ como entrada para prever $t+2$, os erros se acumulam a cada passo, degradando progressivamente a precisão. O XGBoost, por sua vez, utiliza as \textit{features} pré-computadas de cada dia diretamente, sem dependência de suas previsões anteriores, tornando-o imune a esse efeito de cascata.
-
-Essa inversão tem uma implicação prática relevante para o uso operacional dos modelos: em sistemas de alerta de curtíssimo prazo (previsão do dia seguinte), a Bi-LSTM é a arquitetura preferível; para planejamento de médio prazo (3 a 14 dias), o XGBoost oferece maior robustez. Uma implantação operacional ideal poderia combinar os dois modelos de forma complementar, selecionando automaticamente a arquitetura conforme o horizonte de previsão requisitado.
+Essa constatação tem uma implicação prática relevante: para qualquer horizonte de previsão operacional ($h \in \{1, 3, 7, 14\}$), as arquiteturas recorrentes (Bi-LSTM ou Bi-GRU) apresentam menor MAE do que o XGBoost. Uma implantação operacional poderia combinar os dois modelos de forma complementar: Bi-LSTM para curtíssimo prazo ($h=1$, $h=3$) e Bi-GRU para médio prazo ($h=7$, $h=14$).
 
 \section{Análise da Importância das Variáveis}
 
@@ -100,7 +99,7 @@ A Tabela~\ref{tab:comparacao_literatura} contextualiza os resultados deste traba
 \toprule
 \textbf{Estudo} & \textbf{Melhor Modelo} & \textbf{Tarefa} & \textbf{Métrica Principal} & \textbf{Contexto} \\
 \midrule
-\textbf{Este trabalho} & XGBoost & Regressão & $R^2 = 0{,}52$; MAPE = 16,1\% & Diário, Brasil (DF) \\
+\textbf{Este trabalho} & XGBoost & Regressão & $R^2 = 0{,}55$; MAPE = 15,6\% & Diário, Brasil (DF) \\
 \cite{zhang2023deep} & MLP & Regressão & MAE = 0,013; RMSE = 0,048 & Diário, EUA \\
 \cite{smith2021hybrid} & Árvores+Vegetação & Regressão & MdAPE = 59\% & Diário, EUA \\
 \cite{saha2019machine} & PSO+XGBoost & Classif. & Acurácia = 96,2\% & Diário, China \\
@@ -131,7 +130,7 @@ O presente trabalho possui limitações que devem ser explicitadas para contextu
 
     \item \textbf{Estação meteorológica única:} Os dados climáticos provêm de uma única estação (A001 --- Brasília), que pode não representar adequadamente as condições microclimáticas de todas as regiões administrativas do DF. A incorporação de múltiplas estações ou de dados de reanálise (ERA5) proporcionaria cobertura espacial mais abrangente.
 
-    \item \textbf{Volume de dados para Deep Learning:} Os 2.693 dias de treinamento, embora suficientes para modelos tabulares como o XGBoost, são modestos para redes recorrentes profundas. A disponibilidade de séries mais longas ou de dados de múltiplas concessionárias poderia favorecer as arquiteturas neurais.
+    \item \textbf{Volume de dados para Deep Learning:} Os 2.701 dias de treinamento, embora suficientes para modelos tabulares como o XGBoost, são modestos para redes recorrentes profundas. A disponibilidade de séries mais longas ou de dados de múltiplas concessionárias poderia favorecer as arquiteturas neurais.
 \end{enumerate}
 
 \section{Implicações Práticas para a Neoenergia Brasília}
@@ -139,7 +138,7 @@ O presente trabalho possui limitações que devem ser explicitadas para contextu
 Os resultados deste trabalho apresentam aplicabilidade direta para a gestão operacional da concessionária:
 
 \begin{itemize}
-    \item \textbf{Sistema de alerta precoce:} Um modelo XGBoost treinado com as 41 \textit{features} desenvolvidas neste trabalho poderia ser integrado aos sistemas SCADA (\textit{Supervisory Control and Data Acquisition}) da Neoenergia, emitindo alertas automáticos quando a previsão de interrupções para o dia seguinte superar um limiar pré-definido (por exemplo, o terceiro quartil histórico de 295 interrupções).
+    \item \textbf{Sistema de alerta precoce:} Um modelo XGBoost treinado com as 40 \textit{features} desenvolvidas neste trabalho poderia ser integrado aos sistemas SCADA (\textit{Supervisory Control and Data Acquisition}) da Neoenergia, emitindo alertas automáticos quando a previsão de interrupções para o dia seguinte superar um limiar pré-definido (por exemplo, o terceiro quartil histórico de 295 interrupções).
 
     \item \textbf{Pré-posicionamento de equipes:} Com previsões de 24 horas de antecedência, a concessionária poderia realocar equipes de manutenção para as regiões administrativas historicamente mais afetadas durante eventos de tempestade previstos, reduzindo o tempo médio de restabelecimento do fornecimento.
 
@@ -231,6 +230,6 @@ Embora o período do El Niño 2023 integre o conjunto de treinamento (anterior a
 
 Uma reflexão metodológica importante emerge da comparação entre o XGBoost e as redes recorrentes: a \textbf{engenharia de atributos manual} (41 \textit{features} explicitamente construídas com conhecimento de domínio) não apenas igualou, mas superou a capacidade de \textbf{extração automática de representações} das RNNs. Esse resultado dialoga com o debate mais amplo na comunidade de \textit{Machine Learning} sobre a relação entre investimento em engenharia de dados versus complexidade arquitetural.
 
-O sucesso do XGBoost com \textit{features} manuais pode ser atribuído ao tamanho modesto do conjunto de dados (3.058 dias após engenharia de atributos). Em regimes de dados abundantes (milhões de observações), as redes neurais profundas tipicamente superam modelos tabulares ao extrair automaticamente representações hierárquicas que transcendem a capacidade de engenharia humana \cite{goodfellow2016deep}. Contudo, em regimes de dados escassos --- comuns em aplicações de engenharia elétrica onde séries históricas longas nem sempre estão disponíveis --- o conhecimento de domínio codificado em \textit{features} manuais compensa a limitação amostral.
+O sucesso do XGBoost na avaliação \textit{one-step} com \textit{features} manuais pode ser atribuído ao tamanho modesto do conjunto de dados (3.066 dias após engenharia de atributos). Em regimes de dados abundantes (milhões de observações), as redes neurais profundas tipicamente superam modelos tabulares ao extrair automaticamente representações hierárquicas que transcendem a capacidade de engenharia humana \cite{goodfellow2016deep}. Contudo, em regimes de dados escassos --- comuns em aplicações de engenharia elétrica onde séries históricas longas nem sempre estão disponíveis --- o conhecimento de domínio codificado em \textit{features} manuais compensa a limitação amostral.
 
-Essa evidência sugere que, para concessionárias brasileiras que desejem implementar modelos preditivos com dados históricos limitados ($<$10.000 dias), a abordagem recomendada é investir primariamente na engenharia de atributos informada por conhecimento de domínio (defasagens, médias móveis, codificações sazonais) e utilizar modelos tabulares robustos (XGBoost, LightGBM), reservando as redes neurais profundas para cenários onde dados abundantes e de alta resolução temporal estejam disponíveis.
+Essa evidência sugere que, para concessionárias brasileiras que desejem implementar modelos preditivos com dados históricos limitados ($<$10.000 dias), a abordagem recomendada é investir na engenharia de atributos informada por conhecimento de domínio (defasagens, médias móveis, codificações sazonais) e combinar modelos tabulares (XGBoost, LightGBM) com redes recorrentes, escolhendo a arquitetura conforme o horizonte de previsão operacional desejado.

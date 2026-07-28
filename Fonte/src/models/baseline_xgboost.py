@@ -17,11 +17,13 @@ Execução:
   cd Fonte/src/models && python baseline_xgboost.py
 """
 import os
+import json
 import numpy as np
 import pandas as pd
 import xgboost as xgb
 import matplotlib.pyplot as plt
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+from sklearn.model_selection import GridSearchCV, TimeSeriesSplit
 
 plt.style.use('seaborn-v0_8-whitegrid')
 plt.rcParams.update({'figure.dpi': 300, 'font.size': 12})
@@ -49,19 +51,56 @@ def load_and_split_data(filepath, target_col='interrupcoes', test_size_days=365)
     return X_train, X_test, y_train, y_test
 
 
-def train_xgboost(X_train, y_train):
-    print("Treinando modelo XGBoost Regressor...")
-    model = xgb.XGBRegressor(
-        n_estimators=500,
-        learning_rate=0.05,
-        max_depth=6,
-        subsample=0.8,
-        colsample_bytree=0.8,
+def train_xgboost(X_train, y_train, save_path='../../results/ml'):
+    """
+    Treina XGBoost com Grid Search temporal (TimeSeriesSplit, 5 folds).
+    Salva cv_results.csv e best_params.json em save_path.
+    """
+    print("Iniciando Grid Search com TimeSeriesSplit (5 folds)...")
+
+    param_grid = {
+        'n_estimators':     [300, 500],
+        'learning_rate':    [0.03, 0.05, 0.1],
+        'max_depth':        [4, 6, 8],
+        'subsample':        [0.7, 0.8],
+        'colsample_bytree': [0.7, 0.8],
+        'min_child_weight': [1, 3],
+        'gamma':            [0, 0.1],
+    }
+
+    base = xgb.XGBRegressor(
+        objective='reg:squarederror',
         random_state=42,
-        objective='reg:squarederror'
+        n_jobs=-1,
     )
-    model.fit(X_train, y_train)
-    return model
+
+    tscv = TimeSeriesSplit(n_splits=5)
+    gs = GridSearchCV(
+        estimator=base,
+        param_grid=param_grid,
+        cv=tscv,
+        scoring='neg_mean_absolute_error',
+        n_jobs=-1,
+        verbose=1,
+        refit=True,
+    )
+    gs.fit(X_train, y_train)
+
+    best_params = gs.best_params_
+    print(f"\nMelhores hiperparametros: {best_params}")
+    print(f"MAE CV (melhor): {-gs.best_score_:.2f}")
+
+    # Salvar artefatos
+    os.makedirs(save_path, exist_ok=True)
+    pd.DataFrame(gs.cv_results_).to_csv(
+        f"{save_path}/xgboost_cv_results.csv", index=False
+    )
+    with open(f"{save_path}/xgboost_best_params.json", 'w') as f:
+        json.dump(best_params, f, indent=2)
+    print(f"CV results -> {save_path}/xgboost_cv_results.csv")
+    print(f"Best params -> {save_path}/xgboost_best_params.json")
+
+    return gs.best_estimator_
 
 
 def evaluate_and_plot(model, X_test, y_test, model_name, save_path):
@@ -145,7 +184,8 @@ def evaluate_and_plot(model, X_test, y_test, model_name, save_path):
 
 
 if __name__ == "__main__":
-    os.makedirs('../../results/ml', exist_ok=True)
+    SAVE_PATH = '../../results/ml'
+    os.makedirs(SAVE_PATH, exist_ok=True)
 
     data_path = '../../data/dataset_engenharia_features.csv'
 
@@ -153,7 +193,7 @@ if __name__ == "__main__":
         data_path, test_size_days=365
     )
 
-    xgb_model = train_xgboost(X_train, y_train)
+    xgb_model = train_xgboost(X_train, y_train, save_path=SAVE_PATH)
 
     evaluate_and_plot(xgb_model, X_test, y_test,
-                      model_name='XGBoost', save_path='../../results/ml')
+                      model_name='XGBoost', save_path=SAVE_PATH)
