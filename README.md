@@ -43,7 +43,7 @@ O trabalho desenvolve e avalia modelos preditivos para estimar o número diário
    - **Bi-LSTM** em PyTorch (2 camadas, hidden=64, Dropout=0.4, AdamW, 150 épocas, semente fixa)
    - **Bi-GRU** em PyTorch (mesma arquitetura da Bi-LSTM)
 
-4. **Avaliação multi-horizonte com previsão direta**: modelos independentes treinados para cada horizonte h ∈ {1, 3, 7, 14}, sem recursão — comparação equânime entre todos os modelos (~365 origens por horizonte).
+4. **Avaliação multi-horizonte com previsão direta**: modelos independentes treinados para cada horizonte h ∈ {1, 3, 7, 14}, sem recursão — comparação equânime com 365 datas-alvo idênticas por modelo e horizonte.
 
 ---
 

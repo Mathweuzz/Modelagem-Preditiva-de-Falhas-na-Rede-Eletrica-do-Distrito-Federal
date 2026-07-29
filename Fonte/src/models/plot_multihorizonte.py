@@ -38,18 +38,18 @@ def grafico_degradacao_mae(df, save_path):
     # offsets verticais manuais para evitar sobreposição nas anotações
     # (h, modelo) -> offset em pontos
     offsets_custom = {
-        (1,  'XGBoost'): (+12, 'center'),
-        (1,  'Bi-LSTM'): (-16, 'center'),
+        (1,  'XGBoost'): (+14, 'center'),
+        (1,  'Bi-LSTM'): (-20, 'center'),
         (1,  'Bi-GRU'):  (-16, 'center'),
-        (3,  'XGBoost'): (-16, 'center'),
-        (3,  'Bi-LSTM'): (+12, 'center'),
-        (3,  'Bi-GRU'):  (+12, 'center'),
-        (7,  'XGBoost'): (-16, 'center'),
-        (7,  'Bi-LSTM'): (+12, 'center'),
-        (7,  'Bi-GRU'):  (+12, 'center'),
-        (14, 'XGBoost'): (-16, 'center'),
+        (3,  'XGBoost'): (+16, 'center'),
+        (3,  'Bi-LSTM'): (-20, 'center'),
+        (3,  'Bi-GRU'):  (-18, 'center'),
+        (7,  'XGBoost'): (+14, 'center'),
+        (7,  'Bi-LSTM'): (-18, 'center'),
+        (7,  'Bi-GRU'):  (-18, 'center'),
+        (14, 'XGBoost'): (+14, 'center'),
         (14, 'Bi-LSTM'): (+12, 'center'),
-        (14, 'Bi-GRU'):  (+12, 'center'),
+        (14, 'Bi-GRU'):  (-20, 'center'),
     }
 
     for modelo in ['XGBoost', 'Bi-LSTM', 'Bi-GRU']:
@@ -70,14 +70,14 @@ def grafico_degradacao_mae(df, save_path):
     ax.set_xticklabels([f'{h} dia{"s" if h > 1 else ""}' for h in HORIZONTES])
     ax.set_xlabel('Horizonte de previsão')
     ax.set_ylabel('MAE (interrupções/dia)')
-    ax.set_title('Degradação do Erro (MAE) por Horizonte de Previsão')
+    ax.set_title('Desempenho por Horizonte de Previsão - MAE')
     ax.legend(framealpha=0.95, loc='upper right')
     ax.set_ylim(0, max(df['MAE']) * 1.30)
     ax.set_xlim(0.5, 14.5)
     plt.tight_layout()
 
     out = f'{save_path}/previsao_multihorizonte_degradacao.png'
-    plt.savefig(out, dpi=300, bbox_inches='tight')
+    plt.savefig(out, dpi=300, bbox_inches='tight', pad_inches=0.25)
     plt.close()
     print(f'Salvo: {out}')
 
@@ -104,14 +104,14 @@ def grafico_degradacao_rmse(df, save_path):
     ax.set_xticklabels([f'{h} dia{"s" if h > 1 else ""}' for h in HORIZONTES])
     ax.set_xlabel('Horizonte de previsão')
     ax.set_ylabel('RMSE (interrupções/dia)')
-    ax.set_title('Degradação do Erro (RMSE) por Horizonte de Previsão')
+    ax.set_title('Desempenho por Horizonte de Previsão - RMSE')
     ax.yaxis.set_minor_locator(mticker.AutoMinorLocator())
     ax.legend(framealpha=0.9)
     ax.set_ylim(0, max(df['RMSE']) * 1.25)
     plt.tight_layout()
 
     out = f'{save_path}/previsao_multihorizonte_degradacao_rmse.png'
-    plt.savefig(out, dpi=300, bbox_inches='tight')
+    plt.savefig(out, dpi=300, bbox_inches='tight', pad_inches=0.25)
     plt.close()
     print(f'Salvo: {out}')
 
@@ -147,12 +147,12 @@ def grafico_mae_rmse_duplo(df, save_path):
         ax.set_ylim(0, max(df[metrica]) * 1.28)
         ax.legend(framealpha=0.9)
 
-    plt.suptitle('Degradação do Erro com o Aumento do Horizonte de Previsão',
+    plt.suptitle('Desempenho dos Modelos por Horizonte de Previsão',
                  fontsize=13, fontweight='bold', y=1.01)
     plt.tight_layout()
 
     out = f'{save_path}/previsao_multihorizonte_mae_rmse.png'
-    plt.savefig(out, dpi=300, bbox_inches='tight')
+    plt.savefig(out, dpi=300, bbox_inches='tight', pad_inches=0.25)
     plt.close()
     print(f'Salvo: {out}')
 
