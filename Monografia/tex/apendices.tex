@@ -16,7 +16,7 @@ Arquitetura alternativa baseada em \textit{Gated Recurrent Units}, que simplific
 \lstinputlisting[language=Python, caption={Modelo Completo GRU (gru\_avancada.py)}, label={lst:gru}]{../Fonte/src/models/gru_avancada.py}
 
 \section{Modelo XGBoost (\textit{Gradient Boosting})}
-Implementação do XGBoost com previsão direta $h = 1$ (alvo = dia seguinte). Os hiperparâmetros foram selecionados por \textit{Grid Search} temporal (\texttt{TimeSeriesSplit}, 5 \textit{folds}, 288 combinações): $n\_estimators = 300$, $learning\_rate = 0{,}03$, $max\_depth = 4$, $subsample = 0{,}7$, $colsample\_bytree = 0{,}8$, $min\_child\_weight = 1$ e $\gamma = 0$, com \texttt{random\_state} fixado em 42 para reprodutibilidade. Os melhores parâmetros são exportados para \texttt{xgboost\_best\_params.json} e consumidos pela análise multi-horizonte. O módulo também define a função genérica \texttt{evaluate\_and\_plot}, reutilizada pelos modelos Bi-LSTM e Bi-GRU.
+Implementação do XGBoost com previsão direta $h = 1$ (alvo = dia seguinte). Os hiperparâmetros foram selecionados por \textit{Grid Search} temporal (\texttt{TimeSeriesSplit}, 5 \textit{folds}, 288 combinações): $n\_estimators = 300$, $learning\_rate = 0{,}03$, $max\_depth = 4$, $subsample = 0{,}7$, $colsample\_bytree = 0{,}8$, $min\_child\_weight = 1$ e $\gamma = 0$, com \texttt{random\_state} fixado em 42 para reprodutibilidade. Os melhores parâmetros são exportados para \texttt{xgboost\_\-best\_\-params.json} e consumidos pela análise multi-horizonte. O módulo também define a função genérica \texttt{evaluate\_\-and\_\-plot}, reutilizada pelos modelos Bi-LSTM e Bi-GRU.
 
 \lstinputlisting[language=Python, caption={Rotina do XGBoost (baseline\_xgboost.py)}, label={lst:xgboost}]{../Fonte/src/models/baseline_xgboost.py}
 
