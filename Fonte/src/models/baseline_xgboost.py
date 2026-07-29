@@ -198,7 +198,8 @@ def evaluate_and_plot(model, X_test, y_test, model_name, save_path):
     if hasattr(model, 'get_booster'):
         plt.figure(figsize=(12, 10))
         xgb.plot_importance(model, max_num_features=15, height=0.5,
-                            title=f'Importância das Variáveis (Top 15) - {model_name}',
+                            importance_type='gain',
+                            title=f'Importância das Variáveis (Top 15, Gain) - {model_name}',
                             color='tab:orange')
         plt.tight_layout()
         plt.savefig(f"{save_path}/feature_importance_{model_name.lower()}.png", dpi=300)

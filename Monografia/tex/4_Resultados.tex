@@ -272,7 +272,7 @@ Bi-GRU  & 73,44 & 119,21 & 0,156 & 26,18 \% \\
 \small{Fonte: Elaborado pelos autores (2026).}
 \end{table}
 
-A análise da Tabela~\ref{tab:metricas_modelos} revela que, sob avaliação equânime com horizonte $h = 1$, o \textbf{XGBoost} (MAE $= 61{,}09$, $R^2 = 0{,}409$) e a \textbf{Bi-LSTM} (MAE $= 62{,}71$, $R^2 = 0{,}420$) apresentam desempenho estatisticamente indistinguível --- uma diferença de apenas 1,62 interrupções por dia em MAE (2,7\%) e de apenas 0,011 em $R^2$. Em RMSE, a Bi-LSTM exibe ligeira vantagem (98,80 vs.\ 99,72), sugerindo melhor controle de erros em eventos extremos. Esses resultados indicam que, para previsão de um dia à frente, a capacidade das redes recorrentes de capturar dependências temporais na janela de \textit{lookback} é equivalente à combinação de \textit{feature engineering} explícita e regularização do XGBoost.
+A análise da Tabela~\ref{tab:metricas_modelos} revela que, sob avaliação equânime com horizonte $h = 1$, o \textbf{XGBoost} (MAE $= 61{,}09$, $R^2 = 0{,}409$) e a \textbf{Bi-LSTM} (MAE $= 62{,}71$, $R^2 = 0{,}420$) apresentam desempenhos descritivamente próximos --- uma diferença de apenas 1,62 interrupções por dia em MAE (2,7\%) e de apenas 0,011 em $R^2$. Em RMSE, a Bi-LSTM exibe ligeira vantagem (98,80 vs.\ 99,72), sugerindo melhor controle de erros em eventos extremos. Esses resultados indicam que, para previsão de um dia à frente, a capacidade das redes recorrentes de capturar dependências temporais na janela de \textit{lookback} é equivalente à combinação de \textit{feature engineering} explícita e regularização do XGBoost.
 
 Observa-se que a Bi-GRU, arquiteturalmente mais leve (dois portões em vez de três, conforme Tabela~\ref{tab:lstm_vs_gru}), obteve desempenho significativamente inferior (MAE $= 73{,}44$, MAPE $= 26{,}18\%$). Esse resultado sugere que o \textit{Cell State} e o \textit{Forget Gate} especializados da LSTM são vantajosos para capturar dependências de longo prazo nesta série temporal --- embora, como discutido na Seção~\ref{sec:multi_horizonte}, a Bi-GRU mostre comportamento distinto em horizontes mais longos.
 
@@ -401,9 +401,9 @@ A inclusão desse período extremo no conjunto de treinamento permitiu que os mo
 
 As curvas de aprendizado (\textit{Learning Curves}) permitem diagnosticar se os modelos neurais sofrem de \textit{underfitting} (subajuste) ou \textit{overfitting} (sobreajuste). A Figura~\ref{fig:learning_curves} apresenta a evolução da perda de treinamento (MSE) ao longo das 150 épocas para Bi-LSTM e Bi-GRU.
 
-Para a \textbf{Bi-LSTM} (Figura~\ref{fig:learning_curves}, esquerda), observa-se que a perda de treinamento decresce de forma consistente e estabiliza-se nas épocas finais, sem oscilações abruptas. A ausência de divergência indica que o Dropout ($p = 0{,}4$) e o \textit{Weight Decay} ($\lambda = 10^{-4}$) cumpriram seu papel de regularização, prevenindo sobreajuste.
+Para a \textbf{Bi-LSTM} (Figura~\ref{fig:learning_curves}, esquerda), observa-se que a perda de treinamento decresce de forma consistente e estabiliza-se nas épocas finais, sem oscilações abruptas. As curvas mostram apenas a convergência da função de perda no conjunto de treino; sem uma curva de validação independente, não é possível diagnosticar ou excluir sobreajuste com base apenas nessas figuras.
 
-Para a \textbf{Bi-GRU} (Figura~\ref{fig:learning_curves}, direita), o comportamento é similar, porém com convergência ligeiramente mais rápida --- consistente com o menor número de parâmetros da arquitetura GRU. Ambas as curvas exibem a forma típica de treinamento bem-comportado, com redução monotônica da perda sem sinais de instabilidade.
+Para a \textbf{Bi-GRU} (Figura~\ref{fig:learning_curves}, direita), o comportamento é similar, porém com convergência ligeiramente mais rápida --- consistente com o menor número de parâmetros da arquitetura GRU. Ambas as curvas exibem redução monotônica da perda sem sinais de instabilidade numérica.
 
 \section{Importância das Variáveis no XGBoost}\label{sec:feature_importance}
 

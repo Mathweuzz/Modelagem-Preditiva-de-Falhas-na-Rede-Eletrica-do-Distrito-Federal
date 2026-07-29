@@ -39,7 +39,7 @@ O trabalho desenvolve e avalia modelos preditivos para estimar o número diário
 2. **Engenharia de atributos**: pipeline com 40 features derivadas — defasagens de 1 a 7 dias, médias móveis exponenciais (spans 3, 7 e 14 dias), desvio-padrão móvel e codificações harmônicas cíclicas de calendário.
 
 3. **Modelos comparados** sob protocolo de separação temporal estrita (*Out-of-Sample*, últimos 365 dias):
-   - **XGBoost** com Grid Search temporal (TimeSeriesSplit, 5 folds, 7 hiperparâmetros). Best: max_depth=4, η=0.03, n_estimators=500
+   - **XGBoost** com Grid Search temporal (TimeSeriesSplit, 5 folds, 7 hiperparâmetros). Best: max_depth=4, η=0.03, n_estimators=300, subsample=0.7, colsample_bytree=0.8, min_child_weight=1
    - **Bi-LSTM** em PyTorch (2 camadas, hidden=64, Dropout=0.4, AdamW, 150 épocas, semente fixa)
    - **Bi-GRU** em PyTorch (mesma arquitetura da Bi-LSTM)
 

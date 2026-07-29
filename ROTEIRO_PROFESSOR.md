@@ -124,7 +124,7 @@ Diagramas de fluxo (pipeline de dados, arquitetura experimental) — todos **Tik
 
 ## 5. Reprodutibilidade
 
-- **XGBoost**: `random_state=42`. Resultado **determinístico**. Última execução automatizada deste pacote: MAE=52.32 / RMSE=89.86 / R²=0.520 / MAPE=16.07% — bate com o reportado no Cap. 4 (52.31/89.85/0.520/16.06%) dentro do erro de arredondamento.
+- **XGBoost**: `random_state=42`. Resultado **determinístico**. Protocolo h=1 direto (data-alvo split): MAE=61.09 / RMSE=99.72 / R²=0.409 / MAPE=20.64% — conforme reportado no Cap. 4 com protocolo equânime.
 - **PyTorch (LSTM/GRU)**: pequenas variações entre execuções são esperadas (non-determinism do CUDA/cuDNN, ordem dos batches no DataLoader). As métricas reportadas no Cap. 4 foram obtidas no ambiente descrito no Apêndice (Reprodutibilidade) — versão dos pacotes em `Apendices`.
 
 ## 6. Limitações e ressalvas
