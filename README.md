@@ -49,24 +49,24 @@ O trabalho desenvolve e avalia modelos preditivos para estimar o número diário
 
 ## Resultados
 
-### Avaliação padrão (365 dias de teste, one-step-ahead)
+### Avaliação principal (365 dias de teste, h=1 direto — todos os modelos com mesma informação)
 
 | Modelo | MAE | RMSE | R² | MAPE |
 |:---|:---:|:---:|:---:|:---:|
-| **XGBoost** | **50.42** | **87.00** | **0.550** | **15.64%** |
-| Bi-LSTM | 62.71 | 98.80 | 0.420 | 20.94% |
+| **XGBoost** | **61.09** | 99.72 | 0.409 | 20.64% |
+| **Bi-LSTM** | 62.71 | **98.80** | **0.420** | 20.94% |
 | Bi-GRU | 73.44 | 119.21 | 0.156 | 26.18% |
 
-### Avaliação multi-horizonte com previsão direta (MAE, ~365 origens)
+### Avaliação multi-horizonte com previsão direta (MAE, 365 alvos por horizonte)
 
 | Horizonte | XGBoost | Bi-LSTM | Bi-GRU |
 |:---:|:---:|:---:|:---:|
-| h=1 dia | 68.66 | **62.71** | 73.44 |
-| h=3 dias | 76.50 | **72.30** | 76.03 |
-| h=7 dias | 81.88 | 78.55 | **72.63** |
-| h=14 dias | 70.25 | 67.69 | **64.31** |
+| h=1 dia | 61.09 | **62.71** | 73.44 |
+| h=3 dias | 76.71 | **72.08** | 75.78 |
+| h=7 dias | 81.57 | 77.70 | **71.81** |
+| h=14 dias | 69.50 | 66.12 | **62.79** |
 
-> **Achados principais**: (1) Na avaliação de um ano, XGBoost supera as RNNs; (2) Na análise multi-horizonte com previsão direta, as redes recorrentes superam o XGBoost em **todos** os horizontes: Bi-LSTM lidera em h=1 e h=3, Bi-GRU lidera em h=7 e h=14. O XGBoost registra R²≈0 em h=7.
+> **Achados principais**: (1) Em h=1, XGBoost e Bi-LSTM empatam tecnicamente (diferença <2%); (2) Para h≥3, as redes recorrentes superam o XGBoost: Bi-LSTM lidera em h=3, Bi-GRU lidera em h=7 e h=14. O XGBoost registra R²=-0.001 em h=7 (sem poder preditivo).
 
 ---
 

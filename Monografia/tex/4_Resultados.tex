@@ -513,9 +513,9 @@ Para avaliar o comportamento dos modelos em cenários de uso operacional, os tr�
 \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}
 \textbf{Modelo} & MAE & RMSE & MAE & RMSE & MAE & RMSE & MAE & RMSE \\
 \midrule
-XGBoost & 61,09 & 99,72 & 76,50 & 118,13 & 81,88 & 129,45 & 70,25 & 115,12 \\
-Bi-LSTM & \textbf{62,71} & \textbf{98,80} & \textbf{72,30} & \textbf{117,71} & 78,55 & 127,24 & 67,69 & 110,24 \\
-Bi-GRU  & 73,44 & 119,21 & 76,03 & 120,02 & \textbf{72,63} & \textbf{118,82} & \textbf{64,31} & \textbf{106,27} \\
+XGBoost & 61,09 & 99,72 & 76,71 & 117,96 & 81,57 & 129,82 & 69,50 & 113,24 \\
+Bi-LSTM & \textbf{62,71} & \textbf{98,80} & \textbf{72,08} & \textbf{117,42} & 77,70 & 126,25 & 66,12 & 108,40 \\
+Bi-GRU  & 73,44 & 119,21 & 75,78 & 119,72 & \textbf{71,81} & \textbf{117,88} & \textbf{62,79} & \textbf{104,50} \\
 \bottomrule
 \end{tabular}
 \normalsize
@@ -534,7 +534,7 @@ A Figura~\ref{fig:multihorizonte_degradacao} apresenta as curvas de variação d
 
 O protocolo de \textbf{previsão direta} (\textit{Direct Multi-Step Forecasting}) adotado garante comparabilidade equânime entre os modelos: para cada horizonte $h$, todos recebem as mesmas \textit{features} históricas disponíveis na data de origem $t$ --- incluindo $\text{interrupcoes}[t]$ --- e preveem diretamente $\text{interrupcoes}[t+h]$. As 365 datas-alvo são idênticas entre modelos (01/06/2024 a 31/05/2025), e a divisão treino/teste é feita pela data-alvo, sem recurso a estimativas intermediárias.
 
-Para $h=1$, XGBoost (MAE$=61{,}09$) e Bi-LSTM (MAE$=62{,}71$) encontram-se estatisticamente empatados; a Bi-GRU registra MAE$=73{,}44$. Nos horizontes mais longos, a Bi-GRU reverte sua posição: em $h=7$ registra MAE$=72{,}63$ (vs.\ 81,88 do XGBoost) e em $h=14$ alcança MAE$=64{,}31$ (vs.\ 70,25 do XGBoost). A Bi-LSTM lidera em $h=3$ (MAE$=72{,}30$ vs.\ 76,50 do XGBoost). Notavelmente, o XGBoost apresenta $R^2 \approx 0$ em $h=7$, indicando ausência de poder preditivo nesse horizonte com previsão direta --- resultado coerente com a diluição das correlações de defasagem quando se prevê 7 dias à frente com features de lags de até 7 dias.
+Para $h=1$, XGBoost (MAE$=61{,}09$) e Bi-LSTM (MAE$=62{,}71$) encontram-se estatisticamente empatados; a Bi-GRU registra MAE$=73{,}44$. Para $h=3$, a Bi-LSTM lidera (MAE$=72{,}08$ vs.\ 75,78 da Bi-GRU e 76,71 do XGBoost). A partir de $h=7$, a Bi-GRU reverte sua desvantagem e passa a dominar: registra MAE$=71{,}81$ (vs.\ 77,70 da Bi-LSTM e 81,57 do XGBoost) e em $h=14$ alcança MAE$=62{,}79$ (vs.\ 66,12 da Bi-LSTM e 69,50 do XGBoost). Notavelmente, o XGBoost apresenta $R^2 = -0{,}001$ em $h=7$, confirmando ausência de poder preditivo nesse horizonte --- resultado coerente com a diluição das correlações de defasagem quando se prevê 7 dias à frente com \textit{lags} de até 7 dias como features.
 
 \section{Síntese dos Resultados}\label{sec:sintese_resultados}
 
