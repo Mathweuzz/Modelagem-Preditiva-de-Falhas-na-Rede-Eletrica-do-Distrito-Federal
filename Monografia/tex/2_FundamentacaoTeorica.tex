@@ -62,24 +62,14 @@ Nesta modelagem vetorial, a densidade do ar ($\rho \approx 1.225 \, \text{kg/m}^
 
 \subsection{El Niño--Oscilação Sul (ENSO)}\label{sec:enso}
 
-O fenômeno El Niño--Oscilação Sul (ENSO) constitui o principal modo de variabilidade climática interanual do planeta, com impactos documentados sobre o regime pluviométrico e térmico do Brasil Central \cite{gomes2020impact, marengo2024impactos}. O ENSO é caracterizado pela oscilação periódica (2--7 anos) da temperatura da superfície do mar (TSM) no Oceano Pacífico Equatorial, mensurada pelo \textit{Oceanic Niño Index} (ONI). Quando a anomalia de TSM na região Niño 3.4 excede $+0{,}5$ °C por cinco períodos trimestrais sobrepostos consecutivos, configura-se um evento \textbf{El Niño}; quando a anomalia é inferior a $-0{,}5$ °C, configura-se \textbf{La Niña} \cite{ropelewski1987global}.
+O fenômeno El Niño--Oscilação Sul (ENSO) constitui um importante modo de variabilidade climática interanual, com impactos sobre padrões de precipitação em diferentes regiões do planeta \cite{ropelewski1987global}. O ENSO é caracterizado por variações acopladas na temperatura da superfície do mar e na circulação atmosférica do Pacífico Equatorial. Sua fase quente é denominada \textbf{El Niño}, enquanto a fase fria é denominada \textbf{La Niña}. Os efeitos regionais não são uniformes e devem ser avaliados com dados observacionais específicos para cada localidade.
 
 O mecanismo físico opera através da \textbf{Célula de Walker}, uma circulação atmosférica zonal sobre o Pacífico Equatorial. Em condições normais, os ventos alísios de leste empurram as águas superficiais quentes para o Pacífico Ocidental, provocando convecção intensa (chuvas) sobre a Indonésia e subsidência (tempo seco) sobre o Pacífico Oriental. Durante o El Niño, o enfraquecimento dos alísios desloca o centro convectivo para leste, alterando os padrões de teleconexão que influenciam o jato subtropical sobre a América do Sul.
 
-Para o Centro-Oeste brasileiro, os efeitos documentados do El Niño incluem:
-
-\begin{itemize}
-    \item \textbf{Intensificação das tempestades convectivas:} O aquecimento anômalo do Pacífico intensifica a Zona de Convergência do Atlântico Sul (ZCAS), gerando eventos convectivos mais frequentes e mais intensos sobre o Cerrado, com acumulados pluviométricos superiores à média climatológica \cite{marengo2024impactos}.
-
-    \item \textbf{Aumento da temperatura média:} O El Niño tende a elevar a temperatura média no Centro-Oeste \cite{ropelewski1987global}, reduzindo a capacidade de dissipação térmica dos transformadores de distribuição e acelerando o envelhecimento de isoladores poliméricos.
-
-    \item \textbf{Alteração dos padrões de vento:} A modificação da circulação de grande escala altera a frequência e intensidade dos ventos de noroeste associados a linhas de instabilidade, que são os principais causadores de danos mecânicos à rede aérea.
-\end{itemize}
-
-O período de análise deste trabalho (2017--2025) abrange dois eventos El Niño relevantes: um de fraca intensidade em 2018--2019 e um de forte intensidade em 2023--2024. Conforme demonstrado na Seção~\ref{sec:anomalia} (Capítulo~\ref{4_Resultados}), o El Niño forte de 2023 coincidiu com os maiores picos de interrupções da série histórica e representou o principal desafio para os modelos preditivos, evidenciando a necessidade de incorporar índices ENSO como variáveis preditoras em trabalhos futuros.
+O período de análise deste trabalho (2017--2025) abrange o evento El Niño de 2023--2024, acompanhado institucionalmente pelo Painel El Niño produzido por INPE, INMET, ANA e CENAD \cite{inpe2023painel}. Conforme demonstrado na Seção~\ref{sec:anomalia} (Capítulo~\ref{4_Resultados}), alguns dos maiores picos de interrupções da série ocorreram durante esse período e coincidiram com episódios de precipitação intensa. Essa observação é descritiva: o conjunto de dados não permite isolar um efeito causal do ENSO sobre a rede elétrica.
 
 \section{Engenharia de Recursos (Feature Engineering) e Dependência de Longo Prazo}
-Evidencia-se em \cite{roque2017weather} que os cabos e isoladores físicos de uma concessionária de energia sofrem desgaste acumulado sob estresse térmico prolongado. Assim, modelar a variável contínua "Chuva Ontem" como independente de "Vento Hoje" não expressa a realidade. As \textit{features} ou atributos preditivos devem ser desenhados visando não linearidade.
+As interrupções podem apresentar dependência temporal e relações não-lineares com variáveis meteorológicas. Por isso, representar apenas as observações do próprio dia pode omitir informação relevante sobre condições recentes. As \textit{features} temporais deste trabalho foram desenhadas para que os modelos avaliem empiricamente defasagens, tendências suavizadas e interações não-lineares, sem pressupor previamente um mecanismo físico específico.
 
 \subsection{Médias Móveis Exponenciais (EMA)}
 A \textit{Exponential Moving Average} destina um peso ($\alpha$) assintoticamente decrescente para os dias pretéritos. Matematicamente descrita em \ref{eq:ema}, ela atribui pesos exponencialmente decrescentes às observações passadas, de modo que eventos recentes (como uma tempestade ocorrida ontem) influenciam mais fortemente a previsão do que eventos de semanas atrás:

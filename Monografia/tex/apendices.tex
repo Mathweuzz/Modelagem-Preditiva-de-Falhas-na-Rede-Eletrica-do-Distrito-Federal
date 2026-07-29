@@ -16,7 +16,7 @@ Arquitetura alternativa baseada em \textit{Gated Recurrent Units}, que simplific
 \lstinputlisting[language=Python, caption={Modelo Completo GRU (gru\_avancada.py)}, label={lst:gru}]{../Fonte/src/models/gru_avancada.py}
 
 \section{Modelo XGBoost (\textit{Gradient Boosting})}
-Implementação do XGBoost com previsão direta $h = 1$ (alvo = dia seguinte). Os hiperparâmetros foram selecionados por \textit{Grid Search} temporal (\texttt{TimeSeriesSplit}, 5 \textit{folds}, 288 combinações): $n\_estimators = 500$, $learning\_rate = 0{,}03$, $max\_depth = 4$, $subsample = 0{,}8$, $colsample\_bytree = 0{,}7$, $min\_child\_weight = 3$ e $\gamma = 0$, com \texttt{random\_state} fixado em 42 para reprodutibilidade. Os melhores parâmetros são exportados para \texttt{xgboost\_best\_params.json} e consumidos pela análise multi-horizonte. O módulo também define a função genérica \texttt{evaluate\_and\_plot}, reutilizada pelos modelos Bi-LSTM e Bi-GRU.
+Implementação do XGBoost com previsão direta $h = 1$ (alvo = dia seguinte). Os hiperparâmetros foram selecionados por \textit{Grid Search} temporal (\texttt{TimeSeriesSplit}, 5 \textit{folds}, 288 combinações): $n\_estimators = 300$, $learning\_rate = 0{,}03$, $max\_depth = 4$, $subsample = 0{,}7$, $colsample\_bytree = 0{,}8$, $min\_child\_weight = 1$ e $\gamma = 0$, com \texttt{random\_state} fixado em 42 para reprodutibilidade. Os melhores parâmetros são exportados para \texttt{xgboost\_best\_params.json} e consumidos pela análise multi-horizonte. O módulo também define a função genérica \texttt{evaluate\_and\_plot}, reutilizada pelos modelos Bi-LSTM e Bi-GRU.
 
 \lstinputlisting[language=Python, caption={Rotina do XGBoost (baseline\_xgboost.py)}, label={lst:xgboost}]{../Fonte/src/models/baseline_xgboost.py}
 
@@ -26,7 +26,7 @@ Script responsável pela execução automatizada da análise exploratória dos d
 \lstinputlisting[language=Python, caption={Pipeline de Exploração (script\_exploration\_pipeline.py)}, label={lst:eda}]{../Fonte/src/models/script_exploration_pipeline.py}
 
 \section{Gerador de Gráficos de Diagnóstico}
-Script responsável pela geração dos gráficos comparativos de análise residual: distribuição KDE dos resíduos dos três modelos, recorte temporal de anomalia (El Niño 2023) e dispersão de heteroscedasticidade (erro absoluto vs.\ volume real). Consome os arquivos \texttt{predictions\_*.csv} produzidos por cada modelo durante a avaliação.
+Script responsável pela geração dos gráficos comparativos de análise residual: distribuição KDE dos resíduos dos três modelos e dispersão de heteroscedasticidade (erro absoluto vs.\ volume real). Consome os arquivos \texttt{predictions\_*.csv} produzidos por cada modelo durante a avaliação.
 
 \lstinputlisting[language=Python, caption={Gerador de Gráficos (advanced\_plots.py)}, label={lst:plots}]{../Fonte/src/models/advanced_plots.py}
 

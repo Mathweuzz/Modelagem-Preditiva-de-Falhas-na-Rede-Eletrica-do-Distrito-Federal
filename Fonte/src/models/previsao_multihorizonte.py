@@ -276,6 +276,19 @@ def rodar_dl_direto(df, ModelClass, TrainFn, nome):
 def validar_predictions(df_pred):
     print("\n=== Validacao das predicoes ===")
     ok = True
+    modelos_esperados = {'XGBoost', 'Bi-LSTM', 'Bi-GRU'}
+    combinacoes_esperadas = {
+        (modelo, h) for modelo in modelos_esperados for h in HORIZONTES
+    }
+    combinacoes_obtidas = set(
+        zip(df_pred['modelo'], df_pred['horizonte'])
+    )
+    if combinacoes_obtidas != combinacoes_esperadas:
+        faltantes = sorted(combinacoes_esperadas - combinacoes_obtidas)
+        extras = sorted(combinacoes_obtidas - combinacoes_esperadas)
+        print(f"  [ERRO] combinacoes ausentes={faltantes}; extras={extras}")
+        ok = False
+
     for (modelo, h), grp in df_pred.groupby(['modelo', 'horizonte']):
         n = len(grp)
         dmin = pd.to_datetime(grp['data_alvo']).min()
@@ -292,12 +305,15 @@ def validar_predictions(df_pred):
     for h, grp in df_pred.groupby('horizonte'):
         tab = grp.pivot(index='data_alvo', columns='modelo', values='y_real')
         max_diff = (tab.max(axis=1) - tab.min(axis=1)).abs().max()
-        status = "OK" if max_diff < 1e-3 else "AVISO"
+        status = "OK" if max_diff < 1e-3 else "ERRO"
+        if status == "ERRO":
+            ok = False
         print(f"  [{status}] h={h}: max diferenca no y_real entre modelos = {max_diff:.6f}")
 
     if not ok:
         raise ValueError("Falha na validacao das previsoes multi-horizonte — verifique os resultados acima.")
     print("[OK] Todas as assercoes passaram.")
+    return True
 
 
 # ---------------------------------------------------------------------------

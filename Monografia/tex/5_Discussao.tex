@@ -82,11 +82,11 @@ A Tabela~\ref{tab:comparacao_literatura} contextualiza os resultados deste traba
 \toprule
 \textbf{Estudo} & \textbf{Melhor Modelo} & \textbf{Tarefa} & \textbf{Métrica Principal} & \textbf{Contexto} \\
 \midrule
-\textbf{Este trabalho} & XGBoost & Regressão & MAE = 61,1; $R^2 = 0{,}409$; MAPE = 20,6\% & Diário, Brasil (DF) \\
-\cite{zhang2023deep} & MLP & Regressão & MAE = 0,013; RMSE = 0,048 & Diário, EUA \\
+\textbf{Este trabalho} & XGBoost/Bi-LSTM & Regressão & $R^2 = 0{,}409/0{,}420$; MAE = 61,1/62,7 & Diário, Brasil (DF) \\
+\cite{zhang2023deep} & MLP & Regressão & MAE = 0,013; RMSE = 0,048 & Horário, EUA \\
 \cite{smith2021hybrid} & Árvores+Vegetação & Regressão & MdAPE = 59\% & Diário, EUA \\
-\cite{saha2019machine} & PSO+XGBoost & Classif. & Acurácia = 96,2\% & Diário, China \\
-\cite{silva2021xgboost} & XGBoost/RF & Classif. & Acurácia = 98,4\% & Evento, Turquia \\
+\cite{saha2019machine} & PSO+XGBoost & Risco de falha & Acurácia = 96,2\% & Diário, China \\
+\cite{silva2021xgboost} & XGBoost/RF & Duração & Acurácia = 98,4\% & Evento, Turquia \\
 \cite{roque2017weather} & AdaBoost+ & Regressão & MSE, MAE\textsuperscript{$\dagger$} & Mensal, EUA \\
 \bottomrule
 \multicolumn{5}{l}{\textsuperscript{$\dagger$}\scriptsize{Valores absolutos não disponíveis (paywall); autores reportam $R^2$ baixo.}} \\
@@ -175,7 +175,7 @@ Esse achado possui implicação prática direta: modelos preditivos operando em 
 
 \section{Discussão sobre a Heteroscedasticidade}
 
-A análise do diagrama de dispersão residual (Figura~\ref{fig:scatter_hetero}, Capítulo~\ref{4_Resultados}) evidenciou uma \textbf{heteroscedasticidade} pronunciada: a variância do erro de previsão cresce proporcionalmente ao volume de interrupções reais. Esse comportamento é fisicamente coerente com a natureza do fenômeno modelado. Em dias de operação normal (100--200 interrupções), o sistema elétrico opera próximo ao seu regime estacionário, e as interrupções decorrem de causas previsíveis (envelhecimento de componentes, demanda regular). Em dias de crise ($>400$ interrupções), fatores caóticos e não-lineares dominam --- intensidade localizada das rajadas, queda em cascata de alimentadores, sobrecarga de equipes de manutenção --- tornando a previsão inerentemente mais incerta.
+A análise do diagrama de dispersão residual (Figura~\ref{fig:scatter_hetero}, Capítulo~\ref{4_Resultados}) evidenciou uma \textbf{heteroscedasticidade} pronunciada: a variância do erro de previsão cresce com o volume de interrupções reais. Uma interpretação plausível é que dias com grande número de ocorrências reúnam condições mais heterogêneas e localizadas, não representadas integralmente pelas variáveis agregadas disponíveis. Como a base não contém a topologia da rede, o estado dos ativos ou a causa individual das ocorrências, mecanismos como falhas em cascata, envelhecimento de componentes e restrições operacionais devem ser tratados como hipóteses, e não como causas demonstradas por esta análise.
 
 Esse padrão heteroscedástico tem duas implicações metodológicas relevantes:
 
@@ -187,14 +187,14 @@ Esse padrão heteroscedástico tem duas implicações metodológicas relevantes:
 
 \section{Implicações da Tendência de Crescimento das Interrupções}
 
-A tendência de crescimento de 65,3\% nas interrupções médias diárias ao longo de oito anos (2017--2025) constitui um achado com implicações significativas tanto para a modelagem preditiva quanto para a gestão da concessionária. Três fatores convergentes explicam essa tendência:
+A tendência de crescimento de 65,3\% nas interrupções médias diárias ao longo de oito anos (2017--2025) constitui um achado com implicações significativas tanto para a modelagem preditiva quanto para a gestão da concessionária. Os dados disponíveis demonstram o crescimento, mas não permitem identificar suas causas. Três hipóteses podem ser investigadas em trabalhos futuros:
 
 \begin{enumerate}
-    \item \textbf{Envelhecimento da infraestrutura:} A rede de distribuição do Distrito Federal, com componentes instalados há décadas, apresenta degradação progressiva de isoladores, condutores e transformadores. O envelhecimento reduz a resiliência mecânica e elétrica dos equipamentos, tornando-os mais suscetíveis a falhas sob estresse climático que anteriormente seria tolerado.
+    \item \textbf{Estado e envelhecimento da infraestrutura:} Dados sobre idade, inspeção, manutenção e substituição de isoladores, condutores e transformadores permitiriam avaliar se a condição dos ativos contribui para a tendência observada.
 
-    \item \textbf{Intensificação dos eventos climáticos:} Dados do INMET para a região Centro-Oeste indicam um aumento na frequência de eventos convectivos extremos na última década, consistente com as projeções dos modelos climáticos do IPCC para regiões tropicais continentais \cite{inpe2021relatorio}. Tempestades mais frequentes e mais intensas impõem estresse mecânico e elétrico crescente sobre uma infraestrutura que não foi dimensionada para esses novos padrões climáticos.
+    \item \textbf{Mudanças no regime de eventos meteorológicos:} Séries climatológicas mais longas e dados de múltiplas estações permitiriam testar se frequência, intensidade e distribuição espacial de tempestades se alteraram no período analisado.
 
-    \item \textbf{Expansão urbana e aumento da carga:} O crescimento populacional do DF e a expansão das regiões administrativas periféricas aumentam tanto a carga sobre a rede existente quanto a extensão da malha de distribuição, frequentemente em áreas com vegetação densa próxima aos condutores.
+    \item \textbf{Expansão urbana, da carga e da rede:} Informações anuais sobre unidades consumidoras, extensão da rede e carregamento dos equipamentos permitiriam verificar quanto do crescimento decorre do aumento da exposição operacional.
 \end{enumerate}
 
 Essa tendência tem uma implicação direta para os modelos preditivos: um modelo treinado com dados de 2017--2020 pode subestimar sistematicamente as interrupções em 2024--2025, uma vez que a distribuição da variável \textit{target} sofreu \textbf{deslocamento conceitual} (\textit{concept drift}). A inclusão de variáveis de tendência (codificações temporais, médias móveis de longo prazo) na engenharia de atributos mitiga parcialmente esse efeito, mas o retrainamento periódico do modelo com dados recentes permanece necessário para manter a acurácia ao longo do tempo.
@@ -203,9 +203,9 @@ Essa tendência tem uma implicação direta para os modelos preditivos: um model
 
 O ano de 2023, fortemente influenciado pelo fenômeno \textbf{El Niño--Oscilação Sul (ENSO)}, registrou os maiores picos de interrupções da série histórica. Como detalhado na Seção~\ref{sec:anomalia} (Capítulo~\ref{4_Resultados}), os picos de novembro--dezembro de 2023 coincidem temporalmente com episódios de precipitação intensa registrados pelo INMET. Esse período integra o conjunto de treinamento (anterior a junho de 2024); afirmações sobre o desempenho preditivo dos modelos nesse recorte não são rastreáveis a um CSV oficial de predições com essas datas, pois o conjunto de teste começa em junho de 2024.
 
-O El Niño 2023 foi classificado pelo Centro de Previsão de Tempo e Estudos Climáticos (CPTEC/INPE) como um evento de forte intensidade, com anomalias de temperatura da superfície do mar (TSM) no Oceano Pacífico Equatorial superiores a $+2{,}0$ °C. No Centro-Oeste brasileiro, os efeitos incluíram: (i) intensificação das linhas de instabilidade convectiva, com tempestades mais violentas e concentradas; (ii) aumento da temperatura média, elevando o estresse térmico sobre transformadores; e (iii) alteração dos padrões de direção do vento, com aumento de ventos de noroeste associados a sistemas convectivos de mesoescala \cite{marengo2024impactos}.
+O evento El Niño 2023--2024 foi acompanhado pelo painel conjunto de INPE, INMET, ANA e CENAD \cite{inpe2023painel}. Nesta monografia, a caracterização do período limita-se às observações meteorológicas da estação utilizada e aos registros de interrupções. Não se atribuem ao ENSO, de forma isolada, os picos observados no Distrito Federal, nem se inferem mecanismos atmosféricos ou danos específicos à infraestrutura sem dados adicionais.
 
-O conjunto de treinamento (janeiro/2017 a maio/2024) inclui integralmente o período do El Niño forte de 2023--2024, o que permite que os modelos aprendam padrões associados a esse tipo de evento extremo. Contudo, trata-se de um único episódio de forte intensidade na série histórica, o que limita a capacidade de generalização para futuros eventos ENSO de intensidade similar ou superior. Essa limitação poderia ser mitigada com a inclusão de dados de períodos anteriores (El Niño 2015--2016) ou com a incorporação explícita de índices ENSO (como o Oceanic Niño Index --- ONI) como \textit{feature} de entrada.
+O conjunto de treinamento (janeiro/2017 a maio/2024) inclui integralmente o período do El Niño 2023--2024, de modo que os modelos foram ajustados com as observações meteorológicas e elétricas registradas nesse intervalo. Contudo, o ENSO não foi incluído explicitamente como variável e o conjunto contém apenas um episódio recente dessa natureza. A generalização para futuros eventos semelhantes permanece, portanto, uma questão em aberto. Essa limitação poderia ser investigada com dados de períodos anteriores (como 2015--2016) e com a incorporação explícita de índices ENSO, como o Oceanic Niño Index (ONI).
 
 Embora o período do El Niño 2023 integre o conjunto de treinamento (anterior ao corte em junho/2024), sua presença como evento singular de forte intensidade na série levanta uma questão relevante sobre generalização: caso futuros eventos ENSO de intensidade similar ocorram durante o período de previsão, os modelos terão aprendido com apenas um exemplar desse tipo de anomalia. A incorporação de teleconexões climáticas --- como o Oceanic Niño Index (ONI) --- e de dados de períodos anteriores (El Niño 2015--2016) emerge como uma direção promissora para aumentar a robustez dos modelos preditivos perante perturbações climáticas de larga escala.
 

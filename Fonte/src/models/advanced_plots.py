@@ -38,33 +38,6 @@ def plot_residual_kde(df, output_dir='img'):
     plt.savefig(os.path.join(output_dir, 'kde_residuos_modelos.png'), dpi=300)
     plt.close()
 
-def plot_zoomed_anomaly(df, start_date='2023-11-01', end_date='2023-12-15', output_dir='img'):
-    """
-    Zooms into a specific chronological interval known for severe
-    thermodynamic anomalies (e.g., El Nino Late-2023 storms).
-    """
-    print(f"Generating Zoomed Timeseries for anomaly interval: {start_date} to {end_date}...")
-    mask = (df.index >= start_date) & (df.index <= end_date)
-    zoomed_df = df.loc[mask]
-    
-    plt.figure(figsize=(14, 6))
-    plt.plot(zoomed_df.index, zoomed_df['Real_Outages'], label='Real Observations (ANEEL)', 
-             color='black', marker='o', linewidth=2)
-    plt.plot(zoomed_df.index, zoomed_df['Pred_LSTM'], label='Bi-LSTM Prediction', 
-             linestyle='--', color='blue', linewidth=2)
-    plt.plot(zoomed_df.index, zoomed_df['Pred_XGB'], label='XGBoost Prediction', 
-             linestyle=':', color='red', linewidth=2)
-    
-    plt.title('Model Stress Test Snapshot: Severe Outage Anomalies (El Nino 2023)')
-    plt.ylabel('Number of Transformer Failures')
-    plt.xlabel('Date')
-    plt.grid(True, alpha=0.3)
-    plt.legend(loc='upper right')
-    plt.xticks(rotation=45)
-    plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, 'zoom_serie_2023_anomalia.png'), dpi=300)
-    plt.close()
-
 def plot_heteroscedasticity_scatter(df, output_dir='img'):
     """
     Scatters the Absolute Error against the Real Volumetric scale 
@@ -107,7 +80,7 @@ def consolidate_predictions(results_dir):
     df = pd.DataFrame(index=xgb.index)
     df['Real_Outages'] = xgb['real']
     df['Pred_XGB'] = xgb['pred']
-    # LSTM/GRU usam SEQ_LENGTH=14 e perdem os primeiros 14 dias do teste
+    # Todos os CSVs oficiais usam as mesmas 365 datas-alvo do conjunto de teste.
     df['Pred_LSTM'] = lstm['pred'].reindex(df.index)
     df['Pred_GRU'] = gru['pred'].reindex(df.index)
     df = df.dropna()
@@ -123,7 +96,5 @@ if __name__ == "__main__":
     print(f"Linhas consolidadas: {len(df)}")
 
     plot_residual_kde(df, output_dir=out_dir)
-    plot_zoomed_anomaly(df, start_date='2023-11-01', end_date='2023-12-15',
-                        output_dir=out_dir)
     plot_heteroscedasticity_scatter(df, output_dir=out_dir)
     print("[OK] Gráficos avançados gerados.")
