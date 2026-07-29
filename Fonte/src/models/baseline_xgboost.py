@@ -1,19 +1,28 @@
 """
-Baseline XGBoost — Treinamento, Avaliação e Geração de Gráficos
-================================================================
+Baseline XGBoost — Previsao Direta h=1 (One-Step-Ahead)
+=========================================================
 
-Treina um regressor XGBoost para previsão de interrupções diárias e
-gera os artefatos:
+Treina um regressor XGBoost para previsao de interrupcoes do DIA SEGUINTE
+(h=1 direto), usando todas as features do dia t como entrada — incluindo
+interrupcoes[t], que é informacao historica quando o alvo é interrupcoes[t+1].
 
-  - results/ml/ts_pred_xgboost.png            (real vs previsto, série temporal)
-  - results/ml/scatter_pred_xgboost.png       (real vs previsto, dispersão)
-  - results/ml/feature_importance_xgboost.png (importância das 15 melhores features)
-  - results/ml/metrics_xgboost.csv            (MAE, RMSE, R², MAPE)
+Isso torna a avaliacao principal equivalente ao horizonte h=1 do
+previsao_multihorizonte.py, permitindo comparacao justa com as RNNs.
 
-Fonte de dados:
-  ../../data/dataset_engenharia_features.csv  (saída do 03_feature_engineering.py)
+Divisao treino/teste por DATA-ALVO:
+  - Treino : pares (t, t+1) onde t+1 < 2024-06-01
+  - Teste  : pares (t, t+1) onde 2024-06-01 <= t+1 <= 2025-05-31  (365 dias)
 
-Execução:
+Artefatos gerados:
+  - results/ml/ts_pred_xgboost.png
+  - results/ml/scatter_pred_xgboost.png
+  - results/ml/feature_importance_xgboost.png
+  - results/ml/metrics_xgboost.csv
+  - results/ml/predictions_xgboost.csv
+  - results/ml/xgboost_best_params.json  (consumido por previsao_multihorizonte.py)
+  - results/ml/xgboost_cv_results.csv
+
+Execucao:
   cd Fonte/src/models && python baseline_xgboost.py
 """
 import os
@@ -35,19 +44,47 @@ def mean_absolute_percentage_error(y_true, y_pred):
     return np.mean(np.abs((y_true - y_pred) / (y_true + 1e-8))) * 100
 
 
+TEST_START = pd.Timestamp('2024-06-01')
+TEST_END   = pd.Timestamp('2025-05-31')
+
+
 def load_and_split_data(filepath, target_col='interrupcoes', test_size_days=365):
-    print("Carregando dataset com features avançadas...")
+    """
+    Carrega o dataset e prepara divisao treino/teste para previsao h=1.
+
+    - X[t] inclui interrupcoes[t] como preditor historico.
+    - y[t] = interrupcoes[t+1] (deslocado 1 passo a frente).
+    - Divisao por data-alvo (t+1), nao por posicao de linha.
+    - Conjunto de teste: 365 dias-alvo em [01/06/2024, 31/05/2025].
+    """
+    print("Carregando dataset com features avancadas...")
     df = pd.read_csv(filepath, index_col='data', parse_dates=True)
 
-    X = df.drop(columns=[target_col])
-    y = df[target_col]
+    # Previsao verdadeira h=1: alvo = interrupcoes do dia seguinte
+    X = df.copy()                           # inclui interrupcoes[t] como feature historica
+    y_shifted = df[target_col].shift(-1)    # alvo = interrupcoes[t+1]
 
-    # Time Series Split (chronological — sem data leakage)
-    split_index = len(df) - test_size_days
-    X_train, X_test = X.iloc[:split_index], X.iloc[split_index:]
-    y_train, y_test = y.iloc[:split_index], y.iloc[split_index:]
+    # Remover ultima linha (sem alvo)
+    valid = y_shifted.notna()
+    X         = X[valid]
+    y_shifted = y_shifted[valid]
 
-    print(f"Treino: {X_train.shape[0]} amostras | Teste: {X_test.shape[0]} amostras")
+    # Split por data-alvo
+    datas_alvo  = X.index + pd.Timedelta(days=1)
+    mask_train  = datas_alvo < TEST_START
+    mask_test   = (datas_alvo >= TEST_START) & (datas_alvo <= TEST_END)
+
+    X_train = X[mask_train]
+    X_test  = X[mask_test]
+    y_train = y_shifted[mask_train]
+    y_test  = pd.Series(
+        y_shifted[mask_test].values,
+        index=datas_alvo[mask_test],
+        name=target_col,
+    )
+
+    print(f"Treino: {len(X_train)} amostras | Teste: {len(X_test)} amostras")
+    assert len(X_test) == 365, f"Esperado 365 amostras de teste, obtido {len(X_test)}"
     return X_train, X_test, y_train, y_test
 
 

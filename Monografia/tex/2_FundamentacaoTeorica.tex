@@ -268,7 +268,7 @@ Essa concatenação resulta num vetor de dimensão $2 \times d_h$ (onde $d_h$ é
 
 É importante ressaltar que, em previsão de séries temporais, a bidirecionalidade opera sobre a \textbf{janela de \textit{lookback}} (os 14 dias passados utilizados como entrada), e não sobre dados futuros. A camada \textit{backward} percorre os 14 dias de entrada na ordem inversa ($t_{-1} \leftarrow t_{-14}$), permitindo que o modelo pondere a relevância de cada dia da janela em ambas as direções. Essa abordagem difere da previsão sequencial tradicional (\textit{autoregressive}), onde a informação flui exclusivamente do passado para o presente, e aproxima-se conceitualmente dos mecanismos de atenção empregados em arquiteturas \textit{Transformer} \cite{lim2021temporal}.
 
-Na implementação deste trabalho, ambas as redes (Bi-LSTM e Bi-GRU) utilizam $d_h = 64$ unidades ocultas por direção, resultando em vetores concatenados de dimensão 128. A saída da camada recorrente bidirecional é o estado oculto do último passo temporal ($\mathbf{h}_T$), que é passado por uma camada densa (\textit{fully connected}) com ativação (ReLU na Bi-LSTM, LeakyReLU na Bi-GRU) para produzir a previsão escalar final (número de interrupções previstas para o dia $T+1$).
+Na implementação deste trabalho, ambas as redes (Bi-LSTM e Bi-GRU) utilizam $d_h = 64$ unidades ocultas por direção, resultando em vetores concatenados de dimensão 128. A saída da camada recorrente bidirecional é o estado oculto do último passo temporal ($\mathbf{h}_T$), que é passado por uma camada densa (\textit{fully connected}) com ativação ReLU para produzir a previsão escalar final (número de interrupções previstas para o dia $T+1$).
 
 \subsection{Gated Recurrent Unit (GRU)}
 Proposta por \cite{cho2014learning} como uma alternativa computacionalmente mais eficiente à LSTM, a GRU (\textit{Gated Recurrent Unit}) elimina o \textit{Cell State} separado e reduz o número de portões de três para dois: o \textit{Update Gate} ($\mathbf{z}_t$) e o \textit{Reset Gate} ($\mathbf{r}_t$). Essa simplificação reduz em aproximadamente um terço o número de parâmetros treináveis em relação à LSTM para uma mesma dimensão oculta.
@@ -328,21 +328,21 @@ Proposto por \cite{srivastava2014dropout}, o Dropout desativa aleatoriamente uma
 \begin{equation}
     \tilde{\mathbf{h}} = \mathbf{m} \odot \mathbf{h}, \quad m_i \sim \text{Bernoulli}(1 - p)
 \end{equation}
-onde $\mathbf{m}$ é uma máscara binária amostrada independentemente a cada iteração. No presente trabalho, adotou-se $p = 0{,}2$ (20\% de desativação) nas camadas intermediárias entre a saída da rede recorrente bidirecional e a camada densa final. Durante a inferência, o Dropout é desativado e as ativações são escaladas pelo fator $(1 - p)$ para manter a consistência estatística.
+onde $\mathbf{m}$ é uma máscara binária amostrada independentemente a cada iteração. No presente trabalho, adotou-se $p = 0{,}4$ (40\% de desativação) nas camadas intermediárias entre a saída da rede recorrente bidirecional e a camada densa final. Durante a inferência, o Dropout é desativado e as ativações são escaladas pelo fator $(1 - p)$ para manter a consistência estatística.
 
 \subsection{Regularização por Decaimento de Pesos ($L_2$)}
 A regularização $L_2$ (\textit{Weight Decay}) adiciona um termo de penalidade proporcional à norma euclidiana dos pesos à função de perda \cite{goodfellow2016deep}:
 \begin{equation}
     \mathcal{L}_{reg} = \mathcal{L}_{dados} + \frac{\lambda}{2} \sum_{i} w_i^2
 \end{equation}
-onde $\lambda$ controla a intensidade da regularização. No presente trabalho, empregou-se o otimizador Adam \cite{kingma2014adam} com o parâmetro \texttt{weight\_decay} $= 10^{-5}$, que aplica a penalização $L_2$ diretamente na atualização dos pesos, incentivando soluções com normas menores e mitigando o sobreajuste.
+onde $\lambda$ controla a intensidade da regularização. No presente trabalho, empregou-se o otimizador AdamW \cite{loshchilov2019decoupled} com o parâmetro \texttt{weight\_decay} $= 10^{-4}$, que desacopla a penalização $L_2$ da escala adaptativa do gradiente, incentivando soluções com normas menores e mitigando o sobreajuste de forma mais robusta que o Adam convencional.
 
 \subsection{Gradient Clipping}
 Em redes recorrentes profundas, a norma do gradiente pode crescer de forma descontrolada durante o BPTT, provocando atualizações de pesos desproporcionais que desestabilizam o treinamento. O \textit{Gradient Clipping} limita a norma $L_2$ do vetor de gradientes a um limiar máximo $\theta$ \cite{pascanu2013difficulty}:
 \begin{equation}
     \hat{\mathbf{g}} = \begin{cases} \mathbf{g} & \text{se } \|\mathbf{g}\| \leq \theta \\ \frac{\theta}{\|\mathbf{g}\|} \mathbf{g} & \text{se } \|\mathbf{g}\| > \theta \end{cases}
 \end{equation}
-Valores típicos para $\theta$ situam-se entre 1,0 e 5,0 \cite{pascanu2013difficulty}. No presente trabalho, o \textit{Gradient Clipping} não foi necessário, uma vez que a combinação de Dropout, \textit{Weight Decay} e taxa de aprendizado conservadora ($10^{-3}$) foi suficiente para estabilizar o treinamento das redes Bi-LSTM e Bi-GRU.
+Valores típicos para $\theta$ situam-se entre 1,0 e 5,0 \cite{pascanu2013difficulty}. No presente trabalho, adotou-se $\theta = 1{,}0$, aplicado antes de cada passo do otimizador, complementando o Dropout e o \textit{Weight Decay} na estabilização do treinamento das redes Bi-LSTM e Bi-GRU.
 
 \subsection{Normalização de Lote (\textit{Batch Normalization})}
 A Normalização de Lote padroniza as ativações intermediárias de cada mini-lote para média zero e variância unitária, acelerando a convergência e atuando como regularizador implícito \cite{goodfellow2016deep}. Para uma ativação $z_i$ dentro de um mini-lote $\mathcal{B}$:

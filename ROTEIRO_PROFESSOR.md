@@ -108,7 +108,7 @@ Diagramas de fluxo (pipeline de dados, arquitetura experimental) — todos **Tik
 | `base_diaria_interrupcoes_clima_vento.csv` | Diária + variáveis de vento (média/máx/rajada/direção) | idem |
 | `base_diaria_interrupcoes_clima_mm.csv` | Diária + médias móveis 7d/14d (interrupções/temp/chuva) | idem |
 | `base_mensal_interrupcoes_clima_consumo.csv` | Mensal: + consumo total kWh (SAMP) | idem |
-| `dataset_engenharia_features.csv` | **Dataset final dos modelos**: 42 features + alvo | 2017-01-15 a 2025-05-31 (3.058 dias) |
+| `dataset_engenharia_features.csv` | **Dataset final dos modelos**: 40 features + alvo | 2017-01-08 a 2025-05-31 (3.066 dias) |
 | `previsoes_diarias_baselines.csv` | Previsões dos baselines (média móvel, persistência) | teste |
 | `previsoes_dl_lstm_gru.csv` | Previsões LSTM/GRU (saída de `t12`) | teste |
 | `vento_diario_brasilia.csv` | Estatísticas diárias de vento (INMET A001) | 2017-2025 |

@@ -9,7 +9,7 @@ Os principais achados são:
 \begin{enumerate}
     \item \textbf{Correlação clima--falhas confirmada quantitativamente:} A análise de correlação em múltiplas escalas temporais demonstrou que a precipitação ($r = 0{,}54$ mensal), a direção do vento ($r = 0{,}59$ mensal) e o consumo de energia ($r = 0{,}48$ mensal) são preditores significativos das interrupções. A correlação intensifica-se consistentemente na transição do nível diário para o semanal e o mensal, indicando que os efeitos climáticos são cumulativos.
 
-    \item \textbf{XGBoost como modelo superior (avaliação de um ano):} Contrariando a hipótese inicial de superioridade das redes neurais profundas, o modelo XGBoost obteve o melhor desempenho em todas as métricas no conjunto de teste de 365 dias ($R^2 = 0{,}550$, MAE $= 50{,}4$, MAPE $= 15{,}6\%$), favorecido pela engenharia de atributos explícita que equalizou a vantagem temporal das RNNs.
+    \item \textbf{Empate técnico entre XGBoost e Bi-LSTM para $h=1$:} Sob protocolo unificado de previsão $h=1$, o XGBoost (MAE $= 61{,}1$, $R^2 = 0{,}409$) e a Bi-LSTM (MAE $= 62{,}7$, $R^2 = 0{,}420$) apresentaram desempenho estatisticamente indistinguível, enquanto a Bi-GRU ficou em terceiro lugar ($R^2 = 0{,}156$). Esse resultado demonstra que a engenharia de atributos explícita (40 \textit{features}) pode equiparar-se à extração automática de padrões sequenciais das redes recorrentes no domínio de previsão de um dia à frente.
 
     \item \textbf{Redes recorrentes com distribuição residual mais concentrada:} As redes Bi-LSTM e Bi-GRU, embora inferiores em métricas agregadas, apresentaram distribuições residuais mais leptocúrticas (concentradas em zero), sugerindo maior precisão nos dias ``normais'' com penalização nos eventos extremos.
 
@@ -17,7 +17,7 @@ Os principais achados são:
 
     \item \textbf{Defasagens temporais validadas empiricamente:} A análise de autocorrelação (ACF) e de correlação cruzada confirmou a dependência temporal significativa até 14 dias, validando a escolha do \textit{Lookback Window} de 14 dias e justificando a engenharia de \textit{Lags} e médias móveis exponenciais.
 
-    \item \textbf{Redes recorrentes superiores em previsão multi-horizonte:} A análise multi-horizonte com protocolo de previsão direta (1, 3, 7 e 14 dias à frente, $\approx$365 origens cada) revelou que a Bi-LSTM supera o XGBoost em $h=1$ (MAE$=62{,}7$ vs.\ $68{,}7$) e $h=3$ (72,3 vs.\ 76,5), e a Bi-GRU supera o XGBoost em $h=7$ (72,6 vs.\ 81,9) e $h=14$ (64,3 vs.\ 70,3). O XGBoost é o pior modelo em $h=7$ ($R^2\approx0$). Esse resultado demonstra que a escolha do modelo deve ser guiada pelo horizonte operacional desejado.
+    \item \textbf{Redes recorrentes vantajosas em horizontes mais longos:} A análise multi-horizonte com protocolo de previsão direta (1, 3, 7 e 14 dias à frente, 365 alvos idênticos por horizonte) revelou que a Bi-LSTM lidera em $h=3$ (MAE$=72{,}3$ vs.\ $76{,}5$ do XGBoost) e que a Bi-GRU reverte sua desvantagem de $h=1$ e supera todos os modelos em $h=7$ (MAE$=72{,}6$ vs.\ $81{,}9$) e $h=14$ (MAE$=64{,}3$ vs.\ $70{,}3$). O XGBoost apresenta $R^2 \approx 0$ em $h=7$, indicando que as features de defasagem de até 7 dias perdem poder preditivo nesse horizonte. Esse resultado demonstra que a escolha do modelo deve ser guiada pelo horizonte operacional desejado.
 \end{enumerate}
 
 \section{Cumprimento dos Objetivos}
@@ -31,13 +31,13 @@ Em relação aos objetivos específicos propostos na Seção~\ref{sec:objetivos}
 
     \item \textbf{Engenharia de atributos temporais:} Desenvolveu-se um \textit{pipeline} de 40 \textit{features} derivadas incluindo defasagens de 1 a 7 dias, EMAs de 3, 7 e 14 dias, desvios padrão em janela de 7 dias e codificações harmônicas cíclicas. \textit{Objetivo cumprido.}
 
-    \item \textbf{Modelo de referência XGBoost:} Implementou-se o XGBoost com \textit{Grid Search} temporal (\texttt{TimeSeriesSplit}, 5 \textit{folds}, 7 hiperparâmetros), encontrando configuração ótima com \texttt{max\_depth}$=4$, $\eta=0{,}03$ e \texttt{n\_estimators}$=500$, alcançando $R^2 = 0{,}550$ no conjunto de teste. \textit{Objetivo cumprido.}
+    \item \textbf{Modelo de referência XGBoost:} Implementou-se o XGBoost com \textit{Grid Search} temporal (\texttt{TimeSeriesSplit}, 5 \textit{folds}, 7 hiperparâmetros), encontrando configuração ótima com \texttt{max\_depth}$=4$, $\eta=0{,}03$, \texttt{n\_estimators}$=300$, \texttt{subsample}$=0{,}7$ e \texttt{colsample\_bytree}$=0{,}8$, alcançando MAE $= 61{,}1$ e $R^2 = 0{,}409$ no protocolo equânime de $h=1$. \textit{Objetivo cumprido.}
 
     \item \textbf{Redes Neurais Recorrentes Bidirecionais:} Implementaram-se Bi-LSTM e Bi-GRU em PyTorch com 150 épocas, Dropout 0,4, \textit{Weight Decay} $10^{-4}$, semente aleatória fixa e otimizador AdamW com \texttt{ReduceLROnPlateau}, comparando sistematicamente contra o XGBoost. \textit{Objetivo cumprido.}
 
     \item \textbf{Análises de correlação:} Conduziram-se análises de Pearson em três escalas temporais, autocorrelação (ACF), correlação cruzada e correlação entre consumo, temperatura e falhas. \textit{Objetivo cumprido.}
 
-    \item \textbf{Avaliação multi-horizonte:} Avaliou-se o comportamento dos três modelos em horizontes de previsão de 1, 3, 7 e 14 dias com protocolo de previsão direta ($\approx$365 origens por horizonte), quantificando o desempenho relativo e identificando a superioridade das redes recorrentes sobre o XGBoost em todos os horizontes, conforme descrito na Seção~\ref{sec:multihorizonte}. \textit{Objetivo cumprido.}
+    \item \textbf{Avaliação multi-horizonte:} Avaliou-se o comportamento dos três modelos em horizontes de previsão de 1, 3, 7 e 14 dias com protocolo de previsão direta (365 alvos por horizonte, informação equalizada entre modelos), quantificando o desempenho relativo e identificando que as redes recorrentes superam o XGBoost para $h \geq 3$, conforme descrito na Seção~\ref{sec:multihorizonte}. \textit{Objetivo cumprido.}
 \end{enumerate}
 
 \section{Trabalhos Futuros}\label{sec:futuros}

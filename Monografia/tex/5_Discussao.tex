@@ -2,9 +2,9 @@ Este capítulo discute os resultados obtidos à luz da literatura existente, int
 
 \section{Interpretação dos Resultados Preditivos}
 
-Os resultados apresentados no Capítulo~\ref{4_Resultados} revelaram um achado que contraria a hipótese inicial do trabalho: o modelo baseado em \textit{Gradient Boosting} (XGBoost) superou as duas arquiteturas de \textit{Deep Learning} (Bi-LSTM e Bi-GRU) em todas as métricas de avaliação no conjunto de teste de um ano. O XGBoost alcançou $R^2 = 0{,}550$, MAE $= 50{,}4$ e MAPE $= 15{,}6\%$, enquanto a Bi-LSTM obteve $R^2 = 0{,}420$ e a Bi-GRU $R^2 = 0{,}156$.
+Os resultados apresentados no Capítulo~\ref{4_Resultados} revelaram um achado relevante sobre a comparabilidade entre paradigmas de aprendizado de máquina: sob protocolo unificado de previsão direta $h=1$ --- em que todos os modelos recebem a mesma informação histórica em $t$ para prever $t+1$ ---, o \textbf{XGBoost} (MAE $= 61{,}1$, $R^2 = 0{,}409$) e a \textbf{Bi-LSTM} (MAE $= 62{,}7$, $R^2 = 0{,}420$) apresentam desempenho estatisticamente indistinguível, enquanto a Bi-GRU fica em terceiro lugar ($R^2 = 0{,}156$).
 
-Essa superioridade pode ser atribuída a três fatores complementares:
+O resultado contraria a hipótese de que arquiteturas de \textit{Deep Learning} seriam sistematicamente superiores a modelos baseados em árvores. O empate técnico pode ser atribuído a três fatores complementares:
 
 \begin{enumerate}
     \item \textbf{Engenharia de atributos como equalizador:} A construção manual de 40 \textit{features} --- incluindo defasagens de 1 a 7 dias, médias móveis exponenciais e codificações harmônicas --- transferiu ao XGBoost, de forma explícita, grande parte da informação temporal que as redes recorrentes aprendem implicitamente. Com essa engenharia, o XGBoost opera sobre uma representação tabular já enriquecida com memória temporal, reduzindo a vantagem arquitetural das RNNs.
@@ -27,9 +27,9 @@ A comparação entre os paradigmas vai além das métricas numéricas. A Tabela~
 \toprule
 \textbf{Critério} & \textbf{XGBoost} & \textbf{Bi-LSTM / Bi-GRU} \\
 \midrule
-Acurácia Geral (365 dias) & Superior ($R^2 = 0{,}55$) & Inferior ($R^2 = 0{,}42$ / $0{,}16$) \\
-Previsão 1 dia à frente & MAE $= 68{,}7$ & \textbf{Bi-LSTM: MAE} $= \mathbf{62{,}7}$ \\
-Velocidade de Treino & Minutos & Horas (200 épocas) \\
+Acurácia Geral ($h=1$, 365 dias) & $R^2 = 0{,}409$, MAE $= 61{,}1$ & Bi-LSTM: $R^2 = 0{,}420$, MAE $= 62{,}7$ \\
+Previsão $h>1$ (direto) & Queda acentuada ($R^2 \approx 0$ em $h=7$) & \textbf{Bi-GRU} lidera em $h=7$ e $h=14$ \\
+Velocidade de Treino & Minutos & Horas (150 épocas) \\
 Interpretabilidade & Alta (\textit{Feature Importance}) & Baixa (caixa-preta) \\
 Necessidade de GPU & Não & Recomendável \\
 Escalabilidade & Alta (paralelismo nativo) & Limitada pelo BPTT \\
@@ -228,7 +228,7 @@ Embora o período do El Niño 2023 integre o conjunto de treinamento (anterior a
 
 \section{Reflexão sobre a Escolha Metodológica: Engenharia Manual vs. Automática}
 
-Uma reflexão metodológica importante emerge da comparação entre o XGBoost e as redes recorrentes: a \textbf{engenharia de atributos manual} (41 \textit{features} explicitamente construídas com conhecimento de domínio) não apenas igualou, mas superou a capacidade de \textbf{extração automática de representações} das RNNs. Esse resultado dialoga com o debate mais amplo na comunidade de \textit{Machine Learning} sobre a relação entre investimento em engenharia de dados versus complexidade arquitetural.
+Uma reflexão metodológica importante emerge da comparação entre o XGBoost e as redes recorrentes: a \textbf{engenharia de atributos manual} (40 \textit{features} explicitamente construídas com conhecimento de domínio) \textbf{equiparou-se} à capacidade de \textbf{extração automática de representações} da Bi-LSTM, empatando em MAE e $R^2$ para $h=1$. Esse resultado dialoga com o debate mais amplo na comunidade de \textit{Machine Learning} sobre a relação entre investimento em engenharia de dados versus complexidade arquitetural.
 
 O sucesso do XGBoost na avaliação \textit{one-step} com \textit{features} manuais pode ser atribuído ao tamanho modesto do conjunto de dados (3.066 dias após engenharia de atributos). Em regimes de dados abundantes (milhões de observações), as redes neurais profundas tipicamente superam modelos tabulares ao extrair automaticamente representações hierárquicas que transcendem a capacidade de engenharia humana \cite{goodfellow2016deep}. Contudo, em regimes de dados escassos --- comuns em aplicações de engenharia elétrica onde séries históricas longas nem sempre estão disponíveis --- o conhecimento de domínio codificado em \textit{features} manuais compensa a limitação amostral.
 

@@ -4,27 +4,42 @@ Previsao Multi-Horizonte — Avaliacao Direta (Direct Multi-Step)
 
 Para cada horizonte h em {1, 3, 7, 14}:
 
-  - Alvo: interrupcoes deslocadas h passos adiante (shift(-h))
-  - Features: estado do dia t (causais, disponiveis no fim do dia t)
-  - Treino: dias cuja DATA-ALVO e anterior ao periodo de teste
-  - Teste: 365 dias-alvo (01/06/2024 a 31/05/2025), mesmos para todos os modelos
+  Tarefa: dados os atributos do dia t (incluindo interrupcoes[t] como
+  informacao historica), prever interrupcoes[t+h].
 
-Estrategia direta (sem recursao) para TODOS os modelos:
-  - XGBoost: ajuste direto com target deslocado
-  - Bi-LSTM / Bi-GRU: janela termina em t, target e t+h (nao t+1)
-    Implementado via deslocamento do vetor-alvo na construcao das sequencias.
+  Protocolo:
+  - Todos os modelos recebem a mesma informacao historica ate o dia t.
+  - A divisao treino/teste e feita pela data-alvo (nao pela data de origem).
+  - Conjunto de teste = dias-alvo em [01/06/2024, 31/05/2025] = 365 datas.
+  - n = 365 para todos os modelos e horizontes (assercao verificada).
+
+  XGBoost:
+    - X de cada linha inclui interrupcoes[t] como preditor historico.
+    - Alvo = interrupcoes.shift(-h) — deslocado h passos a frente.
+    - Hiperparametros carregados de xgboost_best_params.json.
+
+  Bi-LSTM / Bi-GRU:
+    - Janela de entrada: [t-13,...,t] (14 dias, includindo interrupcoes[t]).
+    - Alvo: interrupcoes[t+h].
+    - Sequencias criadas sobre o dataset completo; divisao por data-alvo.
+    - Scaler ajustado apenas sobre dias anteriores a TEST_START.
 
 Saidas:
-  results/ml/predictions_all.csv         (modelo, data_origem, data_alvo, horizonte, y_real, y_pred)
-  results/ml/metrics_multihorizon.csv    (modelo, horizonte, n, MAE, RMSE, R2, MAPE)
-  results/ml/previsao_multihorizonte_metricas.csv  (alias para compatibilidade com plot_multihorizonte.py)
+  results/ml/predictions_all.csv
+  results/ml/metrics_multihorizon.csv
+  results/ml/previsao_multihorizonte_metricas.csv
 
-Execucao:
-  cd Fonte/src/models && python previsao_multihorizonte.py
+Criterio de aceite:
+  Para todos os modelos e horizontes:
+    - data_alvo minima = 2024-06-01
+    - data_alvo maxima = 2025-05-31
+    - n = 365
+    - data_alvo == data_origem + h dias
 """
 
 import os
 import gc
+import json
 import random
 import numpy as np
 import pandas as pd
@@ -42,14 +57,14 @@ from gru_avancada import AdvancedGRU, train_gru_model
 plt.style.use('seaborn-v0_8-whitegrid')
 plt.rcParams.update({'figure.dpi': 300, 'font.size': 12})
 
-HORIZONTES    = [1, 3, 7, 14]
-SEQ_LENGTH    = 14
-TARGET_COL    = 'interrupcoes'
-TEST_SIZE     = 365
-DATA_PATH     = '../../data/dataset_engenharia_features.csv'
-SAVE_PATH     = '../../results/ml'
+HORIZONTES = [1, 3, 7, 14]
+SEQ_LENGTH  = 14
+TARGET_COL  = 'interrupcoes'
+DATA_PATH   = '../../data/dataset_engenharia_features.csv'
+SAVE_PATH   = '../../results/ml'
 
-TEST_START    = pd.Timestamp('2024-06-01')
+TEST_START = pd.Timestamp('2024-06-01')
+TEST_END   = pd.Timestamp('2025-05-31')
 
 
 def mape(y_true, y_pred):
@@ -79,33 +94,44 @@ def carregar_dataset():
 
 def rodar_xgboost_direto(df):
     print("\n=== XGBoost (direto) ===")
+
+    params_path = f"{SAVE_PATH}/xgboost_best_params.json"
+    with open(params_path) as f:
+        best_params = json.load(f)
+    print(f"  Parametros carregados de {params_path}: {best_params}")
+
     resultados = []
 
     for h in HORIZONTES:
         print(f"  Horizonte h={h}...")
-        X = df.drop(columns=[TARGET_COL]).copy()
-        y_shifted = df[TARGET_COL].shift(-h)  # alvo = interrupcoes[t+h]
 
-        # Remover linhas onde o alvo e NaN (ultimos h dias)
+        # interrupcoes[t] e mantido como preditor historico (alvo = t+h)
+        X = df.copy()
+        y_shifted = df[TARGET_COL].shift(-h)
+
         valid = y_shifted.notna()
-        X_v   = X[valid]
-        y_v   = y_shifted[valid]
+        X_v  = X[valid]
+        y_v  = y_shifted[valid]
 
-        # Separar por data-alvo: treino = data_alvo < TEST_START
-        # data_alvo do dia t = t + h dias
-        datas_alvo = X_v.index + pd.Timedelta(days=h)
+        # Divisao por DATA-ALVO
+        datas_alvo  = X_v.index + pd.Timedelta(days=h)
         mask_treino = datas_alvo < TEST_START
-        mask_teste  = datas_alvo >= TEST_START
+        mask_teste  = (datas_alvo >= TEST_START) & (datas_alvo <= TEST_END)
 
         X_tr, y_tr = X_v[mask_treino], y_v[mask_treino]
         X_te, y_te = X_v[mask_teste],  y_v[mask_teste]
-        datas_alvo_te = datas_alvo[mask_teste]
+        datas_alvo_te   = datas_alvo[mask_teste]
         datas_origem_te = X_te.index
 
+        assert len(X_te) == 365, f"h={h}: esperado 365, obtido {len(X_te)}"
+        assert datas_alvo_te.min() == TEST_START, f"h={h}: data minima {datas_alvo_te.min()}"
+        assert datas_alvo_te.max() == TEST_END,   f"h={h}: data maxima {datas_alvo_te.max()}"
+
         model = xgb.XGBRegressor(
-            n_estimators=500, learning_rate=0.05, max_depth=6,
-            subsample=0.8, colsample_bytree=0.8,
-            random_state=42, objective='reg:squarederror', n_jobs=-1
+            **best_params,
+            objective='reg:squarederror',
+            random_state=42,
+            n_jobs=-1,
         )
         model.fit(X_tr, y_tr)
         y_pred = np.maximum(0, model.predict(X_te))
@@ -127,19 +153,36 @@ def rodar_xgboost_direto(df):
 
 
 # ---------------------------------------------------------------------------
-# DL — previsao direta por horizonte (janela [t-13..t] -> y[t+h])
+# DL — previsao direta por horizonte
+# Janela [t-13,...,t] -> alvo t+h
+# Sequencias criadas sobre o dataset completo; split por data-alvo.
 # ---------------------------------------------------------------------------
 
-def criar_sequencias_diretas(data_scaled, target_idx, seq_length, h):
+def criar_sequencias_diretas(df, scaled, target_idx, seq_length, h):
     """
-    X[i] = data[i : i+seq_length]   (janela terminando em t)
-    y[i] = data[i + seq_length + h - 1, target_idx]  (alvo em t+h)
+    Retorna (X, y, origins, targets) com datas reais de df.index.
+
+    Sequencia i:
+      X[i] = scaled[i : i+seq_length]            (janela terminando em df.index[i+seq_length-1])
+      y[i] = scaled[i+seq_length+h-1, target_idx] (alvo em df.index[i+seq_length+h-1])
     """
-    xs, ys = [], []
-    for i in range(len(data_scaled) - seq_length - h + 1):
-        xs.append(data_scaled[i : i + seq_length])
-        ys.append(data_scaled[i + seq_length + h - 1, target_idx])
-    return np.array(xs), np.array(ys)
+    xs, ys, origins, targets = [], [], [], []
+    n = len(df)
+    for i in range(n - seq_length - h + 1):
+        origin_pos = i + seq_length - 1   # ultimo dia da janela de entrada
+        target_pos = origin_pos + h        # dia-alvo
+
+        xs.append(scaled[i : origin_pos + 1])
+        ys.append(scaled[target_pos, target_idx])
+        origins.append(df.index[origin_pos])
+        targets.append(df.index[target_pos])
+
+    return (
+        np.array(xs),
+        np.array(ys),
+        pd.DatetimeIndex(origins),
+        pd.DatetimeIndex(targets),
+    )
 
 
 def rodar_dl_direto(df, ModelClass, TrainFn, nome):
@@ -150,36 +193,36 @@ def rodar_dl_direto(df, ModelClass, TrainFn, nome):
         print(f"  Horizonte h={h}...")
         set_seeds(SEED)
 
-        # Scaler ajustado SEM os ultimos TEST_SIZE dias
-        split_idx = len(df) - TEST_SIZE
-        train_df  = df.iloc[:split_idx]
-        test_df   = df.iloc[split_idx:]
-
+        # Scaler ajustado exclusivamente sobre dados de treino
+        train_mask = df.index < TEST_START
         scaler = MinMaxScaler()
-        train_scaled = scaler.fit_transform(train_df)
-        test_scaled  = scaler.transform(test_df)
+        scaler.fit(df[train_mask])
+        scaled_all = scaler.transform(df)
 
-        # Treino: sequencias diretas dentro do treino
-        X_tr_np, y_tr_np = criar_sequencias_diretas(
-            train_scaled, train_df.columns.get_loc(TARGET_COL), SEQ_LENGTH, h
+        target_idx = df.columns.get_loc(TARGET_COL)
+
+        # Sequencias sobre dataset completo
+        X_all, y_all, origins_all, targets_all = criar_sequencias_diretas(
+            df, scaled_all, target_idx, SEQ_LENGTH, h
         )
 
-        # Teste: usar contexto (ultimos seq_length dias do treino) + test
-        contexto    = train_scaled[-SEQ_LENGTH:]
-        bloco_teste = np.vstack([contexto, test_scaled])
-        X_te_np, y_te_np = criar_sequencias_diretas(
-            bloco_teste, train_df.columns.get_loc(TARGET_COL), SEQ_LENGTH, h
-        )
+        # Split por data-alvo
+        mask_train = targets_all < TEST_START
+        mask_test  = (targets_all >= TEST_START) & (targets_all <= TEST_END)
 
-        # As datas de origem: primeira janela de teste começa em test_df.index[0]
-        # X_te_np[i] usa bloco_teste[i:i+SEQ_LENGTH]
-        # bloco_teste[0:SEQ_LENGTH] = contexto => origem = test_df.index[0]
-        # bloco_teste[1:SEQ_LENGTH+1] = contexto[1:]+test[0] => origem = test_df.index[0]+1 dia
-        n_te = len(X_te_np)
-        datas_origem_te = test_df.index[:n_te]
-        datas_alvo_te   = datas_origem_te + pd.Timedelta(days=h)
+        X_tr_np = X_all[mask_train]
+        y_tr_np = y_all[mask_train]
+        X_te_np = X_all[mask_test]
+        y_te_np = y_all[mask_test]
+        datas_origem_te = origins_all[mask_test]
+        datas_alvo_te   = targets_all[mask_test]
 
-        # Converter para tensores
+        assert len(X_te_np) == 365, f"h={h}: esperado 365, obtido {len(X_te_np)}"
+        assert datas_alvo_te.min() == TEST_START, f"h={h}: data minima {datas_alvo_te.min()}"
+        assert datas_alvo_te.max() == TEST_END,   f"h={h}: data maxima {datas_alvo_te.max()}"
+        delta = (datas_alvo_te - datas_origem_te).days
+        assert (delta == h).all(), f"h={h}: delta de datas inconsistente"
+
         X_tr_t = torch.from_numpy(X_tr_np).float()
         y_tr_t = torch.from_numpy(y_tr_np).float().unsqueeze(1)
 
@@ -195,9 +238,7 @@ def rodar_dl_direto(df, ModelClass, TrainFn, nome):
                 torch.from_numpy(X_te_np).float().to(device)
             ).cpu().numpy().flatten()
 
-        # Inverter escala
-        n_cols = train_df.shape[1]
-        target_idx = train_df.columns.get_loc(TARGET_COL)
+        n_cols = df.shape[1]
         dummy = np.zeros((len(preds_norm), n_cols))
         dummy[:, target_idx] = preds_norm
         y_pred_real = np.maximum(0, scaler.inverse_transform(dummy)[:, target_idx])
@@ -219,14 +260,45 @@ def rodar_dl_direto(df, ModelClass, TrainFn, nome):
         print(f"    n={m['n']} | MAE={m['MAE']:.2f} | RMSE={m['RMSE']:.2f} | "
               f"R2={m['R2']:.3f} | MAPE={m['MAPE']:.2f}%")
 
-        # Liberar memoria entre horizontes
         del model, X_tr_t, y_tr_t, X_tr_np, y_tr_np, X_te_np, y_te_np
-        del train_scaled, test_scaled, contexto, bloco_teste
+        del scaled_all
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
         gc.collect()
 
     return resultados
+
+
+# ---------------------------------------------------------------------------
+# Validacao pos-execucao
+# ---------------------------------------------------------------------------
+
+def validar_predictions(df_pred):
+    print("\n=== Validacao das predicoes ===")
+    ok = True
+    for (modelo, h), grp in df_pred.groupby(['modelo', 'horizonte']):
+        n = len(grp)
+        dmin = pd.to_datetime(grp['data_alvo']).min()
+        dmax = pd.to_datetime(grp['data_alvo']).max()
+        delta_ok = (
+            pd.to_datetime(grp['data_alvo']) - pd.to_datetime(grp['data_origem'])
+        ).dt.days.eq(h).all()
+        status = "OK" if (n == 365 and dmin == TEST_START and dmax == TEST_END and delta_ok) else "ERRO"
+        if status == "ERRO":
+            ok = False
+        print(f"  [{status}] {modelo} h={h}: n={n}, alvo [{dmin.date()} -> {dmax.date()}], delta_ok={delta_ok}")
+
+    # Mesmo vetor real para todos os modelos no mesmo horizonte
+    for h, grp in df_pred.groupby('horizonte'):
+        tab = grp.pivot(index='data_alvo', columns='modelo', values='y_real')
+        max_diff = (tab.max(axis=1) - tab.min(axis=1)).abs().max()
+        status = "OK" if max_diff < 1e-3 else "AVISO"
+        print(f"  [{status}] h={h}: max diferenca no y_real entre modelos = {max_diff:.6f}")
+
+    if ok:
+        print("[OK] Todas as assercoes passaram.")
+    else:
+        print("[ATENCAO] Existem erros na validacao — verifique os resultados.")
 
 
 # ---------------------------------------------------------------------------
@@ -248,7 +320,7 @@ if __name__ == "__main__":
     df_pred.to_csv(f"{SAVE_PATH}/predictions_all.csv", index=False)
     print(f"\nPrevisoes -> {SAVE_PATH}/predictions_all.csv")
 
-    # Metricas agregadas por modelo e horizonte
+    # Metricas agregadas
     rows = []
     for (modelo, h), grp in df_pred.groupby(['modelo', 'horizonte']):
         m = calcular_metricas(grp['y_real'].values, grp['y_pred'].values)
@@ -256,8 +328,6 @@ if __name__ == "__main__":
 
     df_met = pd.DataFrame(rows).sort_values(['Modelo', 'Horizonte'])
     df_met.to_csv(f"{SAVE_PATH}/metrics_multihorizon.csv", index=False)
-
-    # Alias para compatibilidade com plot_multihorizonte.py
     df_met[['Modelo', 'Horizonte', 'MAE', 'RMSE']].to_csv(
         f"{SAVE_PATH}/previsao_multihorizonte_metricas.csv", index=False
     )
@@ -265,4 +335,6 @@ if __name__ == "__main__":
     print(f"Metricas -> {SAVE_PATH}/metrics_multihorizon.csv")
     print("\n=== RESUMO ===")
     print(df_met.to_string(index=False))
+
+    validar_predictions(df_pred)
     print("\n[OK] Analise multi-horizonte concluida.")

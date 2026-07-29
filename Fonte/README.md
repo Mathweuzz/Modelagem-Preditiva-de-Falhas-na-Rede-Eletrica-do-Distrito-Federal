@@ -64,7 +64,7 @@ A monografia descreve o fluxo completo no Capítulo 3 (Metodologia). De forma re
    - Defasagens (lags): 1, 2, 3 e 7 dias para `interrupcoes`, `precipitacao_total_mm`, `temperatura_media`, `vento_rajada_max_ms`
    - Médias móveis exponenciais (EMA): spans 3, 7 e 14 dias para chuva, temperatura e rajada
    - Desvio-padrão móvel (rolling std) de 7 dias para chuva, temperatura e rajada
-   - Drop de NaNs iniciais. Total final: **3.058 dias × 42 features + alvo**.
+   - Drop de NaNs iniciais e interpolação linear de lacunas temporais. Total final: **3.066 dias × 40 features + alvo**.
 
 A reprodução é byte-perfect: o script atual gera o mesmo MD5 do CSV original.
 
@@ -105,12 +105,13 @@ python advanced_plots.py                 # gráficos comparativos
 - **XGBoost**: `random_state=42`. Reprodução determinística.
 - **LSTM/GRU (PyTorch)**: pequenas variações são esperadas entre execuções por causa do non-determinism interno do cuDNN/CUDA. As métricas reportadas no Capítulo 4 da monografia foram obtidas com o ambiente especificado no Apêndice (Reprodutibilidade).
 
-## Métricas de referência (test set, 2024)
+## Métricas de referência (test set, 365 dias, h=1 direto)
+
+Avaliação principal: todos os modelos preveem interrupcoes[t+1] usando features do dia t.
+Métricas atualizadas após re-execução com protocolo corrigido (ver commit mais recente).
 
 | Modelo | MAE | RMSE | R² | MAPE |
 |---|---|---|---|---|
-| **XGBoost** (Cap. 4) | 52.31 | 89.85 | 0.520 | 16.06% |
-| **Bi-LSTM** (Cap. 4) | 59.30 | 100.07 | 0.410 | 18.83% |
-| **Bi-GRU**  (Cap. 4) | 65.68 | 106.55 | 0.332 | 21.19% |
-
-Última execução automatizada deste pacote (XGBoost): MAE=52.32 / RMSE=89.86 / R²=0.520 / MAPE=16.07% — bate com a monografia dentro do erro de arredondamento.
+| **Bi-LSTM** | 62.71 | 98.80 | 0.420 | 20.94% |
+| **XGBoost** | (atualizar após re-execução) | — | — | — |
+| **Bi-GRU**  | 73.44 | 119.21 | 0.156 | 26.18% |

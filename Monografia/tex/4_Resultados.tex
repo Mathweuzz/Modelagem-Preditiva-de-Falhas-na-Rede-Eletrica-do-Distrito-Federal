@@ -253,17 +253,17 @@ A avaliação preditiva na série temporal diária de interrupções seguiu o pr
 Para comparar as abordagens de aprendizado de máquina e aprendizado profundo, implementaram-se três arquiteturas distintas: um modelo de \textit{Gradient Boosting} (XGBoost) como \textit{baseline} de alto rendimento, e duas arquiteturas de redes neurais recorrentes bidirecionais: Bi-LSTM e Bi-GRU \cite{chen2016xgboost, hochreiter1997long, cho2014learning}.
 
 \subsection{Comparativo de Métricas}
-Os modelos foram avaliados prevendo ocorrências do conjunto de teste, completamente ausentes do treinamento. As métricas comparativas destacam o Mean Absolute Percentage Error (MAPE) e o Coeficiente de Determinação ($R^2$):
+Os modelos foram avaliados sob um protocolo unificado de \textbf{previsão direta $h = 1$}: todos recebem as features do dia $t$ --- incluindo $\text{interrupcoes}[t]$ como preditor histórico --- e preveem as interrupções do dia $t+1$, completamente ausentes do treinamento. Esse protocolo garante comparabilidade equânime: XGBoost e redes recorrentes dispõem da mesma informação em $t$ ao prever $t+1$. As métricas comparativas são apresentadas na Tabela~\ref{tab:metricas_modelos}.
 
-\begin{table}[htb]
-\caption{Métricas de Validação dos Modelos Preditivos (Test Set)}
+\begin{table}[H]
+\caption{Métricas de Validação dos Modelos Preditivos (Test Set, $h = 1$, 365 dias)}
 \label{tab:metricas_modelos}
 \begin{center}
 \begin{tabular}{lcccc}
 \toprule
 \textbf{Modelo} & \textbf{MAE} & \textbf{RMSE} & \textbf{$R^2$} & \textbf{MAPE (\%)} \\
 \midrule
-XGBoost & 50,42 & 87,00 & 0,550 & 15,64 \% \\
+XGBoost & 61,09 & 99,72 & 0,409 & 20,64 \% \\
 Bi-LSTM & 62,71 & 98,80 & 0,420 & 20,94 \% \\
 Bi-GRU  & 73,44 & 119,21 & 0,156 & 26,18 \% \\
 \bottomrule
@@ -272,9 +272,9 @@ Bi-GRU  & 73,44 & 119,21 & 0,156 & 26,18 \% \\
 \small{Fonte: Elaborado pelos autores (2026).}
 \end{table}
 
-A análise da Tabela~\ref{tab:metricas_modelos} evidencia que o modelo \textbf{XGBoost} obteve o melhor desempenho em todas as métricas, alcançando $R^2 = 0{,}550$ e MAPE de 15,64\%, errando, em média, cerca de 50 interrupções por dia. A Bi-LSTM obteve o segundo melhor resultado, com MAE de 62,71 interrupções diárias, demonstrando que as camadas bidirecionais permitem capturar dependências temporais nos dois sentidos da janela de entrada \cite{schuster1997bidirectional}.
+A análise da Tabela~\ref{tab:metricas_modelos} revela que, sob avaliação equânime com horizonte $h = 1$, o \textbf{XGBoost} (MAE $= 61{,}09$, $R^2 = 0{,}409$) e a \textbf{Bi-LSTM} (MAE $= 62{,}71$, $R^2 = 0{,}420$) apresentam desempenho estatisticamente indistinguível --- uma diferença de apenas 1,62 interrupções por dia em MAE (2,7\%) e de apenas 0,011 em $R^2$. Em RMSE, a Bi-LSTM exibe ligeira vantagem (98,80 vs.\ 99,72), sugerindo melhor controle de erros em eventos extremos. Esses resultados indicam que, para previsão de um dia à frente, a capacidade das redes recorrentes de capturar dependências temporais na janela de \textit{lookback} é equivalente à combinação de \textit{feature engineering} explícita e regularização do XGBoost.
 
-Observa-se que, apesar da Bi-GRU ser arquiteturalmente mais leve que a Bi-LSTM (dois portões em vez de três, conforme detalhado na Tabela~\ref{tab:lstm_vs_gru}), essa simplificação resultou em desempenho inferior neste problema (MAPE de 26,18\% vs. 20,94\%). Esse resultado sugere que a presença do \textit{Cell State} e do \textit{Forget Gate} especializados na LSTM é vantajosa para capturar dependências de longo prazo em séries temporais climáticas com memória sazonal pronunciada.
+Observa-se que a Bi-GRU, arquiteturalmente mais leve (dois portões em vez de três, conforme Tabela~\ref{tab:lstm_vs_gru}), obteve desempenho significativamente inferior (MAE $= 73{,}44$, MAPE $= 26{,}18\%$). Esse resultado sugere que o \textit{Cell State} e o \textit{Forget Gate} especializados da LSTM são vantajosos para capturar dependências de longo prazo nesta série temporal --- embora, como discutido na Seção~\ref{sec:multi_horizonte}, a Bi-GRU mostre comportamento distinto em horizontes mais longos.
 
 \subsection{Séries Temporais Preditas vs. Reais}
 
@@ -399,11 +399,11 @@ A inclusão desse período extremo no conjunto de treinamento permitiu que os mo
 
 \section{Análise das Curvas de Aprendizado}\label{sec:learning_curves}
 
-As curvas de aprendizado (\textit{Learning Curves}) permitem diagnosticar se os modelos neurais sofrem de \textit{underfitting} (subajuste) ou \textit{overfitting} (sobreajuste). A Figura~\ref{fig:learning_curves} apresenta a evolução da perda MSE ao longo das 200 épocas de treinamento para Bi-LSTM e Bi-GRU.
+As curvas de aprendizado (\textit{Learning Curves}) permitem diagnosticar se os modelos neurais sofrem de \textit{underfitting} (subajuste) ou \textit{overfitting} (sobreajuste). A Figura~\ref{fig:learning_curves} apresenta a evolução da perda de treinamento (MSE) ao longo das 150 épocas para Bi-LSTM e Bi-GRU.
 
-Para a \textbf{Bi-LSTM} (Figura~\ref{fig:learning_curves}, esquerda), observa-se que a perda de treinamento decresce continuamente ao longo das 200 épocas, enquanto a perda de validação estabiliza-se após aproximadamente 80--100 épocas. A lacuna entre as duas curvas permanece controlada, indicando que o Dropout ($p = 0{,}2$) e o \textit{Weight Decay} ($\lambda = 10^{-5}$) cumpriram seu papel de regularização. Não há evidência de \textit{overfitting} severo.
+Para a \textbf{Bi-LSTM} (Figura~\ref{fig:learning_curves}, esquerda), observa-se que a perda de treinamento decresce de forma consistente e estabiliza-se nas épocas finais, sem oscilações abruptas. A ausência de divergência indica que o Dropout ($p = 0{,}4$) e o \textit{Weight Decay} ($\lambda = 10^{-4}$) cumpriram seu papel de regularização, prevenindo sobreajuste.
 
-Para a \textbf{Bi-GRU} (Figura~\ref{fig:learning_curves}, direita), o comportamento é similar, porém com convergência ligeiramente mais rápida --- consistente com seu menor número de parâmetros. O \textit{Learning Rate Scheduler} (ReduceLROnPlateau) é visível nas reduções discretas da taxa de decaimento após platôs de estagnação, permitindo ajustes mais finos nos estágios finais.
+Para a \textbf{Bi-GRU} (Figura~\ref{fig:learning_curves}, direita), o comportamento é similar, porém com convergência ligeiramente mais rápida --- consistente com o menor número de parâmetros da arquitetura GRU. Ambas as curvas exibem a forma típica de treinamento bem-comportado, com redução monotônica da perda sem sinais de instabilidade.
 
 \section{Importância das Variáveis no XGBoost}\label{sec:feature_importance}
 
@@ -503,7 +503,7 @@ A comparação entre as Figuras~\ref{fig:mm_2023} e~\ref{fig:precip_2023} confir
 Para avaliar o comportamento dos modelos em cenários de uso operacional, os três modelos foram avaliados em horizontes de previsão variáveis ($x \in \{1, 3, 7, 14\}$ dias), conforme a metodologia descrita na Seção~\ref{sec:previsao_x_dias}. A Tabela~\ref{tab:multihorizonte} consolida os resultados de MAE e RMSE para cada combinação de modelo e horizonte.
 
 \begin{table}[H]
-\caption{MAE e RMSE por Modelo e Horizonte de Previsão (previsão direta, $\approx$365 origens)}
+\caption{MAE e RMSE por Modelo e Horizonte de Previsão (previsão direta, 365 alvos por horizonte)}
 \label{tab:multihorizonte}
 \begin{center}
 \small
@@ -513,14 +513,14 @@ Para avaliar o comportamento dos modelos em cenários de uso operacional, os tr�
 \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}
 \textbf{Modelo} & MAE & RMSE & MAE & RMSE & MAE & RMSE & MAE & RMSE \\
 \midrule
-XGBoost & 68,66 & 113,07 & 76,50 & 118,13 & 81,88 & 129,45 & 70,25 & 115,12 \\
+XGBoost & 61,09 & 99,72 & 76,50 & 118,13 & 81,88 & 129,45 & 70,25 & 115,12 \\
 Bi-LSTM & \textbf{62,71} & \textbf{98,80} & \textbf{72,30} & \textbf{117,71} & 78,55 & 127,24 & 67,69 & 110,24 \\
 Bi-GRU  & 73,44 & 119,21 & 76,03 & 120,02 & \textbf{72,63} & \textbf{118,82} & \textbf{64,31} & \textbf{106,27} \\
 \bottomrule
 \end{tabular}
 \normalsize
 \end{center}
-\small{Fonte: Elaborado pelos autores (2026). Em negrito: melhor modelo por horizonte.}
+\small{Fonte: Elaborado pelos autores (2026). Em negrito: melhor modelo por horizonte. A coluna $h=1$ é idêntica à avaliação principal da Tabela~\ref{tab:metricas_modelos}.}
 \end{table}
 
 A Figura~\ref{fig:multihorizonte_degradacao} apresenta as curvas de variação do MAE em função do horizonte para os três modelos.
@@ -528,13 +528,13 @@ A Figura~\ref{fig:multihorizonte_degradacao} apresenta as curvas de variação d
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.90\textwidth]{img/previsao_multihorizonte_degradacao.png}
-    \caption{MAE por horizonte de previsão (protocolo de previsão direta). A Bi-LSTM lidera em $h=1$ e $h=3$; a Bi-GRU supera os demais em $h=7$ e $h=14$.}
+    \caption{MAE por horizonte de previsão (protocolo de previsão direta, informação equalizada). A Bi-GRU supera os demais em $h=7$ e $h=14$.}
     \label{fig:multihorizonte_degradacao}
 \end{figure}
 
-O achado central desta análise, realizada com protocolo de \textbf{previsão direta} (\textit{Direct Multi-Step Forecasting}), é que as arquiteturas recorrentes são competitivas ou superiores ao XGBoost em \textit{todos} os horizontes avaliados. Para $h=1$ dia à frente, a Bi-LSTM lidera (MAE$=62{,}71$), seguida pelo XGBoost (68,66) e pela Bi-GRU (73,44). Para $h=3$ dias, a Bi-LSTM mantém a vantagem (MAE$=72{,}30$ contra 76,50 do XGBoost). Nos horizontes mais longos, a Bi-GRU assume a liderança: em $h=7$ registra MAE$=72{,}63$ (contra 81,88 do XGBoost), e em $h=14$ alcança MAE$=64{,}31$ (contra 70,25 do XGBoost). Notavelmente, o XGBoost apresenta $R^2 \approx 0{,}004$ em $h=7$, indicando ausência de poder preditivo nesse horizonte com previsão direta.
+O protocolo de \textbf{previsão direta} (\textit{Direct Multi-Step Forecasting}) adotado garante comparabilidade equânime entre os modelos: para cada horizonte $h$, todos recebem as mesmas \textit{features} históricas disponíveis na data de origem $t$ --- incluindo $\text{interrupcoes}[t]$ --- e preveem diretamente $\text{interrupcoes}[t+h]$. As 365 datas-alvo são idênticas entre modelos (01/06/2024 a 31/05/2025), e a divisão treino/teste é feita pela data-alvo, sem recurso a estimativas intermediárias.
 
-No protocolo adotado, cada modelo recebe as \textit{features} de um dia de origem $t$ e prevê diretamente as interrupções $h$ dias à frente, sem depender de previsões intermediárias. Isso elimina a assimetria da estratégia recursiva (onde erros se acumulam a cada passo), tornando a comparação equânime entre os três modelos. O fato de o XGBoost ser superado pelas redes recorrentes em todos os horizontes sugere que a estrutura sequencial bidirecional captura padrões de memória temporal que não são igualmente representados pelas \textit{features} de defasagem explícitas do modelo tabular.
+Para $h=1$, XGBoost (MAE$=61{,}09$) e Bi-LSTM (MAE$=62{,}71$) encontram-se estatisticamente empatados; a Bi-GRU registra MAE$=73{,}44$. Nos horizontes mais longos, a Bi-GRU reverte sua posição: em $h=7$ registra MAE$=72{,}63$ (vs.\ 81,88 do XGBoost) e em $h=14$ alcança MAE$=64{,}31$ (vs.\ 70,25 do XGBoost). A Bi-LSTM lidera em $h=3$ (MAE$=72{,}30$ vs.\ 76,50 do XGBoost). Notavelmente, o XGBoost apresenta $R^2 \approx 0$ em $h=7$, indicando ausência de poder preditivo nesse horizonte com previsão direta --- resultado coerente com a diluição das correlações de defasagem quando se prevê 7 dias à frente com features de lags de até 7 dias.
 
 \section{Síntese dos Resultados}\label{sec:sintese_resultados}
 
@@ -553,7 +553,7 @@ Tendência Temporal & Crescimento de 65,3\% na média diária de interrupções 
 Sazonalidade & Picos entre outubro e março (chuvosa: 292,0) vs. vales entre maio e agosto (seca: 182,3) \\
 Autocorrelação & Dependência temporal significativa até $k=14$ dias, validando o \textit{Lookback Window} \\
 Correlação Climática & Direção do vento ($r=0{,}59$ mensal) e precipitação ($r=0{,}54$ mensal) como preditores dominantes \\
-Melhor Modelo & XGBoost ($R^2=0{,}550$, MAPE$=15{,}6\%$), favorecido pela engenharia de 40 \textit{features} explícitas \\
+Melhor Modelo ($h=1$) & XGBoost e Bi-LSTM em empate técnico (MAE$\approx$61--63; $R^2\approx$0,41--0,42); Bi-GRU inferior (MAE$=73{,}4$) \\
 Distribuição Residual & Redes recorrentes mais concentradas em zero (leptocúrticas); XGBoost mais disperso nos extremos \\
 Eventos Extremos & XGBoost conservador (saturação arbórea); Bi-LSTM superestima picos inéditos \\
 Importância & Lags da própria série dominam; variáveis climáticas defasadas validam inércia temporal \\
