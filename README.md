@@ -92,7 +92,7 @@ TCC/
 │   │       ├── lstm_bidirecional.py
 │   │       ├── gru_avancada.py
 │   │       ├── previsao_multihorizonte.py   # avaliação multi-horizonte
-│   │       ├── plot_multihorizonte.py       # gráficos de degradação
+│   │       ├── plot_multihorizonte.py       # gráficos de desempenho por horizonte
 │   │       └── advanced_plots.py
 │   └── results/             # Gráficos e métricas gerados
 │       ├── eda/

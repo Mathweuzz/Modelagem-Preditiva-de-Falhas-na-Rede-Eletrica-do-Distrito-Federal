@@ -82,10 +82,7 @@ Diagramas de fluxo (pipeline de dados, arquitetura experimental) — todos **Tik
 | `scatter_pred_lstm_bi` | Dispersão Bi-LSTM | idem | idem |
 | `scatter_pred_gru_bi` | Dispersão Bi-GRU | idem | idem |
 | `kde_residuos_modelos` | KDE dos resíduos dos 3 modelos | `Fonte/src/models/advanced_plots.py::plot_residual_kde` | `predictions_*.csv` (saída dos modelos) |
-| `zoom_serie_2023_anomalia` | Zoom no El Niño nov-dez/2023 | `Fonte/src/models/advanced_plots.py::plot_zoomed_anomaly` | idem |
 | `scatter_heteroscedasticity` | |Erro| × volume real (Bi-LSTM) | `Fonte/src/models/advanced_plots.py::plot_heteroscedasticity_scatter` | idem |
-| `previsao_dl_zoom_1ano` | Zoom 1 ano de previsão DL | `TerceiroPedido/scripts/t12_modelos_lstm_gru.py` | `previsoes_dl_lstm_gru.csv` |
-| `comparacao_previsoes_zoom_1ano` | Zoom 1 ano com baselines + DL | `TerceiroPedido/scripts/t13_comparar_baselines_vs_dl_zoom.py` | `previsoes_diarias_baselines.csv` + `previsoes_dl_lstm_gru.csv` |
 
 ---
 
@@ -109,8 +106,8 @@ Diagramas de fluxo (pipeline de dados, arquitetura experimental) — todos **Tik
 | `base_diaria_interrupcoes_clima_mm.csv` | Diária + médias móveis 7d/14d (interrupções/temp/chuva) | idem |
 | `base_mensal_interrupcoes_clima_consumo.csv` | Mensal: + consumo total kWh (SAMP) | idem |
 | `dataset_engenharia_features.csv` | **Dataset final dos modelos**: 40 features + alvo | 2017-01-08 a 2025-05-31 (3.066 dias) |
-| `previsoes_diarias_baselines.csv` | Previsões dos baselines (média móvel, persistência) | teste |
-| `previsoes_dl_lstm_gru.csv` | Previsões LSTM/GRU (saída de `t12`) | teste |
+| `previsoes_diarias_baselines.csv` | Previsões dos baselines — **legado** (ver `Fonte/data/legado/`) | — |
+| `previsoes_dl_lstm_gru.csv` | Previsões LSTM/GRU de modelos antigos — **legado** (ver `Fonte/data/legado/`) | — |
 | `vento_diario_brasilia.csv` | Estatísticas diárias de vento (INMET A001) | 2017-2025 |
 | `aggregados_*.csv` / `correlacoes_*.csv` | Agregações temporais e tabelas auxiliares | — |
 

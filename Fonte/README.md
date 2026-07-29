@@ -22,8 +22,10 @@ Fonte/
 │   ├── dataset_engenharia_features.csv     # ← saída do script 03
 │   ├── aggregados_*.csv                    # agregados semanais/mensais
 │   ├── correlacoes_*.csv
-│   ├── previsoes_diarias_baselines.csv
-│   ├── previsoes_dl_lstm_gru.csv
+│   ├── legado/                            # artefatos de versões anteriores (não usados pelos modelos finais)
+│   │   ├── metricas_dl_lstm_gru.csv
+│   │   ├── previsoes_dl_lstm_gru.csv
+│   │   └── previsoes_diarias_baselines.csv
 │   └── vento_diario_brasilia.csv
 │
 ├── src/                                    # Pipeline principal
@@ -66,7 +68,7 @@ A monografia descreve o fluxo completo no Capítulo 3 (Metodologia). De forma re
    - Desvio-padrão móvel (rolling std) de 7 dias para chuva, temperatura e rajada
    - Drop de NaNs iniciais e interpolação linear de lacunas temporais. Total final: **3.066 dias × 40 features + alvo**.
 
-A reprodução é byte-perfect: o script atual gera o mesmo MD5 do CSV original.
+O script reproduz a estrutura e os valores do dataset; diferenças numéricas residuais de ponto flutuante são possíveis entre versões de bibliotecas.
 
 ---
 
@@ -97,7 +99,9 @@ python script_exploration_pipeline.py    # 3 figuras EDA finais
 python baseline_xgboost.py               # XGBoost (~1 min CPU)
 python lstm_bidirecional.py              # Bi-LSTM (~5-10 min CPU)
 python gru_avancada.py                   # Bi-GRU  (~5-10 min CPU)
-python advanced_plots.py                 # gráficos comparativos
+python previsao_multihorizonte.py        # avaliação multi-horizonte (h=1,3,7,14)
+python plot_multihorizonte.py            # gráficos de desempenho por horizonte
+python advanced_plots.py                 # gráficos comparativos (KDE, heteroscedasticidade)
 ```
 
 ## Reprodutibilidade
@@ -111,7 +115,7 @@ Avaliação principal: todos os modelos preveem interrupcoes[t+1] usando feature
 Métricas atualizadas após re-execução com protocolo corrigido (ver commit mais recente).
 
 | Modelo | MAE | RMSE | R² | MAPE |
-|---|---|---|---|---|
-| **Bi-LSTM** | 62.71 | 98.80 | 0.420 | 20.94% |
-| **XGBoost** | (atualizar após re-execução) | — | — | — |
-| **Bi-GRU**  | 73.44 | 119.21 | 0.156 | 26.18% |
+|---|---:|---:|---:|---:|
+| **XGBoost** | 61,09 | 99,72 | 0,409 | 20,64% |
+| **Bi-LSTM** | 62,71 | 98,80 | 0,420 | 20,94% |
+| **Bi-GRU**  | 73,44 | 119,21 | 0,156 | 26,18% |

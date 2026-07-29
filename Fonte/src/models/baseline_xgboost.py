@@ -196,13 +196,17 @@ def evaluate_and_plot(model, X_test, y_test, model_name, save_path):
 
     # Feature Importance — só faz sentido pra modelos baseados em árvores
     if hasattr(model, 'get_booster'):
-        plt.figure(figsize=(12, 10))
-        xgb.plot_importance(model, max_num_features=15, height=0.5,
+        fig, ax = plt.subplots(figsize=(12, 10))
+        xgb.plot_importance(model, ax=ax, max_num_features=15, height=0.5,
                             importance_type='gain',
-                            title=f'Importância das Variáveis (Top 15, Gain) - {model_name}',
+                            show_values=False,
                             color='tab:orange')
+        ax.set_title('Importância por Ganho Médio — XGBoost (Top 15)')
+        ax.set_xlabel('Ganho médio')
+        ax.set_ylabel('Variável')
         plt.tight_layout()
-        plt.savefig(f"{save_path}/feature_importance_{model_name.lower()}.png", dpi=300)
+        plt.savefig(f"{save_path}/feature_importance_{model_name.lower()}.png",
+                    dpi=300, bbox_inches='tight')
         plt.close()
 
     # Métricas em CSV (consumidas pela tabela do Cap. 4)

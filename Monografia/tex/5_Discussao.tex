@@ -62,29 +62,12 @@ Essa constatação tem uma implicação prática relevante: embora XGBoost e Bi-
 
 \section{Análise da Importância das Variáveis}
 
-O gráfico de \textit{Feature Importance} do XGBoost (Figura~\ref{fig:importancia}) revela a hierarquia das variáveis mais influentes na previsão:
+O gráfico de importância por ganho médio do XGBoost (Figura~\ref{fig:importancia}) mostra as variáveis que mais contribuíram para as predições do modelo. O número de interrupções do dia de origem (\texttt{interrupcoes}[$t$]) ocupa a primeira posição, refletindo que o estado imediato da rede é a informação mais preditiva para $h=1$. Na sequência aparecem \texttt{interrupcoes\_lag\_1}, \texttt{mes\_cos}, \texttt{interrupcoes\_lag\_2}, a EMA de sete dias da precipitação, \texttt{mes\_sin} e a precipitação defasada de um dia.
 
-\begin{enumerate}
-    \item \textbf{Defasagens das próprias interrupções} (\texttt{interrupcoes\_lag\_1}, \texttt{lag\_2}, \texttt{lag\_7}): As variáveis históricas da própria série dominam a predição, confirmando a forte autocorrelação temporal evidenciada na análise ACF (Seção~\ref{sec:autocorrelacao}). O número de interrupções de ontem ($t-1$) é o melhor preditor individual para o dia de hoje.
+Esse ranking é coerente com a forte autocorrelação temporal evidenciada na análise ACF (Seção~\ref{sec:autocorrelacao}): o estado recente da série é o melhor preditor de curto prazo. As codificações harmônicas (\texttt{mes\_sin}, \texttt{mes\_cos}) indicam que a posição no ciclo sazonal do Cerrado é relevante para o modelo. As EMAs climáticas complementam com a tendência de médio prazo das condições meteorológicas.
 
-    \item \textbf{Médias móveis exponenciais climáticas}: As EMAs de precipitação, temperatura e rajada de vento capturam a tendência de curto e médio prazo do estresse ambiental, informando ao modelo se a rede está num período de condições climáticas adversas sustentadas ou de normalidade.
+É importante ressaltar que o ganho mede a contribuição de cada variável para as predições do modelo --- não um efeito causal das variáveis sobre as interrupções. Correlação temporal entre clima e falhas foi demonstrada nas seções anteriores, mas não permite inferir causalidade isolada.
 
-    \item \textbf{Variáveis climáticas defasadas}: Defasagens de precipitação, rajada de vento e temperatura aparecem com importância significativa, validando a hipótese de que o impacto climático não é instantâneo, mas possui inércia temporal: a chuva de ontem danifica estruturas que falham hoje; o calor acumulado de três dias degrada isoladores que cedem sob estresse mecânico posterior.
-
-    \item \textbf{Codificações cíclicas} (\texttt{mes\_sin}, \texttt{mes\_cos}): A sazonalidade foi capturada eficientemente pelas codificações harmônicas, demonstrando que o modelo utiliza informação sobre a posição no ciclo anual para modular suas previsões.
-\end{enumerate}
-
-\section{Comportamento Perante Eventos Extremos (El Niño 2023)}
-
-A análise do recorte temporal de novembro--dezembro de 2023 (Seção~\ref{sec:anomalia}) revelou um comportamento paradoxal: o XGBoost, apesar de métricas gerais superiores, foi mais \textbf{conservador} perante os picos extremos, enquanto a Bi-LSTM tentou acompanhar a escalada das interrupções, porém com superestimação significativa.
-
-Esse comportamento reflete uma diferença fundamental nos mecanismos de decisão:
-\begin{itemize}
-    \item O XGBoost, baseado em árvores de decisão, ``satura'' naturalmente: a profundidade limitada das árvores (\texttt{max\_depth}) e a regularização Gamma impedem previsões extremas que excedam os limiares observados nos nós folha do treinamento. Essa saturação funciona como uma contenção prudente em cenários inéditos.
-    \item A Bi-LSTM, com suas unidades de memória contínuas e ativações $\tanh$ (intervalo $[-1, 1]$), pode extrapolar para regiões fora do espaço de treinamento quando os sinais climáticos de entrada são suficientemente intensos. Essa capacidade de extrapolação é uma faca de dois gumes: permite acompanhar tendências ascendentes, mas arrisca superestimação quando os padrões excedem o histórico.
-\end{itemize}
-
-Essa dualidade é consistente com os achados de \cite{smith2021hybrid}, que também demonstraram a robustez de modelos baseados em árvores de decisão para predição de interrupções causadas por tempestades, especialmente quando combinados com representações climáticas adequadas.
 
 \section{Comparação com a Literatura}
 
@@ -140,7 +123,7 @@ Os resultados deste trabalho apresentam aplicabilidade direta para a gestão ope
 \begin{itemize}
     \item \textbf{Sistema de alerta precoce:} Um modelo XGBoost treinado com as 40 \textit{features} desenvolvidas neste trabalho poderia ser integrado aos sistemas SCADA (\textit{Supervisory Control and Data Acquisition}) da Neoenergia, emitindo alertas automáticos quando a previsão de interrupções para o dia seguinte superar um limiar pré-definido (por exemplo, o terceiro quartil histórico de 295 interrupções).
 
-    \item \textbf{Pré-posicionamento de equipes:} Com previsões de 24 horas de antecedência, a concessionária poderia realocar equipes de manutenção para as regiões administrativas historicamente mais afetadas durante eventos de tempestade previstos, reduzindo o tempo médio de restabelecimento do fornecimento.
+    \item \textbf{Pré-posicionamento de equipes:} Com uma previsão para o dia seguinte, emitida após o fechamento das observações do dia corrente, a concessionária poderia apoiar o planejamento de equipes de manutenção. Para emissão intradiária ou com antecedência fixa de 24 horas, seria necessário integrar previsões meteorológicas operacionais e definir uma hora de corte operacional.
 
     \item \textbf{Gestão regulatória:} A capacidade de prever picos de interrupções permite à concessionária documentar proativamente os eventos climáticos causadores, fortalecendo as justificativas técnicas perante a ANEEL em processos de apuração de violação dos limites DEC e FEC.
 
@@ -216,9 +199,9 @@ A tendência de crescimento de 65,3\% nas interrupções médias diárias ao lon
 
 Essa tendência tem uma implicação direta para os modelos preditivos: um modelo treinado com dados de 2017--2020 pode subestimar sistematicamente as interrupções em 2024--2025, uma vez que a distribuição da variável \textit{target} sofreu \textbf{deslocamento conceitual} (\textit{concept drift}). A inclusão de variáveis de tendência (codificações temporais, médias móveis de longo prazo) na engenharia de atributos mitiga parcialmente esse efeito, mas o retrainamento periódico do modelo com dados recentes permanece necessário para manter a acurácia ao longo do tempo.
 
-\section{O Papel do El Niño na Degradação dos Modelos}
+\section{O El Niño 2023 como Evento Singular no Conjunto de Treinamento}
 
-O ano de 2023, fortemente influenciado pelo fenômeno \textbf{El Niño--Oscilação Sul (ENSO)}, representou o maior desafio para os modelos preditivos. A análise do recorte novembro--dezembro de 2023 (Seção~\ref{sec:anomalia}, Capítulo~\ref{4_Resultados}) demonstrou que todos os modelos apresentaram degradação significativa de performance nesse período, com erros absolutos que chegaram a superar 300 interrupções em dias individuais.
+O ano de 2023, fortemente influenciado pelo fenômeno \textbf{El Niño--Oscilação Sul (ENSO)}, registrou os maiores picos de interrupções da série histórica. Como detalhado na Seção~\ref{sec:anomalia} (Capítulo~\ref{4_Resultados}), os picos de novembro--dezembro de 2023 coincidem temporalmente com episódios de precipitação intensa registrados pelo INMET. Esse período integra o conjunto de treinamento (anterior a junho de 2024); afirmações sobre o desempenho preditivo dos modelos nesse recorte não são rastreáveis a um CSV oficial de predições com essas datas, pois o conjunto de teste começa em junho de 2024.
 
 O El Niño 2023 foi classificado pelo Centro de Previsão de Tempo e Estudos Climáticos (CPTEC/INPE) como um evento de forte intensidade, com anomalias de temperatura da superfície do mar (TSM) no Oceano Pacífico Equatorial superiores a $+2{,}0$ °C. No Centro-Oeste brasileiro, os efeitos incluíram: (i) intensificação das linhas de instabilidade convectiva, com tempestades mais violentas e concentradas; (ii) aumento da temperatura média, elevando o estresse térmico sobre transformadores; e (iii) alteração dos padrões de direção do vento, com aumento de ventos de noroeste associados a sistemas convectivos de mesoescala \cite{marengo2024impactos}.
 

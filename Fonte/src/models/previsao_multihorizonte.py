@@ -295,10 +295,9 @@ def validar_predictions(df_pred):
         status = "OK" if max_diff < 1e-3 else "AVISO"
         print(f"  [{status}] h={h}: max diferenca no y_real entre modelos = {max_diff:.6f}")
 
-    if ok:
-        print("[OK] Todas as assercoes passaram.")
-    else:
-        print("[ATENCAO] Existem erros na validacao — verifique os resultados.")
+    if not ok:
+        raise ValueError("Falha na validacao das previsoes multi-horizonte — verifique os resultados acima.")
+    print("[OK] Todas as assercoes passaram.")
 
 
 # ---------------------------------------------------------------------------

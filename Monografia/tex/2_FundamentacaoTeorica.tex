@@ -129,12 +129,12 @@ O parâmetro $\gamma$ atua como limiar mínimo de ganho: se a melhor divisão ca
 
 A partir das divisões realizadas ao longo de todas as $K$ árvores, a importância de cada variável pode ser computada por três métricas complementares:
 \begin{itemize}
-    \item \textbf{\textit{Gain}:} Soma do ganho de informação (Equação~\ref{eq:xgboost_gain}) em todas as divisões que utilizam a variável. É a métrica mais informativa, pois reflete a contribuição direta à redução da perda.
-    \item \textbf{\textit{Cover}:} Soma do número de instâncias afetadas pelas divisões que utilizam a variável, refletindo sua abrangência no espaço de dados.
-    \item \textbf{\textit{Weight} (Frequência):} Número total de vezes que a variável é selecionada como critério de divisão nas árvores, indicando sua utilidade geral.
+    \item \textbf{\textit{Gain}:} Ganho médio de informação (Equação~\ref{eq:xgboost_gain}) nas divisões que utilizam a variável. É a métrica mais informativa, pois reflete a contribuição média de cada uso da variável à redução da perda. A soma total é chamada \textit{total gain}.
+    \item \textbf{\textit{Cover}:} Cobertura média (número médio de instâncias afetadas) nas divisões que utilizam a variável, refletindo sua abrangência no espaço de dados. A soma total é chamada \textit{total cover}.
+    \item \textbf{\textit{Weight} (Frequência):} Número de vezes que a variável é selecionada como critério de divisão nas árvores, indicando sua frequência de uso.
 \end{itemize}
 
-Essa interpretabilidade nativa constitui uma vantagem significativa do XGBoost sobre as redes neurais profundas, permitindo que operadores da concessionária identifiquem quais variáveis climáticas são mais determinantes para a previsão de falhas em cada período.
+Essa interpretabilidade nativa constitui uma vantagem significativa do XGBoost sobre as redes neurais profundas, permitindo que operadores da concessionária identifiquem quais variáveis mais contribuíram para as predições do modelo em cada período.
 
 \section{Redes Neurais Artificiais (ANN)}
 As Redes Neurais Artificiais buscam mapear entradas não lineares $x \in \mathbb{R}^d$ diretamente nos vetores alvo $y$ \cite{goodfellow2016deep}. Um \textit{Perceptron} Multicamadas (MLP --- \textit{Multi-Layer Perceptron}) modela funções através da passagem sequencial de matrizes multiplicadas por pesos parametrizáveis $W$ acrescidos de vieses $b$, intercalados por unidades de ativação que quebram a linearidade matemática da álgebra de matrizes.
