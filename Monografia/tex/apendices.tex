@@ -11,7 +11,7 @@ Implementação da arquitetura Bi-LSTM com processamento bidirecional e portas d
 \lstinputlisting[language=Python, caption={Modelo Completo LSTM (lstm\_bidirecional.py)}, label={lst:lstm}]{../Fonte/src/models/lstm_bidirecional.py}
 
 \section{Rede Gated Recurrent Unit Bidirecional (GRU-Bi)}
-Arquitetura alternativa baseada em \textit{Gated Recurrent Units}, que simplifica a LSTM ao eliminar a célula de estado ($C_t$) separada. Reaproveita as funções utilitárias \texttt{reverse\_scaling} e \texttt{plot\_loss} do módulo Bi-LSTM, e a função genérica \texttt{evaluate\_and\_plot} do módulo XGBoost para padronizar a avaliação e a geração de gráficos. Aplica \texttt{ReduceLROnPlateau} como \textit{scheduler} e \textit{gradient clipping} idêntico ao da Bi-LSTM.
+Arquitetura alternativa baseada em \textit{Gated Recurrent Units}, que simplifica a LSTM ao eliminar a célula de estado ($C_t$) separada. Reaproveita as funções utilitárias \texttt{reverse\_\-scaling} e \texttt{plot\_loss} do módulo Bi-LSTM, e a função genérica \texttt{evaluate\_\-and\_\-plot} do módulo XGBoost para padronizar a avaliação e a geração de gráficos. Aplica \texttt{Reduce\-LR\-On\-Plateau} como \textit{scheduler} e \textit{gradient clipping} idêntico ao da Bi-LSTM.
 
 \lstinputlisting[language=Python, caption={Modelo Completo GRU (gru\_avancada.py)}, label={lst:gru}]{../Fonte/src/models/gru_avancada.py}
 
