@@ -106,6 +106,19 @@ TCC/
 
 ## Como Executar
 
+### Interface gráfica
+
+A interface permite explorar os dados, treinar os modelos por período, comparar
+meses e horizontes e executar as análises sem editar os scripts:
+
+```bash
+python -m streamlit run Fonte/interface/app.py
+```
+
+No Windows, depois de instalar as dependências, também é possível abrir
+`iniciar_interface.bat`. Consulte [`Fonte/interface/README.md`](Fonte/interface/README.md)
+para o guia completo.
+
 Consulte [`Fonte/README.md`](Fonte/README.md) para instruções detalhadas de instalação, reprodução e mapeamento de scripts.
 
 ```bash
