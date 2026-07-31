@@ -503,6 +503,76 @@ O protocolo de \textbf{previsão direta} (\textit{Direct Multi-Step Forecasting}
 
 Para $h=1$, XGBoost (MAE$=61{,}09$) e Bi-LSTM (MAE$=62{,}71$) apresentam desempenhos descritivamente próximos (diferença de 2,7\%); a Bi-GRU registra MAE$=73{,}44$. Para $h=3$, a Bi-LSTM lidera (MAE$=72{,}08$ vs.\ 75,78 da Bi-GRU e 76,71 do XGBoost). A partir de $h=7$, a Bi-GRU reverte sua desvantagem e passa a dominar: registra MAE$=71{,}81$ (vs.\ 77,70 da Bi-LSTM e 81,57 do XGBoost) e em $h=14$ alcança MAE$=62{,}79$ (vs.\ 66,12 da Bi-LSTM e 69,50 do XGBoost). Notavelmente, o XGBoost apresenta $R^2 = -0{,}001$ em $h=7$, confirmando ausência de poder preditivo nesse horizonte --- resultado coerente com a diluição das correlações de defasagem quando se prevê 7 dias à frente com \textit{lags} de até 7 dias como features.
 
+\subsection{Comparação ao Longo dos Meses do Período de Teste}\label{sec:multihorizonte_mensal}
+
+As Figuras~\ref{fig:multihorizonte_temporal_xgb}, \ref{fig:multihorizonte_temporal_lstm} e~\ref{fig:multihorizonte_temporal_gru} confrontam Real $\times$ Previsto nos quatro horizontes entre junho de 2024 e maio de 2025. Esses 12 meses são o \textbf{período de avaliação}: cada ponto tem antecedência fixa de 1, 3, 7 ou 14 dias e não constitui uma única previsão feita um ano antes.
+
+Os painéis evidenciam dois comportamentos comuns. Primeiro, os modelos acompanham a mudança do patamar médio entre a estação seca e a chuvosa, mas comprimem os picos extremos observados em outubro de 2024, janeiro e março de 2025. Segundo, ampliar o horizonte não produz degradação monotônica em todos os modelos: em particular, a Bi-GRU apresenta séries mais aderentes ao nível central em $h=7$ e $h=14$ do que em $h=1$, em concordância com as métricas agregadas. Esse resultado não significa que prever mais longe seja intrinsecamente mais fácil; indica que o erro depende conjuntamente do horizonte, da arquitetura e da distribuição das datas-alvo.
+
+A Figura~\ref{fig:multihorizonte_mae_mensal} decompõe o MAE por mês civil. A transição para a estação chuvosa concentra os maiores erros: setembro e outubro de 2024 formam a região mais crítica para o XGBoost, enquanto outubro também apresenta o maior MAE da Bi-LSTM na maioria dos horizontes. Nos meses secos de junho e julho, os erros ficam, em geral, entre aproximadamente 21 e 43 interrupções, muito abaixo das médias anuais.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.96\textwidth,height=0.80\textheight,keepaspectratio]{img/previsao_multihorizonte_temporal_xgboost.png}
+    \caption{XGBoost: valores reais e previstos nas 365 datas-alvo, de junho de 2024 a maio de 2025, para $h \in \{1,3,7,14\}$. Cada painel cobre 12 meses de avaliação com antecedência fixa.}
+    \label{fig:multihorizonte_temporal_xgb}
+    \small{Fonte: Elaborado pelos autores (2026).}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.96\textwidth,height=0.80\textheight,keepaspectratio]{img/previsao_multihorizonte_temporal_bilstm.png}
+    \caption{Bi-LSTM: valores reais e previstos nas 365 datas-alvo, de junho de 2024 a maio de 2025, para $h \in \{1,3,7,14\}$.}
+    \label{fig:multihorizonte_temporal_lstm}
+    \small{Fonte: Elaborado pelos autores (2026).}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.96\textwidth,height=0.80\textheight,keepaspectratio]{img/previsao_multihorizonte_temporal_bigru.png}
+    \caption{Bi-GRU: valores reais e previstos nas 365 datas-alvo, de junho de 2024 a maio de 2025, para $h \in \{1,3,7,14\}$.}
+    \label{fig:multihorizonte_temporal_gru}
+    \small{Fonte: Elaborado pelos autores (2026).}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.98\textwidth]{img/previsao_multihorizonte_mae_mensal.png}
+    \caption{MAE mensal por modelo e horizonte nas mesmas 365 datas-alvo do teste. Cores mais escuras indicam meses com maior erro absoluto médio.}
+    \label{fig:multihorizonte_mae_mensal}
+    \small{Fonte: Elaborado pelos autores (2026).}
+\end{figure}
+
+A Tabela~\ref{tab:melhor_modelo_mes_horizonte} sintetiza o modelo de menor MAE em cada mês e horizonte. Em $h=1$, o XGBoost lidera em 9 dos 12 meses, enquanto a Bi-LSTM lidera em setembro e outubro e a Bi-GRU em abril. Em $h=3$, o XGBoost vence 7 meses, embora a Bi-LSTM apresente o menor MAE no agregado anual; essa diferença mostra que a contagem de vitórias mensais não incorpora a magnitude dos erros nem o número distinto de dias de cada mês. Em $h=7$, a liderança é mais distribuída (XGBoost em 5 meses, Bi-GRU em 4 e Bi-LSTM em 3), mas a Bi-GRU obtém o melhor resultado anual por reduzir o erro em meses de maior dificuldade. Em $h=14$, a Bi-GRU lidera em 7 meses e confirma a vantagem observada no resultado agregado.
+
+\begin{table}[H]
+\caption{Modelo com menor MAE em cada mês e horizonte}
+\label{tab:melhor_modelo_mes_horizonte}
+\begin{center}
+\small
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Mês-alvo} & \textbf{$h=1$} & \textbf{$h=3$} & \textbf{$h=7$} & \textbf{$h=14$} \\
+\midrule
+Jun/24 & XGBoost (23,4) & Bi-LSTM (21,1) & XGBoost (25,6) & Bi-GRU (21,9) \\
+Jul/24 & XGBoost (22,3) & XGBoost (23,6) & XGBoost (21,8) & Bi-GRU (22,0) \\
+Ago/24 & XGBoost (46,8) & Bi-GRU (38,9) & Bi-GRU (44,5) & Bi-LSTM (36,6) \\
+Set/24 & Bi-LSTM (55,6) & Bi-LSTM (56,4) & Bi-LSTM (70,1) & Bi-LSTM (56,1) \\
+Out/24 & Bi-LSTM (118,8) & XGBoost (150,6) & Bi-GRU (141,4) & Bi-GRU (135,7) \\
+Nov/24 & XGBoost (73,2) & XGBoost (71,5) & XGBoost (76,2) & XGBoost (64,0) \\
+Dez/24 & XGBoost (74,0) & XGBoost (71,0) & Bi-GRU (79,3) & Bi-GRU (82,0) \\
+Jan/25 & XGBoost (82,0) & XGBoost (98,3) & Bi-LSTM (80,4) & Bi-GRU (81,0) \\
+Fev/25 & XGBoost (40,9) & Bi-GRU (45,7) & XGBoost (51,5) & Bi-LSTM (42,8) \\
+Mar/25 & XGBoost (54,0) & XGBoost (79,0) & XGBoost (82,2) & Bi-GRU (77,2) \\
+Abr/25 & Bi-GRU (40,6) & Bi-LSTM (58,0) & Bi-GRU (56,8) & Bi-GRU (56,0) \\
+Mai/25 & XGBoost (33,5) & XGBoost (32,4) & Bi-LSTM (33,6) & Bi-LSTM (29,5) \\
+\bottomrule
+\end{tabular}
+\normalsize
+\end{center}
+\small{Fonte: Elaborado pelos autores (2026). Valores entre parênteses: MAE mensal.}
+\end{table}
+
 \section{Síntese dos Resultados}\label{sec:sintese_resultados}
 
 A Tabela~\ref{tab:sintese} consolida os principais achados empíricos deste capítulo, organizados por dimensão de análise.
@@ -524,7 +594,7 @@ Melhor Modelo ($h=1$) & XGBoost e Bi-LSTM em empate técnico (MAE$\approx$61--63
 Distribuição Residual & Redes recorrentes mais concentradas em zero (leptocúrticas); XGBoost mais disperso nos extremos \\
 Eventos Extremos & XGBoost conservador (saturação arbórea); Bi-LSTM superestima picos inéditos \\
 Importância & Lags da própria série dominam; variáveis climáticas defasadas validam inércia temporal \\
-Multi-Horizonte & Bi-LSTM lidera em $h=1$ e $h=3$; Bi-GRU lidera em $h=7$ e $h=14$; XGBoost pior em $h=7$ ($R^2\approx0$) \\
+Multi-Horizonte & Bi-LSTM lidera em $h=3$; Bi-GRU lidera em $h=7$ e $h=14$; a liderança mensal varia com a sazonalidade \\
 \bottomrule
 \end{tabular}
 \normalsize

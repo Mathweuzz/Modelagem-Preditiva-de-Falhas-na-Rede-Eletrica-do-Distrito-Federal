@@ -37,7 +37,7 @@ Em relação aos objetivos específicos propostos na Seção~\ref{sec:objetivos}
 
     \item \textbf{Análises de correlação:} Conduziram-se análises de Pearson em três escalas temporais, autocorrelação (ACF), correlação cruzada e correlação entre consumo, temperatura e falhas. \textit{Objetivo cumprido.}
 
-    \item \textbf{Avaliação multi-horizonte:} Avaliou-se o comportamento dos três modelos em horizontes de previsão de 1, 3, 7 e 14 dias com protocolo de previsão direta (365 alvos por horizonte, informação equalizada entre modelos), quantificando o desempenho relativo e identificando que as redes recorrentes superam o XGBoost para $h \geq 3$, conforme descrito na Seção~\ref{sec:multihorizonte}. \textit{Objetivo cumprido.}
+    \item \textbf{Avaliação multi-horizonte:} Avaliou-se o comportamento dos três modelos em horizontes de previsão de 1, 3, 7 e 14 dias com protocolo de previsão direta (365 alvos por horizonte, informação equalizada entre modelos). A comparação temporal ao longo dos 12 meses e a decomposição mensal do MAE mostraram que a liderança varia sazonalmente: o XGBoost domina a maioria dos meses em $h=1$, enquanto a Bi-GRU reduz os erros dos horizontes longos em meses críticos. \textit{Objetivo cumprido.}
 \end{enumerate}
 
 \section{Trabalhos Futuros}\label{sec:futuros}

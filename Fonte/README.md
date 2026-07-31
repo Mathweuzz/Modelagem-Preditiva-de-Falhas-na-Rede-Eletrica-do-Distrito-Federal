@@ -101,6 +101,7 @@ python lstm_bidirecional.py              # Bi-LSTM (~5-10 min CPU)
 python gru_avancada.py                   # Bi-GRU  (~5-10 min CPU)
 python previsao_multihorizonte.py        # avaliação multi-horizonte (h=1,3,7,14)
 python plot_multihorizonte.py            # gráficos de desempenho por horizonte
+python plot_multihorizonte_temporal.py   # séries anuais e MAE mensal por horizonte
 python advanced_plots.py                 # gráficos comparativos (KDE, heteroscedasticidade)
 ```
 
