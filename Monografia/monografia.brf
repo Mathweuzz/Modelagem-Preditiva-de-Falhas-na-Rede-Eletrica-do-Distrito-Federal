@@ -78,7 +78,7 @@
 \backcite {paszke2019pytorch}{{29}{3.3.3}{subsection.3.3.3}}
 \backcite {chen2016xgboost}{{29}{3.3.4}{subsection.3.3.4}}
 \backcite {goodfellow2016deep}{{33}{3.4.5}{subsection.3.4.5}}
-\backcite {chen2016xgboost}{{34}{3.4.5}{equation.3.3}}
+\backcite {chen2016xgboost}{{33}{3.4.5}{equation.3.3}}
 \backcite {hastie2009elements}{{38}{3.4.8}{subsection.3.4.8}}
 \backcite {chen2016xgboost}{{39}{3}{Item.26}}
 \backcite {hastie2009elements}{{39}{3.6}{section.3.6}}
