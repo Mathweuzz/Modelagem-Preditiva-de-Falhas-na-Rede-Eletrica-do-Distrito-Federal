@@ -60,6 +60,8 @@ Em $h = 1$, XGBoost e Bi-LSTM empatam tecnicamente (MAE de 61,1 e 62,7, respecti
 
 Essa constatação tem uma implicação prática relevante: embora XGBoost e Bi-LSTM sejam equivalentes em $h=1$, para horizontes mais longos ($h \geq 3$) as arquiteturas recorrentes apresentam menor MAE. Uma implantação operacional poderia combinar os modelos de forma complementar: XGBoost ou Bi-LSTM para curtíssimo prazo ($h=1$) e Bi-GRU para médio prazo ($h=7$, $h=14$).
 
+A decomposição mensal (Seção~\ref{sec:multihorizonte_mensal}) qualifica essa recomendação. A liderança anual não é uniforme ao longo do período de teste: o XGBoost obtém o menor MAE em 9 dos 12 meses em $h=1$ e ainda vence 5 meses em $h=7$, apesar de a Bi-GRU liderar no agregado desse horizonte. A vantagem anual da Bi-GRU decorre menos de uma superioridade universal e mais da redução do erro em meses difíceis, especialmente durante a transição e a estação chuvosa. Assim, uma política operacional baseada apenas na média anual ocultaria variações sazonais relevantes; a seleção ou combinação de modelos pode ser condicionada tanto à antecedência requerida quanto ao regime sazonal.
+
 \section{Análise da Importância das Variáveis}
 
 O gráfico de importância por ganho médio do XGBoost (Figura~\ref{fig:importancia}) mostra as variáveis que mais contribuíram para as predições do modelo. O número de interrupções do dia de origem (\texttt{interrupcoes}[$t$]) ocupa a primeira posição, refletindo que o estado imediato da rede é a informação mais preditiva para $h=1$. Na sequência aparecem \texttt{interrupcoes\_lag\_1}, \texttt{mes\_cos}, \texttt{interrupcoes\_lag\_2}, a EMA de sete dias da precipitação, \texttt{mes\_sin} e a precipitação defasada de um dia.

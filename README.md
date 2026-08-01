@@ -128,6 +128,7 @@ python baseline_xgboost.py          # XGBoost (~1 min CPU)
 python lstm_bidirecional.py         # Bi-LSTM (~5-10 min CPU/GPU)
 python gru_avancada.py              # Bi-GRU  (~5-10 min CPU/GPU)
 python previsao_multihorizonte.py   # análise multi-horizonte
+python plot_multihorizonte_temporal.py # comparação temporal e mensal
 ```
 
 **Reprodutibilidade**: XGBoost (`random_state=42`) é determinístico. PyTorch (seed=42, `cudnn.deterministic=True`) reproduz os resultados dentro da tolerância de ponto flutuante em hardware e versão idênticos; variações numéricas pequenas são esperadas em GPU/CPU ou versões diferentes.

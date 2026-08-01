@@ -2,7 +2,7 @@ Este capítulo sintetiza os principais achados do trabalho, avalia o cumprimento
 
 \section{Síntese dos Achados}
 
-Este trabalho de conclusão de curso desenvolveu e avaliou modelos preditivos para estimar o número diário de interrupções no fornecimento de energia elétrica no Distrito Federal, integrando dados climáticos do INMET, registros de ocorrências da ANEEL e dados de consumo energético ao longo de 3.073 dias consecutivos de dados brutos (janeiro de 2017 a maio de 2025), reduzidos a 3.066 dias após a engenharia de atributos.
+Este trabalho de conclusão de curso desenvolveu e avaliou modelos preditivos para estimar o número diário de interrupções no fornecimento de energia elétrica no Distrito Federal, integrando dados climáticos do INMET e registros de ocorrências da ANEEL ao longo de 3.073 dias consecutivos de dados brutos (janeiro de 2017 a maio de 2025), reduzidos a 3.066 dias após a engenharia de atributos. Dados de consumo energético do SAMP foram utilizados complementarmente na análise exploratória mensal, sem integrar as entradas dos modelos.
 
 Os principais achados são:
 
@@ -25,7 +25,7 @@ Os principais achados são:
 Em relação aos objetivos específicos propostos na Seção~\ref{sec:objetivos}:
 
 \begin{enumerate}
-    \item \textbf{Base de dados integrada:} Construiu-se uma base multivariada inédita de 3.073 dias brutos a partir de três fontes governamentais (INMET, ANEEL e SAMP), reduzida a 3.066 dias após engenharia de atributos com 40 \textit{features} derivadas, inteiramente disponibilizada nos apêndices e repositório do projeto. \textit{Objetivo cumprido.}
+    \item \textbf{Base de dados integrada:} Construiu-se uma base diária multivariada inédita de 3.073 dias brutos a partir do INMET e dos registros de interrupções da ANEEL, reduzida a 3.066 dias após engenharia de atributos com 40 \textit{features} derivadas. Uma base mensal complementar integra essas informações ao consumo energético do SAMP para fins de análise exploratória. A disponibilização pública de ambas está prevista após a autenticação e a conclusão do trabalho. \textit{Objetivo cumprido.}
 
     \item \textbf{Agregações em múltiplas escalas:} Realizaram-se análises em escala diária, semanal e mensal, revelando que a agregação temporal amplifica as correlações clima--falhas e facilita a identificação de padrões sazonais. \textit{Objetivo cumprido.}
 
@@ -37,8 +37,16 @@ Em relação aos objetivos específicos propostos na Seção~\ref{sec:objetivos}
 
     \item \textbf{Análises de correlação:} Conduziram-se análises de Pearson em três escalas temporais, autocorrelação (ACF), correlação cruzada e correlação entre consumo, temperatura e falhas. \textit{Objetivo cumprido.}
 
-    \item \textbf{Avaliação multi-horizonte:} Avaliou-se o comportamento dos três modelos em horizontes de previsão de 1, 3, 7 e 14 dias com protocolo de previsão direta (365 alvos por horizonte, informação equalizada entre modelos), quantificando o desempenho relativo e identificando que as redes recorrentes superam o XGBoost para $h \geq 3$, conforme descrito na Seção~\ref{sec:multihorizonte}. \textit{Objetivo cumprido.}
+    \item \textbf{Avaliação multi-horizonte:} Avaliou-se o comportamento dos três modelos em horizontes de previsão de 1, 3, 7 e 14 dias com protocolo de previsão direta (365 alvos por horizonte, informação equalizada entre modelos). A comparação temporal ao longo dos 12 meses e a decomposição mensal do MAE mostraram que a liderança varia sazonalmente: o XGBoost domina a maioria dos meses em $h=1$, enquanto a Bi-GRU reduz os erros dos horizontes longos em meses críticos. \textit{Objetivo cumprido.}
 \end{enumerate}
+
+\section{Considerações Finais}
+
+Este trabalho demonstrou que a previsão de falhas na rede elétrica do Distrito Federal é viável com as técnicas atuais de aprendizado de máquina, alcançando MAPE de 20,6\% (XGBoost) e 20,9\% (Bi-LSTM) na avaliação de $h=1$ com protocolo equânime, e evidenciando vantagem das redes recorrentes nos horizontes médios e longos ($h \geq 3$) --- indicando que a escolha do modelo deve considerar o horizonte operacional desejado. O achado central de que a engenharia de atributos temporais equaliza a vantagem das redes neurais na avaliação \textit{one-step}, mas não na previsão multi-horizonte direta, reforça a importância de investir tanto em conhecimento de domínio quanto em arquiteturas recorrentes para horizontes além de um passo.
+
+A tendência de crescimento de 65,3\% nas interrupções ao longo de oito anos constitui um sinal relevante para o planejamento operacional. Entretanto, os dados deste trabalho não permitem projetar que a qualidade do fornecimento continuará a deteriorar-se nem atribuir o crescimento a uma causa específica. O resultado justifica o acompanhamento contínuo dos indicadores e a investigação conjunta de dados sobre infraestrutura, manutenção, expansão da rede e eventos meteorológicos.
+
+A futura disponibilização pública do código-fonte integral e dos dados processados, após sua autenticação e a conclusão do trabalho, será complementada pela metodologia descrita nos capítulos e pelas descrições dos módulos apresentadas no apêndice. Essa medida visa garantir a replicabilidade e fomentar a continuidade desta linha de pesquisa por outros grupos acadêmicos e pelas próprias concessionárias de distribuição.
 
 \section{Trabalhos Futuros}\label{sec:futuros}
 
@@ -61,11 +69,3 @@ Os resultados e limitações identificados neste trabalho abrem diversas frentes
 
     \item \textbf{Funções de perda alternativas:} A heteroscedasticidade observada na distribuição residual (Capítulo~\ref{4_Resultados}) sugere a investigação de funções de perda alternativas ao MSE, como o \textit{Huber Loss} (robusto a \textit{outliers}), o \textit{Quantile Loss} (para previsão de percentis específicos) ou o \textit{Pinball Loss} (para calibração probabilística), que poderiam produzir modelos com melhor performance nos dias de operação normal sem sacrificar a acurácia nos extremos.
 \end{enumerate}
-
-\section{Considerações Finais}
-
-Este trabalho demonstrou que a previsão de falhas na rede elétrica do Distrito Federal é viável com as técnicas atuais de aprendizado de máquina, alcançando MAPE de 20,6\% (XGBoost) e 20,9\% (Bi-LSTM) na avaliação de $h=1$ com protocolo equânime, e evidenciando vantagem das redes recorrentes nos horizontes médios e longos ($h \geq 3$) --- indicando que a escolha do modelo deve considerar o horizonte operacional desejado. O achado central de que a engenharia de atributos temporais equaliza a vantagem das redes neurais na avaliação \textit{one-step}, mas não na previsão multi-horizonte direta, reforça a importância de investir tanto em conhecimento de domínio quanto em arquiteturas recorrentes para horizontes além de um passo.
-
-A tendência de crescimento de 65,3\% nas interrupções ao longo de oito anos constitui um sinal relevante para o planejamento operacional. Entretanto, os dados deste trabalho não permitem projetar que a qualidade do fornecimento continuará a deteriorar-se nem atribuir o crescimento a uma causa específica. O resultado justifica o acompanhamento contínuo dos indicadores e a investigação conjunta de dados sobre infraestrutura, manutenção, expansão da rede e eventos meteorológicos.
-
-A disponibilização integral do código-fonte e dos dados processados no repositório do projeto, complementada pela metodologia descrita nos capítulos e pelos trechos selecionados no apêndice, visa garantir a replicabilidade e fomentar a continuidade desta linha de pesquisa por outros grupos acadêmicos e pelas próprias concessionárias de distribuição.

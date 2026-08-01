@@ -1,43 +1,33 @@
-Este apêndice apresenta trechos selecionados do código-fonte desenvolvido em \textit{Python}, priorizando os módulos centrais de preparação dos dados, treinamento dos modelos e geração de diagnósticos. A seleção foi feita para documentar as decisões metodológicas mais relevantes sem reproduzir integralmente o repositório no corpo da monografia. A implementação completa, incluindo scripts auxiliares, arquivos de configuração e rotinas de geração de gráficos, está disponível no diretório \texttt{Fonte/src/} do repositório público do projeto\footnote{\href{https://github.com/Mathweuzz/Modelagem-Preditiva-de-Falhas-na-Rede-Eletrica-do-Distrito-Federal}{Repositório público do projeto no GitHub.}}.
+Este apêndice descreve os módulos centrais da implementação desenvolvida em \textit{Python}, abrangendo a preparação dos dados, o treinamento dos modelos e a geração de diagnósticos. Para permitir a autenticação do código-fonte diretamente em sua versão oficial, as listagens não são reproduzidas na monografia. A implementação completa, incluindo scripts auxiliares, arquivos de configuração e rotinas de geração de gráficos, será disponibilizada publicamente após a autenticação e a conclusão do trabalho.
 
 \section{Configuração do DataLoader e Normalização}
-A função \texttt{prepare\_data\_dl} carrega o \textit{dataset}, aplica a normalização \texttt{MinMaxScaler} ajustada exclusivamente nos dados de treinamento, e a função auxiliar \texttt{create\_sequences} transforma a série temporal em janelas deslizantes de tamanho $L = 14$ (\textit{lookback}), gerando tensores tridimensionais $(B \times L \times F)$ compatíveis com as camadas recorrentes do PyTorch.
-
-\lstinputlisting[language=Python, caption={Preparador de Dados (data\_loader\_dl.py)}, label={lst:dataloader}]{../Fonte/src/models/data_loader_dl.py}
+O módulo \texttt{Fonte/src/models/data\_loader\_dl.py} contém a função \texttt{prepare\_data\_dl}, que carrega o \textit{dataset} e aplica a normalização \texttt{MinMaxScaler} ajustada exclusivamente nos dados de treinamento. A função auxiliar \texttt{create\_sequences} transforma a série temporal em janelas deslizantes de tamanho $L = 14$ (\textit{lookback}), gerando tensores tridimensionais $(B \times L \times F)$ compatíveis com as camadas recorrentes do PyTorch.
 
 \section{Rede Recorrente Bidirecional (LSTM-Bi)}
-Implementação da arquitetura Bi-LSTM com processamento bidirecional e portas de esquecimento (\textit{Forget Gates}), utilizando Dropout ($p = 0{,}4$) e otimizador AdamW com \textit{Weight Decay} ($\lambda = 10^{-4}$) para regularização. O treinamento aplica \texttt{ReduceLROnPlateau} como \textit{learning rate scheduler} e \textit{gradient clipping} ($\|\nabla\| \leq 1{,}0$) para mitigar a explosão do gradiente característica de redes recorrentes profundas.
-
-\lstinputlisting[language=Python, caption={Modelo Completo LSTM (lstm\_bidirecional.py)}, label={lst:lstm}]{../Fonte/src/models/lstm_bidirecional.py}
+O módulo \texttt{Fonte/src/models/lstm\_bidirecional.py} implementa a arquitetura Bi-LSTM com processamento bidirecional e portas de esquecimento (\textit{Forget Gates}), utilizando Dropout ($p = 0{,}4$) e otimizador AdamW com \textit{Weight Decay} ($\lambda = 10^{-4}$) para regularização. O treinamento aplica \texttt{ReduceLROnPlateau} como \textit{learning rate scheduler} e \textit{gradient clipping} ($\|\nabla\| \leq 1{,}0$) para mitigar a explosão do gradiente característica de redes recorrentes profundas.
 
 \section{Rede Gated Recurrent Unit Bidirecional (GRU-Bi)}
-Arquitetura alternativa baseada em \textit{Gated Recurrent Units}, que simplifica a LSTM ao eliminar a célula de estado ($C_t$) separada. Reaproveita as funções utilitárias \texttt{reverse\_\-scaling} e \texttt{plot\_loss} do módulo Bi-LSTM, e a função genérica \texttt{evaluate\_\-and\_\-plot} do módulo XGBoost para padronizar a avaliação e a geração de gráficos. Aplica \texttt{Reduce\-LR\-On\-Plateau} como \textit{scheduler} e \textit{gradient clipping} idêntico ao da Bi-LSTM.
-
-\lstinputlisting[language=Python, caption={Modelo Completo GRU (gru\_avancada.py)}, label={lst:gru}]{../Fonte/src/models/gru_avancada.py}
+O módulo \texttt{Fonte/src/models/gru\_avancada.py} implementa a arquitetura alternativa baseada em \textit{Gated Recurrent Units}, que simplifica a LSTM ao eliminar a célula de estado ($C_t$) separada. Reaproveita as funções utilitárias \texttt{reverse\_\-scaling} e \texttt{plot\_loss} do módulo Bi-LSTM, e a função genérica \texttt{evaluate\_\-and\_\-plot} do módulo XGBoost para padronizar a avaliação e a geração de gráficos. Aplica \texttt{Reduce\-LR\-On\-Plateau} como \textit{scheduler} e \textit{gradient clipping} idêntico ao da Bi-LSTM.
 
 \section{Modelo XGBoost (\textit{Gradient Boosting})}
-Implementação do XGBoost com previsão direta $h = 1$ (alvo = dia seguinte). Os hiperparâmetros foram selecionados por \textit{Grid Search} temporal (\texttt{TimeSeriesSplit}, 5 \textit{folds}, 288 combinações): $n\_estimators = 300$, $learning\_rate = 0{,}03$, $max\_depth = 4$, $subsample = 0{,}7$, $colsample\_bytree = 0{,}8$, $min\_child\_weight = 1$ e $\gamma = 0$, com \texttt{random\_state} fixado em 42 para reprodutibilidade. Os melhores parâmetros são exportados para \texttt{xgboost\_\-best\_\-params.json} e consumidos pela análise multi-horizonte. O módulo também define a função genérica \texttt{evaluate\_\-and\_\-plot}, reutilizada pelos modelos Bi-LSTM e Bi-GRU.
-
-\lstinputlisting[language=Python, caption={Rotina do XGBoost (baseline\_xgboost.py)}, label={lst:xgboost}]{../Fonte/src/models/baseline_xgboost.py}
+O módulo \texttt{Fonte/src/models/baseline\_xgboost.py} implementa o XGBoost com previsão direta $h = 1$ (alvo = dia seguinte). Os hiperparâmetros foram selecionados por \textit{Grid Search} temporal (\texttt{TimeSeriesSplit}, 5 \textit{folds}, 288 combinações): $n\_estimators = 300$, $learning\_rate = 0{,}03$, $max\_depth = 4$, $subsample = 0{,}7$, $colsample\_bytree = 0{,}8$, $min\_child\_weight = 1$ e $\gamma = 0$, com \texttt{random\_state} fixado em 42 para reprodutibilidade. Os melhores parâmetros são exportados para \texttt{xgboost\_\-best\_\-params.json} e consumidos pela análise multi-horizonte. O módulo também define a função genérica \texttt{evaluate\_\-and\_\-plot}, reutilizada pelos modelos Bi-LSTM e Bi-GRU.
 
 \section{Pipeline de Análise Exploratória (EDA)}
-Script responsável pela execução automatizada da análise exploratória dos dados, incluindo a geração da matriz de correlação de Pearson, diagramas de dispersão vento--interrupções e \textit{boxplots} de sazonalidade mensal.
-
-\lstinputlisting[language=Python, caption={Pipeline de Exploração (script\_exploration\_pipeline.py)}, label={lst:eda}]{../Fonte/src/models/script_exploration_pipeline.py}
+O script \texttt{Fonte/src/models/script\_exploration\_pipeline.py} executa de forma automatizada a análise exploratória dos dados, incluindo a geração da matriz de correlação de Pearson, diagramas de dispersão vento--interrupções e \textit{boxplots} de sazonalidade mensal.
 
 \section{Gerador de Gráficos de Diagnóstico}
-Script responsável pela geração dos gráficos comparativos de análise residual: distribuição KDE dos resíduos dos três modelos e dispersão de heteroscedasticidade (erro absoluto vs.\ volume real). Consome os arquivos \texttt{predictions\_*.csv} produzidos por cada modelo durante a avaliação.
-
-\lstinputlisting[language=Python, caption={Gerador de Gráficos (advanced\_plots.py)}, label={lst:plots}]{../Fonte/src/models/advanced_plots.py}
+O script \texttt{Fonte/src/models/advanced\_plots.py} gera os gráficos comparativos de análise residual: distribuição KDE dos resíduos dos três modelos e dispersão de heteroscedasticidade (erro absoluto vs.\ volume real). Para isso, consome os arquivos \texttt{predictions\_*.csv} produzidos por cada modelo durante a avaliação.
 
 \section{Previsão Multi-Horizonte}
-Script que implementa a avaliação dos três modelos nos horizontes de 1, 3, 7 e 14 dias (\texttt{Fonte/src/models/previsao\_multihorizonte.py}) com a estratégia de \textbf{previsão direta} (\textit{Direct Multi-Step}): para cada horizonte $h$, um modelo independente é treinado mapeando os atributos do dia $t$ diretamente para $\text{interrupcoes}[t+h]$, sem recursão e sem acumulação de erros. Todos os modelos (XGBoost, Bi-LSTM e Bi-GRU) recebem o mesmo conjunto de informações históricas disponível na data de origem $t$. A divisão treino/teste é feita pela data-alvo, com 365 pares de teste por horizonte (\texttt{01/06/2024}--\texttt{31/05/2025}). O código integral deste módulo está disponível no repositório do projeto.
+Script que implementa a avaliação dos três modelos nos horizontes de 1, 3, 7 e 14 dias (\texttt{Fonte/src/models/previsao\_multihorizonte.py}) com a estratégia de \textbf{previsão direta} (\textit{Direct Multi-Step}): para cada horizonte $h$, um modelo independente é treinado mapeando os atributos do dia $t$ diretamente para $\text{interrupcoes}[t+h]$, sem recursão e sem acumulação de erros. Todos os modelos (XGBoost, Bi-LSTM e Bi-GRU) recebem o mesmo conjunto de informações históricas disponível na data de origem $t$. A divisão treino/teste é feita pela data-alvo, com 365 pares de teste por horizonte (\texttt{01/06/2024}--\texttt{31/05/2025}). O código integral deste módulo fará parte da disponibilização pública futura dos artefatos do projeto.
 
 \section{Geração dos Gráficos Multi-Horizonte}
-Script complementar (\texttt{Fonte/src/models/plot\_\-multi\-horizonte.py}) que regenera os gráficos de desempenho por horizonte (MAE e RMSE) a partir do arquivo \texttt{previsao\_\-multi\-horizonte\_\-metricas.csv}, sem necessidade de re-executar os modelos. Produz três figuras: comparação de MAE por horizonte com anotações, comparação de RMSE e painel duplo MAE/RMSE. O código integral deste módulo está disponível no repositório do projeto.
+Script complementar (\texttt{Fonte/src/models/plot\_\-multi\-horizonte.py}) que regenera os gráficos de desempenho por horizonte (MAE e RMSE) a partir do arquivo \texttt{previsao\_\-multi\-horizonte\_\-metricas.csv}, sem necessidade de re-executar os modelos. Produz três figuras: comparação de MAE por horizonte com anotações, comparação de RMSE e painel duplo MAE/RMSE. O código integral deste módulo fará parte da disponibilização pública futura dos artefatos do projeto.
+
+O módulo \texttt{plot\_\-multi\-horizonte\_\-temporal.py} complementa essa análise consumindo diretamente as 4.380 observações de \texttt{predictions\_all.csv}. O script valida as 365 datas-alvo comuns a cada combinação modelo--horizonte, calcula MAE e RMSE por mês civil e produz os painéis Real $\times$ Previsto ao longo dos 12 meses, além dos mapas de calor mensais. Todas essas saídas são derivadas das previsões oficiais já reproduzidas, sem novo treinamento dos modelos.
 
 \section{Scripts Complementares de Análise Exploratória}
-Em complemento aos seis módulos acima, o diretório \texttt{Fonte/src/} contém quatro scripts dedicados à análise exploratória dos dados e à engenharia de atributos, cujo conteúdo é descrito no Capítulo~\ref{3_Metodologia} e no Capítulo~\ref{4_Resultados}:
+Em complemento aos módulos descritos acima, o diretório \texttt{Fonte/src/} contém quatro scripts dedicados à análise exploratória dos dados e à engenharia de atributos, cujo conteúdo é descrito no Capítulo~\ref{3_Metodologia} e no Capítulo~\ref{4_Resultados}:
 
 \begin{itemize}
     \item \texttt{01\_eda\_sazonalidade.py}: decomposição STL aditiva e funções de autocorrelação (ACF/PACF) sobre a série diária de interrupções e precipitação.
@@ -46,4 +36,4 @@ Em complemento aos seis módulos acima, o diretório \texttt{Fonte/src/} contém
     \item \texttt{04\_eda\_basica.py}: geração da série temporal completa, distribuição estatística, evolução anual, comparação multi-escala de correlações e \textit{violin plot} térmico por tercis de severidade.
 \end{itemize}
 
-As listagens integrais desses scripts foram omitidas por concisão e permanecem disponíveis no repositório do projeto.
+Os códigos-fonte descritos neste apêndice serão disponibilizados publicamente, para consulta e execução, após a autenticação e a conclusão do trabalho.
