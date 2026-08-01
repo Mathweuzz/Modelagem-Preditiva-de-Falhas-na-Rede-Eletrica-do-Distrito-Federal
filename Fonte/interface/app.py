@@ -213,7 +213,7 @@ def render_overview(df: pd.DataFrame) -> None:
     col1.metric("Dias analisados", f"{len(df):,}".replace(",", "."))
     col2.metric("Período", f"{df.index.min().year}–{df.index.max().year}")
     col3.metric("Média diária", f"{df['interrupcoes'].mean():.0f}")
-    col4.metric("Variáveis do modelo", f"{df.shape[1]}")
+    col4.metric("Variáveis preditoras", f"{df.shape[1] - 1}")
 
     default_start = max(df.index.min(), df.index.max() - pd.Timedelta(days=364))
     selected_period = st.date_input(
