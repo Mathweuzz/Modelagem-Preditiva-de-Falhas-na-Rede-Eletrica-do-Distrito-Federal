@@ -45,7 +45,7 @@
 }
 
 \title[Predição de interrupções na rede elétrica do DF]
-{\textbf{Predição de Interrupções no Fornecimento de Energia Elétrica no Distrito Federal}}
+{\textbf{Predição de Interrupções no Fornecimento de Energia Elétrica no Distrito Federal:}}
 
 \subtitle[]
 {\textbf{Um estudo comparativo entre XGBoost e redes neurais recorrentes bidirecionais}}
@@ -54,9 +54,8 @@
 {Giovanni Minari Zanetti \and Mateus Gomes de Araújo}
 
 \institute[]
-{Universidade de Brasília\\
-Instituto de Ciências Exatas -- Departamento de Ciência da Computação\\
-Engenharia de Computação\\[2mm]
+{Instituto de Ciências Exatas -- Departamento de Ciência da Computação\\
+Curso de Engenharia de Computação\\[2mm]
 Orientador: Prof. Jan Mendonça Corrêa}
 
 \date{Brasília, 2026}
@@ -114,6 +113,8 @@ Orientador: Prof. Jan Mendonça Corrêa}
       \keynumber{303,4}{interrupções/dia em 2025}
       \vspace{1.0em}
       \keynumber{1.424}{pior dia observado}
+      \vspace{0.6em}
+      {\scriptsize 2025 contém dados de janeiro a maio.}
     \end{column}
   \end{columns}
 
@@ -162,8 +163,8 @@ Orientador: Prof. Jan Mendonça Corrêa}
 
 \begin{frame}{O trabalho entrega quatro contribuições}{Contribuições}
   \begin{enumerate}
-    \item \textbf{Base integrada inédita}\\
-      3.073 dias de clima, interrupções e consumo, provenientes de INMET, ANEEL e SAMP.
+    \item \textbf{Base diária integrada}\\
+      3.073 dias de clima e interrupções; consumo mensal do SAMP usado apenas na análise exploratória.
     \item \textbf{Memória temporal explícita}\\
       40 atributos derivados com defasagens, médias móveis, variabilidade e sazonalidade.
     \item \textbf{Comparação equânime}\\
@@ -182,13 +183,13 @@ Orientador: Prof. Jan Mendonça Corrêa}
 
 \section{Dados e metodologia}
 
-\begin{frame}{Três fontes públicas sustentam o estudo}{Dados e escopo}
+\begin{frame}{Duas bases preditivas e uma base exploratória}{Dados e escopo}
   \begin{columns}[T,onlytextwidth]
     \begin{column}{0.61\textwidth}
       \begin{description}
         \item[INMET] temperatura, precipitação, velocidade, rajada e direção do vento.
         \item[ANEEL] registros de interrupções e fatores geradores.
-        \item[SAMP] consumo mensal de energia no Distrito Federal.
+        \item[SAMP] consumo mensal de energia, usado somente na análise exploratória.
       \end{description}
     \end{column}
     \begin{column}{0.34\textwidth}
@@ -229,7 +230,7 @@ Orientador: Prof. Jan Mendonça Corrêa}
     },
     arrow/.style={-{Latex[length=2.2mm]}, thick, draw=UnBGreen}
   ]
-    \node[box] (sources) {INMET\\ANEEL\\SAMP};
+    \node[box] (sources) {INMET\\ANEEL};
     \node[box, right=of sources] (daily) {Agregação\\diária};
     \node[box, right=of daily] (merge) {Integração e\\interpolação};
     \node[box, right=of merge] (features) {40 atributos\\temporais};
@@ -246,15 +247,15 @@ Orientador: Prof. Jan Mendonça Corrêa}
   \vspace{1.2em}
   \begin{itemize}
     \item Somatório para chuva e interrupções; médias para temperatura e vento.
-    \item Interpolação linear apenas em lacunas curtas.
-    \item Extremos climáticos reais foram preservados.
+    \item Interpolação linear apenas em lacunas curtas; extremos reais foram preservados.
+    \item O consumo do SAMP foi integrado somente à análise exploratória mensal.
   \end{itemize}
 
-  \source{Monografia, Seções 3.5 e 3.6.}
+  \source{Monografia, Seções 3.4 e 3.5.}
   \note{%
     Apresentador: Giovanni. Tempo-alvo: 1 minuto e 20 segundos.
     Percorrer o fluxo da esquerda para a direita. Explicar por que os outliers não foram removidos.
-    [Sources] Monografia, Seções 3.5 e 3.6.
+    [Sources] Monografia, Seções 3.4 e 3.5.
   }
 \end{frame}
 
@@ -273,7 +274,7 @@ Orientador: Prof. Jan Mendonça Corrêa}
       \textbf{\large Contexto do sistema}
       \begin{itemize}
         \item Temperatura, chuva e cinco variáveis de vento.
-        \item Consumo mensal de energia.
+        \item Histórico de interrupções disponível em $t$.
         \item Dia da semana e posição no ano.
         \item Codificação seno/cosseno do mês.
       \end{itemize}
@@ -285,11 +286,11 @@ Orientador: Prof. Jan Mendonça Corrêa}
     As mesmas informações históricas disponíveis em $t$ alimentam a previsão direta de $t+h$.
   \end{block}
 
-  \source{Monografia, Seções 3.5 e 3.8.}
+  \source{Monografia, Seções 3.4, 3.7 e 3.10.}
   \note{%
     Apresentador: Giovanni. Tempo-alvo: 1 minuto e 10 segundos.
     Distinguir features tabulares do lookback sequencial.
-    [Sources] Monografia, Seções 3.5, 3.8 e 3.9.
+    [Sources] Monografia, Seções 3.4, 3.7, 3.9 e 3.10.
   }
 \end{frame}
 
@@ -315,11 +316,11 @@ Orientador: Prof. Jan Mendonça Corrêa}
     \item Nenhuma previsão intermediária é reutilizada.
   \end{itemize}
 
-  \source{Monografia, Seções 3.7, 3.8 e 3.10.}
+  \source{Monografia, Seções 3.6, 3.7 e 3.10.}
   \note{%
     Apresentador: Giovanni. Tempo-alvo: 1 minuto e 30 segundos.
     Este é o principal ponto de rigor metodológico: o futuro nunca entra no treino.
-    [Sources] Monografia, Seções 3.7, 3.8 e 3.10.
+    [Sources] Monografia, Seções 3.6, 3.7 e 3.10.
   }
 \end{frame}
 
@@ -399,7 +400,7 @@ Orientador: Prof. Jan Mendonça Corrêa}
       \vspace{0.9em}
       \keynumber{0,54}{precipitação, mensal}
       \vspace{0.9em}
-      \keynumber{0,48}{consumo, mensal}
+      \keynumber{0,48}{consumo, mensal\\{\scriptsize (exploratório)}}
     \end{column}
   \end{columns}
 
@@ -413,7 +414,7 @@ Orientador: Prof. Jan Mendonça Corrêa}
 
 \section{Desempenho preditivo}
 
-\begin{frame}{XGBoost e Bi-LSTM empatam em um dia}{Resultados para $h=1$}
+\begin{frame}{XGBoost e Bi-LSTM ficam próximos em um dia}{Resultados para $h=1$}
   \begin{columns}[T,onlytextwidth]
     \begin{column}{0.62\textwidth}
       \resizebox{\linewidth}{!}{%
@@ -441,7 +442,7 @@ Orientador: Prof. Jan Mendonça Corrêa}
   \note{%
     Apresentador: Mateus. Tempo-alvo: 1 minuto e 30 segundos.
     Evitar declarar vencedor absoluto: XGBoost vence em MAE/MAPE; Bi-LSTM em RMSE e R2.
-    [Sources] Monografia, Tabela 4.3; arquivos de métricas do repositório.
+    [Sources] Monografia, Tabela 4.2; arquivos de métricas do repositório.
   }
 \end{frame}
 
@@ -454,11 +455,11 @@ Orientador: Prof. Jan Mendonça Corrêa}
     O desempenho médio é útil, mas os maiores eventos ainda são sistematicamente subestimados.
   \end{block}
 
-  \source{Elaboração dos autores, Figura 4.16.}
+  \source{Elaboração dos autores, Figura 4.20.}
   \note{%
     Apresentador: Mateus. Tempo-alvo: 1 minuto e 10 segundos.
     Apontar os picos de outubro, janeiro e março e a compressão para a média.
-    [Sources] Monografia, Seção 4.5.2 e Figura 4.16.
+    [Sources] Monografia, Seção 4.4.2 e Figura 4.20.
   }
 \end{frame}
 
@@ -481,11 +482,11 @@ Orientador: Prof. Jan Mendonça Corrêa}
     \end{column}
   \end{columns}
 
-  \source{Elaboração dos autores, Tabela 4.4 e Figura 4.23.}
+  \source{Elaboração dos autores, Tabela 4.3 e Figura 4.27.}
   \note{%
     Apresentador: Mateus. Tempo-alvo: 1 minuto e 20 segundos.
     Destacar que o erro quadruplica nos dias severos, exatamente os mais importantes operacionalmente.
-    [Sources] Monografia, Seções 4.5.4 e 4.6.
+    [Sources] Monografia, Seções 4.4.4 e 4.5.
   }
 \end{frame}
 
@@ -508,11 +509,11 @@ Orientador: Prof. Jan Mendonça Corrêa}
     \end{column}
   \end{columns}
 
-  \source{Elaboração dos autores, Figura 4.26.}
+  \source{Elaboração dos autores, Figura 4.29.}
   \note{%
     Apresentador: Mateus. Tempo-alvo: 1 minuto e 15 segundos.
     Mostrar como o estado recente da rede, a estação do ano e a chuva acumulada formam a previsão.
-    [Sources] Monografia, Seção 4.9 e Figura 4.26.
+    [Sources] Monografia, Seção 4.8 e Figura 4.29.
   }
 \end{frame}
 
@@ -534,7 +535,23 @@ Orientador: Prof. Jan Mendonça Corrêa}
   \note{%
     Apresentador: Mateus. Tempo-alvo: 1 minuto e 40 segundos.
     Este é o principal resultado comparativo. Explicar que cada ponto vem de um modelo treinado diretamente para aquele horizonte.
-    [Sources] Monografia, Seção 4.11; arquivo de métricas multi-horizonte.
+    [Sources] Monografia, Seção 4.10 e Figura 4.34; arquivo de métricas multi-horizonte.
+  }
+\end{frame}
+
+\begin{frame}{Os maiores erros ocorrem na transição chuvosa}{Variação mensal do MAE}
+  \centering
+  \includegraphics[width=0.78\textwidth]{previsao_multihorizonte_mae_mensal.png}
+
+  \vspace{-0.5em}
+  \small
+  Setembro e outubro de 2024 formam a janela mais crítica; junho e julho permanecem entre os meses mais estáveis.
+
+  \source{Elaboração dos autores, Figura 4.38.}
+  \note{%
+    Apresentador: Mateus. Tempo-alvo: 1 minuto e 15 segundos.
+    Explicar que a liderança anual varia ao longo dos meses e que os maiores erros coincidem com a transição para a estação chuvosa.
+    [Sources] Monografia, Seção 4.10.1 e Figura 4.38; métricas mensais multi-horizonte.
   }
 \end{frame}
 
@@ -561,11 +578,11 @@ Orientador: Prof. Jan Mendonça Corrêa}
     Combinar modelos por horizonte e retrainar periodicamente para acompanhar mudanças na série.
   \end{block}
 
-  \source{Monografia, Seções 5.2 e 5.3.}
+  \source{Monografia, Seção 5.2.}
   \note{%
     Apresentador: Mateus. Tempo-alvo: 1 minuto e 20 segundos.
     Traduzir o gráfico anterior em decisão. Ressaltar que a escolha depende do horizonte e do custo computacional.
-    [Sources] Monografia, Seções 5.2, 5.3 e 5.7.
+    [Sources] Monografia, Seções 5.2 e 5.7.
   }
 \end{frame}
 
@@ -607,14 +624,14 @@ Orientador: Prof. Jan Mendonça Corrêa}
 \begin{frame}{A implantação pode começar como alerta}{Caminho para manutenção preditiva}
   \begin{enumerate}
     \item \textbf{Atualizar diariamente} as bases climáticas e operacionais.
-    \item \textbf{Gerar risco por horizonte} com o modelo mais adequado.
+    \item \textbf{Gerar previsões por horizonte} com o modelo mais adequado.
     \item \textbf{Acionar limiares} para equipes, materiais e comunicação.
     \item \textbf{Monitorar erro e deriva} e retrainar com dados recentes.
   \end{enumerate}
 
   \vspace{0.8em}
   \begin{block}{}
-    O modelo atua como sistema de alerta: informa risco e incerteza, enquanto a decisão permanece com a operação.
+    O modelo atua como sistema de alerta: informa a previsão e o horizonte, enquanto a decisão permanece com a operação.
   \end{block}
 
   \source{Monografia, Seções 5.6 e 6.4.}
@@ -694,7 +711,7 @@ Orientador: Prof. Jan Mendonça Corrêa}
   \source{Arquivo de métricas multi-horizonte do repositório.}
   \note{%
     Slide de reserva.
-    [Sources] Monografia, Tabela 4.5; arquivo de métricas multi-horizonte.
+    [Sources] Monografia, Tabela 4.4; arquivo de métricas multi-horizonte.
   }
 \end{frame}
 
@@ -736,19 +753,55 @@ Orientador: Prof. Jan Mendonça Corrêa}
     \item XGBoost: distribuição mais achatada e comportamento mais conservador.
   \end{itemize}
 
-  \source{Elaboração dos autores, Figura 4.22.}
+  \source{Elaboração dos autores, Figura 4.26.}
   \note{%
     Slide de reserva.
-    [Sources] Monografia, Seção 4.6 e Figura 4.22.
+    [Sources] Monografia, Seção 4.5 e Figura 4.26.
   }
 \end{frame}
 
-\begin{frame}[noframenumbering]{O trabalho é integralmente reprodutível}{Reserva: dados, código e referências}
+\begin{frame}[noframenumbering]{XGBoost suaviza picos extremos}{Reserva: série multi-horizonte}
+  \centering
+  \includegraphics[height=0.72\textheight]{previsao_multihorizonte_temporal_xgboost.png}
+
+  \source{Elaboração dos autores, Figura 4.35.}
+  \note{%
+    Slide de reserva.
+    [Sources] Monografia, Seção 4.10.1 e Figura 4.35.
+  }
+\end{frame}
+
+\begin{frame}[noframenumbering]{A Bi-LSTM também suaviza eventos extremos}{Reserva: série multi-horizonte}
+  \centering
+  \includegraphics[height=0.72\textheight]{previsao_multihorizonte_temporal_bilstm.png}
+
+  \source{Elaboração dos autores, Figura 4.36.}
+  \note{%
+    Slide de reserva.
+    [Sources] Monografia, Seção 4.10.1 e Figura 4.36.
+  }
+\end{frame}
+
+\begin{frame}[noframenumbering]{A Bi-GRU ganha vantagem em $h=7$ e $h=14$}{Reserva: série multi-horizonte}
+  \centering
+  \includegraphics[height=0.72\textheight]{previsao_multihorizonte_temporal_bigru.png}
+
+  \source{Elaboração dos autores, Figura 4.37.}
+  \note{%
+    Slide de reserva.
+    [Sources] Monografia, Seção 4.10.1 e Figura 4.37.
+  }
+\end{frame}
+
+\begin{frame}[noframenumbering]{O pipeline foi preparado para reprodutibilidade}{Reserva: dados, código e referências}
   \small
-  \textbf{Repositório}\\
+  \textbf{Repositório do projeto}\\
   {\scriptsize\url{https://github.com/Mathweuzz/Modelagem-Preditiva-de-Falhas-na-Rede-Eletrica-do-Distrito-Federal}}
 
-  \vspace{0.8em}
+  \vspace{0.5em}
+  A disponibilização pública integral do código autenticado e dos dados processados está prevista após a conclusão do trabalho.
+
+  \vspace{0.6em}
   \textbf{Fontes de dados}
   \begin{itemize}
     \item INMET -- Dados Históricos, estação A001/Brasília.
