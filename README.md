@@ -43,7 +43,7 @@ O trabalho desenvolve e avalia modelos preditivos para estimar o número diário
    - **Bi-LSTM** em PyTorch (2 camadas, hidden=64, Dropout=0.4, AdamW, 150 épocas, semente fixa)
    - **Bi-GRU** em PyTorch (mesma arquitetura da Bi-LSTM)
 
-4. **Avaliação multi-horizonte com previsão direta**: modelos independentes treinados para cada horizonte h ∈ {1, 3, 7, 14}, sem recursão — comparação equânime com 365 datas-alvo idênticas por modelo e horizonte.
+4. **Avaliação multi-horizonte com previsão direta**: modelos independentes treinados para cada horizonte h ∈ {1, 3, 7, 14}, sem recursão — comparação causal e equânime com 352 datas-alvo idênticas por modelo e horizonte (14/06/2024 a 31/05/2025).
 
 ---
 
@@ -57,16 +57,16 @@ O trabalho desenvolve e avalia modelos preditivos para estimar o número diário
 | **Bi-LSTM** | 62.71 | **98.80** | **0.420** | 20.94% |
 | Bi-GRU | 73.44 | 119.21 | 0.156 | 26.18% |
 
-### Avaliação multi-horizonte com previsão direta (MAE, 365 alvos por horizonte)
+### Avaliação multi-horizonte com previsão direta (MAE, 352 alvos por horizonte)
 
 | Horizonte | XGBoost | Bi-LSTM | Bi-GRU |
 |:---:|:---:|:---:|:---:|
-| h=1 dia | 61.09 | **62.71** | 73.44 |
-| h=3 dias | 76.71 | **72.08** | 75.78 |
-| h=7 dias | 81.57 | 77.70 | **71.81** |
-| h=14 dias | 69.50 | 66.12 | **62.79** |
+| h=1 dia | **62.46** | 64.19 | 75.10 |
+| h=3 dias | 78.77 | **74.01** | 77.67 |
+| h=7 dias | 83.83 | 79.49 | **73.61** |
+| h=14 dias | 71.34 | 67.69 | **64.31** |
 
-> **Achados principais**: (1) Em h=1, XGBoost e Bi-LSTM empatam tecnicamente (diferença <2%); (2) Para h≥3, as redes recorrentes superam o XGBoost: Bi-LSTM lidera em h=3, Bi-GRU lidera em h=7 e h=14. O XGBoost registra R²=-0.001 em h=7 (sem poder preditivo).
+> **Achados principais**: (1) Em h=1, XGBoost e Bi-LSTM apresentam resultados próximos; (2) Para h≥3, as redes recorrentes superam o XGBoost: Bi-LSTM lidera em h=3, Bi-GRU lidera em h=7 e h=14. O XGBoost registra R²=-0.027 em h=7 (desempenho inferior ao baseline da média).
 
 ---
 

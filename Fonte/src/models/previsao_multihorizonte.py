@@ -9,9 +9,11 @@ Para cada horizonte h em {1, 3, 7, 14}:
 
   Protocolo:
   - Todos os modelos recebem a mesma informacao historica ate o dia t.
-  - A divisao treino/teste e feita pela data-alvo (nao pela data de origem).
-  - Conjunto de teste = dias-alvo em [01/06/2024, 31/05/2025] = 365 datas.
-  - n = 365 para todos os modelos e horizontes (assercao verificada).
+  - O treino usa alvos estritamente anteriores a 01/06/2024.
+  - O teste comum usa dias-alvo em [14/06/2024, 31/05/2025] = 352 datas.
+  - Esse inicio garante que, ate para h=14, a primeira data de origem
+    (31/05/2024) nao anteceda os dados usados no ajuste do modelo/scaler.
+  - n = 352 para todos os modelos e horizontes (assercao verificada).
 
   XGBoost:
     - X de cada linha inclui interrupcoes[t] como preditor historico.
@@ -22,7 +24,7 @@ Para cada horizonte h em {1, 3, 7, 14}:
     - Janela de entrada: [t-13,...,t] (14 dias, includindo interrupcoes[t]).
     - Alvo: interrupcoes[t+h].
     - Sequencias criadas sobre o dataset completo; divisao por data-alvo.
-    - Scaler ajustado apenas sobre dias anteriores a TEST_START.
+    - Scaler ajustado apenas sobre dias anteriores a TRAIN_TARGET_CUTOFF.
 
 Saidas:
   results/ml/predictions_all.csv
@@ -31,9 +33,9 @@ Saidas:
 
 Criterio de aceite:
   Para todos os modelos e horizontes:
-    - data_alvo minima = 2024-06-01
+    - data_alvo minima = 2024-06-14
     - data_alvo maxima = 2025-05-31
-    - n = 365
+    - n = 352
     - data_alvo == data_origem + h dias
 """
 
@@ -41,6 +43,7 @@ import os
 import gc
 import json
 import random
+import argparse
 import numpy as np
 import pandas as pd
 import torch
@@ -63,8 +66,10 @@ TARGET_COL  = 'interrupcoes'
 DATA_PATH   = '../../data/dataset_engenharia_features.csv'
 SAVE_PATH   = '../../results/ml'
 
-TEST_START = pd.Timestamp('2024-06-01')
+TRAIN_TARGET_CUTOFF = pd.Timestamp('2024-06-01')
+TEST_START = pd.Timestamp('2024-06-14')
 TEST_END   = pd.Timestamp('2025-05-31')
+EXPECTED_TEST_DAYS = (TEST_END - TEST_START).days + 1
 
 
 def mape(y_true, y_pred):
@@ -115,7 +120,7 @@ def rodar_xgboost_direto(df):
 
         # Divisao por DATA-ALVO
         datas_alvo  = X_v.index + pd.Timedelta(days=h)
-        mask_treino = datas_alvo < TEST_START
+        mask_treino = datas_alvo < TRAIN_TARGET_CUTOFF
         mask_teste  = (datas_alvo >= TEST_START) & (datas_alvo <= TEST_END)
 
         X_tr, y_tr = X_v[mask_treino], y_v[mask_treino]
@@ -123,9 +128,14 @@ def rodar_xgboost_direto(df):
         datas_alvo_te   = datas_alvo[mask_teste]
         datas_origem_te = X_te.index
 
-        assert len(X_te) == 365, f"h={h}: esperado 365, obtido {len(X_te)}"
+        assert len(X_te) == EXPECTED_TEST_DAYS, (
+            f"h={h}: esperado {EXPECTED_TEST_DAYS}, obtido {len(X_te)}"
+        )
         assert datas_alvo_te.min() == TEST_START, f"h={h}: data minima {datas_alvo_te.min()}"
         assert datas_alvo_te.max() == TEST_END,   f"h={h}: data maxima {datas_alvo_te.max()}"
+        assert datas_alvo[mask_treino].max() <= datas_origem_te.min(), (
+            f"h={h}: treino usa alvo posterior a primeira origem de teste"
+        )
 
         model = xgb.XGBRegressor(
             **best_params,
@@ -194,7 +204,7 @@ def rodar_dl_direto(df, ModelClass, TrainFn, nome):
         set_seeds(SEED)
 
         # Scaler ajustado exclusivamente sobre dados de treino
-        train_mask = df.index < TEST_START
+        train_mask = df.index < TRAIN_TARGET_CUTOFF
         scaler = MinMaxScaler()
         scaler.fit(df[train_mask])
         scaled_all = scaler.transform(df)
@@ -207,7 +217,7 @@ def rodar_dl_direto(df, ModelClass, TrainFn, nome):
         )
 
         # Split por data-alvo
-        mask_train = targets_all < TEST_START
+        mask_train = targets_all < TRAIN_TARGET_CUTOFF
         mask_test  = (targets_all >= TEST_START) & (targets_all <= TEST_END)
 
         X_tr_np = X_all[mask_train]
@@ -217,11 +227,19 @@ def rodar_dl_direto(df, ModelClass, TrainFn, nome):
         datas_origem_te = origins_all[mask_test]
         datas_alvo_te   = targets_all[mask_test]
 
-        assert len(X_te_np) == 365, f"h={h}: esperado 365, obtido {len(X_te_np)}"
+        assert len(X_te_np) == EXPECTED_TEST_DAYS, (
+            f"h={h}: esperado {EXPECTED_TEST_DAYS}, obtido {len(X_te_np)}"
+        )
         assert datas_alvo_te.min() == TEST_START, f"h={h}: data minima {datas_alvo_te.min()}"
         assert datas_alvo_te.max() == TEST_END,   f"h={h}: data maxima {datas_alvo_te.max()}"
         delta = (datas_alvo_te - datas_origem_te).days
         assert (delta == h).all(), f"h={h}: delta de datas inconsistente"
+        assert targets_all[mask_train].max() <= datas_origem_te.min(), (
+            f"h={h}: treino usa alvo posterior a primeira origem de teste"
+        )
+        assert df.index[train_mask].max() <= datas_origem_te.min(), (
+            f"h={h}: scaler usa dado posterior a primeira origem de teste"
+        )
 
         X_tr_t = torch.from_numpy(X_tr_np).float()
         y_tr_t = torch.from_numpy(y_tr_np).float().unsqueeze(1)
@@ -293,13 +311,26 @@ def validar_predictions(df_pred):
         n = len(grp)
         dmin = pd.to_datetime(grp['data_alvo']).min()
         dmax = pd.to_datetime(grp['data_alvo']).max()
+        origem_min = pd.to_datetime(grp['data_origem']).min()
         delta_ok = (
             pd.to_datetime(grp['data_alvo']) - pd.to_datetime(grp['data_origem'])
         ).dt.days.eq(h).all()
-        status = "OK" if (n == 365 and dmin == TEST_START and dmax == TEST_END and delta_ok) else "ERRO"
+        causal_ok = origem_min >= TRAIN_TARGET_CUTOFF - pd.Timedelta(days=1)
+        status = "OK" if (
+            n == EXPECTED_TEST_DAYS
+            and dmin == TEST_START
+            and dmax == TEST_END
+            and delta_ok
+            and causal_ok
+        ) else "ERRO"
         if status == "ERRO":
             ok = False
-        print(f"  [{status}] {modelo} h={h}: n={n}, alvo [{dmin.date()} -> {dmax.date()}], delta_ok={delta_ok}")
+        print(
+            f"  [{status}] {modelo} h={h}: n={n}, "
+            f"origem_min={origem_min.date()}, "
+            f"alvo [{dmin.date()} -> {dmax.date()}], "
+            f"delta_ok={delta_ok}, causal_ok={causal_ok}"
+        )
 
     # Mesmo vetor real para todos os modelos no mesmo horizonte
     for h, grp in df_pred.groupby('horizonte'):
@@ -320,18 +351,9 @@ def validar_predictions(df_pred):
 # Main
 # ---------------------------------------------------------------------------
 
-if __name__ == "__main__":
-    set_seeds(SEED)
-    os.makedirs(SAVE_PATH, exist_ok=True)
-
-    df = carregar_dataset()
-
-    todos = []
-    todos += rodar_xgboost_direto(df)
-    todos += rodar_dl_direto(df, AdvancedLSTM, train_dl_model, 'Bi-LSTM')
-    todos += rodar_dl_direto(df, AdvancedGRU,  train_gru_model, 'Bi-GRU')
-
-    df_pred = pd.DataFrame(todos)
+def salvar_resultados(df_pred):
+    """Valida e salva previsoes e metricas agregadas do protocolo vigente."""
+    validar_predictions(df_pred)
     df_pred.to_csv(f"{SAVE_PATH}/predictions_all.csv", index=False)
     print(f"\nPrevisoes -> {SAVE_PATH}/predictions_all.csv")
 
@@ -351,5 +373,48 @@ if __name__ == "__main__":
     print("\n=== RESUMO ===")
     print(df_met.to_string(index=False))
 
-    validar_predictions(df_pred)
+
+def reprocessar_previsoes_existentes():
+    """Recorta previsoes reproduzidas para o periodo causal comum, sem retreino.
+
+    O conjunto de treinamento e os modelos nao mudam com o novo inicio de teste.
+    Logo, as previsoes a partir de 14/06/2024 permanecem exatamente as mesmas e
+    podem ser reusadas; apenas as 13 datas iniciais nao causais sao descartadas.
+    """
+    path = f"{SAVE_PATH}/predictions_all.csv"
+    df_pred = pd.read_csv(path, parse_dates=['data_origem', 'data_alvo'])
+    mask = df_pred['data_alvo'].between(TEST_START, TEST_END)
+    df_pred = df_pred.loc[mask].copy()
+    df_pred['data_origem'] = df_pred['data_origem'].dt.date
+    df_pred['data_alvo'] = df_pred['data_alvo'].dt.date
+    salvar_resultados(df_pred)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '--reuse-existing-predictions',
+        action='store_true',
+        help=(
+            'Descarta as datas anteriores a 14/06/2024 das previsoes ja '
+            'reproduzidas e recalcula as metricas, sem retreinar os modelos.'
+        ),
+    )
+    args = parser.parse_args()
+
+    set_seeds(SEED)
+    os.makedirs(SAVE_PATH, exist_ok=True)
+
+    if args.reuse_existing_predictions:
+        reprocessar_previsoes_existentes()
+    else:
+        df = carregar_dataset()
+
+        todos = []
+        todos += rodar_xgboost_direto(df)
+        todos += rodar_dl_direto(df, AdvancedLSTM, train_dl_model, 'Bi-LSTM')
+        todos += rodar_dl_direto(df, AdvancedGRU,  train_gru_model, 'Bi-GRU')
+
+        salvar_resultados(pd.DataFrame(todos))
+
     print("\n[OK] Analise multi-horizonte concluida.")

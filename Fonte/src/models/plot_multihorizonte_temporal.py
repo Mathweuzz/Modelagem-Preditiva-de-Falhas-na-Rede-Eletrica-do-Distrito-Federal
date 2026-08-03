@@ -26,6 +26,9 @@ MONTHLY_METRICS_CSV = RESULTS_DIR / "metrics_multihorizon_monthly.csv"
 
 MODELS = ["XGBoost", "Bi-LSTM", "Bi-GRU"]
 HORIZONS = [1, 3, 7, 14]
+TEST_START = pd.Timestamp("2024-06-14")
+TEST_END = pd.Timestamp("2025-05-31")
+EXPECTED_TEST_DAYS = (TEST_END - TEST_START).days + 1
 MODEL_SLUGS = {
     "XGBoost": "xgboost",
     "Bi-LSTM": "bilstm",
@@ -44,7 +47,7 @@ MONTH_LABELS = [
 
 
 def load_and_validate_predictions() -> pd.DataFrame:
-    """Carrega e valida a cobertura comum de 365 datas por combinacao."""
+    """Carrega e valida a cobertura causal comum de 352 datas por combinacao."""
     df = pd.read_csv(
         PREDICTIONS_CSV,
         parse_dates=["data_origem", "data_alvo"],
@@ -72,8 +75,17 @@ def load_and_validate_predictions() -> pd.DataFrame:
     reference_dates = None
     for (model, horizon), group in df.groupby(["modelo", "horizonte"]):
         dates = tuple(group.sort_values("data_alvo")["data_alvo"])
-        if len(dates) != 365:
-            raise ValueError(f"{model}, h={horizon}: esperado n=365, obtido n={len(dates)}")
+        if len(dates) != EXPECTED_TEST_DAYS:
+            raise ValueError(
+                f"{model}, h={horizon}: esperado n={EXPECTED_TEST_DAYS}, "
+                f"obtido n={len(dates)}"
+            )
+        if dates[0] != TEST_START or dates[-1] != TEST_END:
+            raise ValueError(
+                f"{model}, h={horizon}: periodo esperado "
+                f"[{TEST_START.date()}, {TEST_END.date()}], obtido "
+                f"[{dates[0].date()}, {dates[-1].date()}]"
+            )
         if reference_dates is None:
             reference_dates = dates
         elif dates != reference_dates:
@@ -144,7 +156,7 @@ def plot_temporal_panels(df: pd.DataFrame) -> list[Path]:
             )
             mae = mean_absolute_error(group["y_real"], group["y_pred"])
             ax.set_title(
-                f"Horizonte h={horizon} dia(s) — MAE anual = {mae:.2f}",
+                f"Horizonte h={horizon} dia(s) — MAE no período = {mae:.2f}",
                 loc="left",
                 fontsize=12,
             )
@@ -157,9 +169,9 @@ def plot_temporal_panels(df: pd.DataFrame) -> list[Path]:
         month_ticks = pd.date_range("2024-06-01", "2025-05-01", freq="MS")
         axes[-1].set_xticks(month_ticks)
         axes[-1].set_xticklabels(MONTH_LABELS)
-        axes[-1].set_xlim(pd.Timestamp("2024-06-01"), pd.Timestamp("2025-05-31"))
+        axes[-1].set_xlim(TEST_START, TEST_END)
         fig.suptitle(
-            f"{model}: valores reais e previstos ao longo de 12 meses, por horizonte",
+            f"{model}: valores reais e previstos no período causal comum, por horizonte",
             fontsize=15,
             fontweight="bold",
             y=0.995,

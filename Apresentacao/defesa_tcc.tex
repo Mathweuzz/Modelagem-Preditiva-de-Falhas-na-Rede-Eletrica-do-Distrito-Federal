@@ -168,7 +168,7 @@ Orientador: Prof. Jan Mendonça Corrêa}
     \item \textbf{Memória temporal explícita}\\
       40 atributos derivados com defasagens, médias móveis, variabilidade e sazonalidade.
     \item \textbf{Comparação equânime}\\
-      Três arquiteturas avaliadas com separação temporal estrita e os mesmos 365 dias de teste.
+      365 dias em $h=1$ e 352 datas causais comuns na análise multi-horizonte.
     \item \textbf{Escolha por horizonte}\\
       Desempenho comparado em previsões diretas de 1, 3, 7 e 14 dias.
   \end{enumerate}
@@ -304,14 +304,14 @@ Orientador: Prof. Jan Mendonça Corrêa}
     \node at (5.05,0.72) {\textbf{Treinamento + validação temporal}};
     \node at (11.75,0.72) {\textbf{Teste}};
     \node[font=\scriptsize] at (5.05,-0.35) {08/01/2017 -- 31/05/2024};
-    \node[font=\scriptsize] at (11.75,-0.35) {01/06/2024 -- 31/05/2025};
+    \node[font=\scriptsize] at (11.75,-0.35) {14/06/2024 -- 31/05/2025};
     \node[font=\scriptsize,align=center] at (5.05,1.55) {$\approx$ 2.700 dias\\5 divisões temporais};
-    \node[font=\scriptsize,align=center] at (11.75,1.55) {365 datas-alvo\\iguais para todos};
+    \node[font=\scriptsize,align=center] at (11.75,1.55) {352 datas-alvo\\iguais por horizonte};
   \end{tikzpicture}
 
   \vspace{1.2em}
   \begin{itemize}
-    \item Normalização ajustada apenas no treinamento.
+    \item Normalização ajustada com dados até 31/05/2024.
     \item Modelos independentes para cada horizonte.
     \item Nenhuma previsão intermediária é reutilizada.
   \end{itemize}
@@ -524,14 +524,14 @@ Orientador: Prof. Jan Mendonça Corrêa}
     \end{column}
     \begin{column}{0.25\textwidth}
       \vspace{0.4em}
-      \modelwinner{$h=1$}{XGBoost}{MAE 61,1}
-      \modelwinner{$h=3$}{Bi-LSTM}{MAE 72,1}
-      \modelwinner{$h=7$}{Bi-GRU}{MAE 71,8}
-      \modelwinner{$h=14$}{Bi-GRU}{MAE 62,8}
+      \modelwinner{$h=1$}{XGBoost}{MAE 62,5}
+      \modelwinner{$h=3$}{Bi-LSTM}{MAE 74,0}
+      \modelwinner{$h=7$}{Bi-GRU}{MAE 73,6}
+      \modelwinner{$h=14$}{Bi-GRU}{MAE 64,3}
     \end{column}
   \end{columns}
 
-  \source{Elaboração dos autores; 365 alvos idênticos por horizonte.}
+  \source{Elaboração dos autores; 352 alvos causais idênticos por horizonte.}
   \note{%
     Apresentador: Mateus. Tempo-alvo: 1 minuto e 40 segundos.
     Este é o principal resultado comparativo. Explicar que cada ponto vem de um modelo treinado diretamente para aquele horizonte.
@@ -698,15 +698,15 @@ Orientador: Prof. Jan Mendonça Corrêa}
     \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}
     Modelo & MAE & RMSE & MAE & RMSE & MAE & RMSE & MAE & RMSE \\
     \midrule
-    XGBoost & 61,09 & 99,72 & 76,71 & 117,96 & 81,57 & 129,82 & 69,50 & 113,24 \\
-    Bi-LSTM & 62,71 & 98,80 & 72,08 & 117,42 & 77,70 & 126,25 & 66,12 & 108,40 \\
-    Bi-GRU  & 73,44 & 119,21 & 75,78 & 119,72 & 71,81 & 117,88 & 62,79 & 104,50 \\
+    XGBoost & 62,46 & 101,41 & 78,77 & 120,02 & 83,83 & 132,10 & 71,34 & 115,23 \\
+    Bi-LSTM & 64,19 & 100,44 & 74,01 & 119,47 & 79,49 & 128,40 & 67,69 & 110,24 \\
+    Bi-GRU  & 75,10 & 121,18 & 77,67 & 121,77 & 73,61 & 119,92 & 64,31 & 106,27 \\
     \bottomrule
   \end{tabular}
 
   \vspace{1em}
   \normalsize
-  O XGBoost atinge $R^2=-0{,}001$ em $h=7$; a Bi-GRU atinge $R^2=0{,}351$ em $h=14$.
+  O XGBoost atinge $R^2=-0{,}027$ em $h=7$; a Bi-GRU atinge $R^2=0{,}336$ em $h=14$.
 
   \source{Arquivo de métricas multi-horizonte do repositório.}
   \note{%

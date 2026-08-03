@@ -229,6 +229,14 @@ def validate_experiment(
             "Treinamento e avaliação não podem se sobrepor. "
             "A avaliação deve começar depois do fim do treinamento."
         )
+    earliest_test_origin = test_start - pd.Timedelta(days=max(horizons))
+    if train_end > earliest_test_origin:
+        minimum_test_start = train_end + pd.Timedelta(days=max(horizons))
+        raise ValueError(
+            "O início da avaliação não é causal para o maior horizonte: "
+            f"com treino até {train_end.date()} e h={max(horizons)}, use "
+            f"avaliação a partir de {minimum_test_start.date()}."
+        )
     if train_start < df.index.min() or test_end > df.index.max():
         raise ValueError(
             f"As datas devem estar entre {df.index.min().date()} e "

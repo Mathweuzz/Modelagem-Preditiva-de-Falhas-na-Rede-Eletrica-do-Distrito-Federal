@@ -237,7 +237,7 @@ def render_overview(df: pd.DataFrame) -> None:
 
     st.markdown("### Resumo multi-horizonte")
     st.caption(
-        "Comparação dos horizontes de 1, 3, 7 e 14 dias em 365 datas-alvo."
+        "Comparação causal dos horizontes de 1, 3, 7 e 14 dias em 352 datas-alvo."
     )
     try:
         metrics, _ = cached_reference_results()
@@ -291,7 +291,11 @@ def render_training(df: pd.DataFrame) -> None:
 
     min_date = df.index.min().date()
     max_date = df.index.max().date()
-    reference_test_start = pd.Timestamp("2024-06-01")
+    reference_test_start = pd.Timestamp(
+        "2024-06-01"
+        if prediction_mode == "Direta — próximo dia"
+        else "2024-06-14"
+    )
     if reference_test_start > df.index.max():
         reference_test_start = df.index.max() - pd.Timedelta(days=364)
     default_train_end = (reference_test_start - pd.Timedelta(days=1)).date()
