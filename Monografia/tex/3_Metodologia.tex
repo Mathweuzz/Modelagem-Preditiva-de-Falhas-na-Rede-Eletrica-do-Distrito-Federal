@@ -59,7 +59,7 @@ Todos os dados foram disponibilizados pelas autarquias públicas no formato \tex
 
 Para documentar as variáveis utilizadas na modelagem, organizou-se um dicionário de dados descrevendo cada atributo, seu tipo e sua relevância para o problema. A Tabela~\ref{tab:dic_inmet} apresenta as variáveis meteorológicas extraídas do portal INMET.
 
-Optou-se por incluir cinco variáveis eólicas distintas (velocidade média, velocidade máxima, rajada máxima, direção média e moda da direção) ao invés de apenas a velocidade média. Essa decisão reflete a dinâmica real de falhas na rede de distribuição: os danos mecânicos a cabos de média tensão ($13{,}8$ kV) não resultam da velocidade média contínua, mas sim de rajadas extremas instantâneas. São essas rajadas que causam a queda de árvores sobre os condutores, a ruptura de cruzetas e o rompimento mecânico de cabos. As defasagens e EMAs foram calculadas sobre a \textbf{rajada máxima} (\texttt{vento\_rajada\_max\_ms}), por ser a variável eólica com maior relação causal com as interrupções. A precipitação acumulada complementa o cenário ao capturar o encharcamento do solo (que facilita o tombamento de postes e árvores) e o peso hídrico sobre a fiação.
+Optou-se por incluir cinco variáveis eólicas distintas (velocidade média, velocidade máxima, rajada máxima, direção média e moda da direção) ao invés de apenas a velocidade média. Essa decisão é compatível com a literatura física sobre carregamento mecânico da infraestrutura: rajadas instantâneas podem impor esforços superiores aos representados pela velocidade média contínua. As defasagens e EMAs foram calculadas sobre a \textbf{rajada máxima} (\texttt{vento\_rajada\_max\_ms}) por sua relevância física e por sua associação exploratória com as interrupções. A precipitação acumulada complementa essa caracterização meteorológica, sem que essas variáveis isoladamente identifiquem a causa de cada ocorrência.
 
 \begin{table}[H]
 \caption{Dicionário de Dados Meteorológicos (INMET - Arquivos A001 Históricos)}
@@ -180,14 +180,14 @@ Todos os experimentos foram executados em uma estação de trabalho local com a 
 \midrule
 Processador (CPU) & Intel Core i5-9300HF, 4 núcleos / 8 \textit{threads}, 2{,}40\,GHz \\
 Memória RAM       & 16\,GB DDR4 \\
-Acelerador (GPU)  & NVIDIA GeForce GTX 1050 3\,GB Max-Q (CUDA 6.1) \\
+Acelerador (GPU)  & NVIDIA GeForce GTX 1050 3\,GB Max-Q (capacidade computacional CUDA 6.1) \\
 Sistema Operacional & Manjaro Linux, \textit{kernel} 6.x \\
 \midrule
 \multicolumn{2}{l}{\textit{Configuração 2}} \\
 \midrule
 Processador (CPU) & Intel Core i9-14900HX, 24 núcleos / 48 \textit{threads}, até 5{,}80\,GHz \\
 Memória RAM       & 32\,GB DDR5 \\
-Acelerador (GPU)  & NVIDIA GeForce RTX 4070 Laptop GPU, 8\,GB GDDR6 (CUDA 8.9) \\
+Acelerador (GPU)  & NVIDIA GeForce RTX 4070 Laptop GPU, 8\,GB GDDR6 (capacidade computacional CUDA 8.9) \\
 Sistema Operacional & Arch Linux, \textit{kernel} 7.0.9 \\
 \bottomrule
 \end{tabularx}
@@ -201,7 +201,7 @@ A GPU foi empregada para acelerar o treinamento das redes neurais recorrentes (B
 A Configuração 1 foi utilizada no desenvolvimento e treinamento dos modelos principais apresentados neste trabalho. A Configuração 2, com maior capacidade de processamento, foi empregada na implementação complementar da previsão multi-horizonte, mantendo o mesmo ambiente de software e versionamento de bibliotecas para garantir a reprodutibilidade dos resultados.
 
 \subsection{Reprodutibilidade e Controle de Versão}\label{sec:reprodutibilidade}
-Para garantir a reprodutibilidade dos experimentos, o código-fonte integral do \textit{pipeline} de dados, do treinamento dos modelos e da geração de gráficos será disponibilizado publicamente após sua autenticação e a conclusão do trabalho. O XGBoost foi instanciado com semente fixa (\texttt{random\_state=42}). As redes neurais utilizam controle completo de aleatoriedade (\texttt{SEED=42}): \texttt{random.seed}, \texttt{numpy\-.random\-.seed}, \texttt{torch\-.manual\_seed}, \texttt{torch\-.cuda\-.manual\_seed\_all}, com \texttt{cudnn\-.deterministic=True} e \texttt{cudnn\-.benchmark=False}, assegurando resultados determinísticos no mesmo ambiente de hardware e versão de software; pequenas variações numéricas são esperadas ao mudar hardware ou versão de bibliotecas. As versões das bibliotecas utilizadas são: Python 3.14, PyTorch 2.10, XGBoost 3.2, Scikit-Learn 1.8, Pandas 3.0 e NumPy 2.4.
+Para garantir a reprodutibilidade dos experimentos, o código-fonte integral do \textit{pipeline} de dados, do treinamento dos modelos e da geração de gráficos, bem como os dados processados, estão disponíveis no repositório público do projeto (\sloppy\url{https://github.com/Mathweuzz/Modelagem-Preditiva-de-Falhas-na-Rede-Eletrica-do-Distrito-Federal}\fussy). O XGBoost foi instanciado com semente fixa (\texttt{random\_state=42}). As redes neurais utilizam controle completo de aleatoriedade (\texttt{SEED=42}): \texttt{random.seed}, \texttt{numpy\-.random\-.seed}, \texttt{torch\-.manual\_seed}, \texttt{torch\-.cuda\-.manual\_seed\_all}, com \texttt{cudnn\-.deterministic=True} e \texttt{cudnn\-.benchmark=False}, assegurando resultados determinísticos no mesmo ambiente de hardware e versão de software; pequenas variações numéricas são esperadas ao mudar hardware ou versão de bibliotecas. As versões das bibliotecas utilizadas são: Python 3.14, PyTorch 2.10, XGBoost 3.2, Scikit-Learn 1.8, Pandas 3.0 e NumPy 2.4.
 
 \subsection{Enquadramento Legal dos Dados}\label{sec:legal}
 Todos os conjuntos de dados utilizados neste trabalho são de domínio público e estão disponíveis em portais de dados abertos mantidos por órgãos do governo federal brasileiro. A utilização desses dados é respaldada por dois marcos legais:
@@ -393,14 +393,14 @@ A presença de valores extremos (\textit{outliers}) na série de interrupções 
 Optou-se deliberadamente por \textbf{não remover} os \textit{outliers} da série, por três razões:
 
 \begin{enumerate}
-    \item \textbf{Representatividade fenomenológica:} Os picos extremos de interrupções correspondem a eventos climáticos reais e verificáveis (tempestades convectivas, rajadas intensas associadas ao El Niño), e não a erros de medição. Removê-los significaria privar os modelos de informação sobre os cenários operacionais mais críticos para a concessionária --- justamente aqueles que a manutenção preditiva visa antecipar.
+    \item \textbf{Representatividade operacional:} Os picos extremos fazem parte dos registros oficiais de interrupções e não há evidência, na base disponível, de que sejam erros de medição. Como o conjunto não contém a causa individual de cada ocorrência, esses picos são preservados como cenários operacionais críticos, sem atribuição causal automática a eventos meteorológicos específicos.
 
     \item \textbf{Impacto na função de perda:} A remoção de extremos alteraria artificialmente a distribuição da variável \textit{target}, enviesando os modelos para subestimar sistematicamente os dias de crise. No contexto operacional da Neoenergia, essa subestimação teria consequências práticas graves: equipes subdimensionadas, materiais insuficientes e violação dos indicadores DEC/FEC.
 
     \item \textbf{Robustez do XGBoost:} O mecanismo de regularização do XGBoost (parâmetros $\gamma$, \texttt{max\_depth}, \texttt{subsample}) confere robustez intrínseca a \textit{outliers}, limitando o impacto de valores extremos individuais sobre a estrutura global das árvores \cite{chen2016xgboost}. Para as redes neurais, a normalização Min-Max comprime os extremos ao intervalo $[0, 1]$, atenuando naturalmente seu efeito sobre os gradientes.
 \end{enumerate}
 
-A qualidade dos dados meteorológicos do INMET foi verificada através de três critérios: (i) \textbf{completude temporal}, confirmando a ausência de lacunas superiores a 3 dias consecutivos na série; (ii) \textbf{consistência física}, validando que todos os valores de temperatura, precipitação e vento situam-se dentro dos limites climatológicos esperados para o Cerrado; e (iii) \textbf{consistência cruzada}, verificando que dias com precipitação elevada ($>30$ mm) coincidem com rajadas de vento superiores à mediana, conforme esperado pela dinâmica das tempestades convectivas. Das 3.073 observações, uma (0,03\%) continha um valor meteorológico ausente, tratado por interpolação linear conforme descrito anteriormente.
+A qualidade dos dados meteorológicos do INMET foi verificada através de três critérios: (i) \textbf{completude temporal}, confirmando a ausência de lacunas superiores a 3 dias consecutivos na série; (ii) \textbf{consistência física}, inspecionando os intervalos observados de temperatura, precipitação e vento; e (iii) \textbf{consistência cruzada descritiva}, quantificando a coexistência de chuva e rajadas sem exigir correspondência determinística. Entre os 102 dias com precipitação superior a 30 mm, 56 apresentaram rajada acima da mediana e 46 não, evidenciando que chuva intensa e rajada elevada são fenômenos relacionados, porém não equivalentes. Das 3.073 observações, uma (0,03\%) continha um valor meteorológico ausente, tratado por interpolação linear conforme descrito anteriormente.
 
 \section{Separação Temporal e Validação Cruzada}\label{sec:protocolo_validacao}
 
@@ -452,6 +452,8 @@ O ponto de corte em 1\textordmasculine{} de junho de 2024 foi selecionado de for
 \section{Configuração Experimental para Previsão}\label{sec:treinamento}
 
 Na avaliação principal de $h=1$, conforme detalhado na Seção~\ref{sec:protocolo_validacao}, a separação temporal estrita foi rigorosamente mantida para todos os modelos, prevenindo vazamento de dados (\textit{data leakage}). O XGBoost utiliza 2.700 linhas de origem no conjunto de treino; as redes neurais utilizam 2.687 sequências de treinamento (diferença de 13 linhas decorrente da janela de \textit{lookback} de 14 dias). O conjunto de teste principal compreende 365 datas-alvo para todos os modelos. O recorte causal específico da análise multi-horizonte é descrito na Seção~\ref{sec:previsao_x_dias}.
+
+Como referência ingênua, calculou-se também a \textbf{persistência}, definida por $\hat{y}_{t+h}=y_t$. Ela utiliza somente o último valor conhecido na data de origem e é avaliada exatamente nos mesmos recortes da análise principal (365 alvos em $h=1$) e da análise multi-horizonte (352 alvos em cada $h$). Essa comparação verifica se os modelos treinados acrescentam poder preditivo à repetição do valor mais recente.
 
 \subsection{Modelagem Tensorial por Janelas Deslizantes}
 No ecossistema de \textit{Deep Learning} (PyTorch), o processamento sequencial obriga a conversão de tabelas escalares \textit{DataFrames} (2D) em tensores tridimensionais (3D) de dimensão:
@@ -512,7 +514,7 @@ Vento Rajada Máx. (m/s) & 11,4 & 2,6 & 5,3 & 11,0 & 30,4 & 3,2 \\
 \small{Fonte: Calculado pelos autores a partir dos dados do INMET e ANEEL (2017--2025).}
 \end{table}
 
-Observa-se que a variável \textit{target} (interrupções diárias) apresenta distribuição assimétrica positiva (média $= 243{,}6$ superior à mediana $= 219$), com cauda longa à direita evidenciada pelo máximo de 1.424 interrupções --- quase seis vezes a média. Essa assimetria reflete a natureza esporádica dos eventos extremos climáticos. A precipitação total diária é igualmente assimétrica: a mediana é zero (63,8\% dos dias não registraram chuva), porém o máximo atinge 113 mm em dias de tempestade convectiva intensa.
+Observa-se que a variável \textit{target} (interrupções diárias) apresenta distribuição assimétrica positiva (média $= 243{,}6$ superior à mediana $= 219$), com cauda longa à direita evidenciada pelo máximo de 1.424 interrupções --- quase seis vezes a média. Essa assimetria reflete a ocorrência esporádica de dias com volume muito elevado de interrupções, sem identificar sua causa. A precipitação total diária é igualmente assimétrica: a mediana é zero (63,8\% dos dias não registraram chuva), porém o máximo atinge 113 mm.
 
 A Tabela~\ref{tab:descritiva_anual} revela a evolução temporal das interrupções, evidenciando uma tendência de crescimento ao longo do período analisado.
 
@@ -601,7 +603,7 @@ Ambos os modelos de \textit{Deep Learning} compartilham a mesma função de trei
 
 \section{Previsão Multi-Horizonte}\label{sec:previsao_x_dias}
 
-Além da avaliação principal com horizonte de um passo à frente (\textit{one-step-ahead}) sobre 365 dias de teste, realizou-se uma análise complementar de \textbf{previsão multi-horizonte}, em que os três modelos são avaliados em antecedências distintas, com $h \in \{1, 3, 7, 14\}$ dias. Para assegurar um corte operacional comum e causal até no maior horizonte, essa análise utiliza 352 datas-alvo, de 14/06/2024 a 31/05/2025. Cada horizonte constitui uma tarefa direta independente; portanto, não se trata de uma única saída simultânea contendo os próximos 14 dias.
+Além da avaliação principal com horizonte de um passo à frente (\textit{one-step-ahead}) sobre 365 dias de teste, realizou-se uma análise complementar de \textbf{previsão multi-horizonte}, em que os três modelos são avaliados em antecedências distintas, com $h \in \{1, 3, 7, 14\}$ dias. Para assegurar um corte operacional comum e preservar a disponibilidade temporal das entradas até no maior horizonte, essa análise utiliza 352 datas-alvo, de 14/06/2024 a 31/05/2025. Cada horizonte constitui uma tarefa direta independente; portanto, não se trata de uma única saída simultânea contendo os próximos 14 dias.
 
 \subsection{Protocolo de Previsão Direta (\textit{Direct Multi-Step Forecasting})}
 
@@ -612,7 +614,7 @@ Adotou-se o protocolo de \textbf{previsão direta} para todos os modelos. Para c
     \item \textbf{Bi-LSTM e Bi-GRU:} a janela de entrada $[t{-}13, \ldots, t]$ é mantida, mas o alvo passa a ser $y_{t+h}$. As sequências são construídas sobre o \textbf{dataset completo} e separadas pela data-alvo segundo os mesmos limites do XGBoost. O \texttt{MinMaxScaler} é ajustado somente com observações até 31/05/2024.
 \end{itemize}
 
-Essa estratégia elimina a propagação de erros da abordagem recursiva e garante comparabilidade direta entre os três modelos. Como a primeira data-alvo comum é 14/06/2024, a primeira origem em $h=14$ é 31/05/2024; portanto, nenhum rótulo de treinamento nem parâmetro de normalização é posterior à origem da primeira previsão. Cada modelo recebe apenas informação disponível até o dia $t$ e prevê diretamente o alvo $h$ dias à frente, sem depender de estimativas intermediárias.
+Essa estratégia elimina a propagação de erros da abordagem recursiva e garante datas-alvo, variáveis por instante e corte de origem comuns. As representações não são idênticas: o XGBoost recebe uma linha na origem, enquanto as redes recebem 14 instantes terminando na origem. Como a primeira data-alvo comum é 14/06/2024, a primeira origem em $h=14$ é 31/05/2024; portanto, nenhum rótulo de treinamento nem parâmetro de normalização é posterior à origem da primeira previsão. Cada modelo recebe apenas informação disponível até o dia $t$ e prevê diretamente o alvo $h$ dias à frente, sem depender de estimativas intermediárias.
 
 Para o XGBoost, cada horizonte recebe um novo ajuste sobre os respectivos pares entrada--alvo, mas reutiliza os hiperparâmetros selecionados pelo \textit{Grid Search} da avaliação principal em $h=1$. Portanto, a análise multi-horizonte mede a estabilidade dessa configuração entre horizontes e não representa uma reotimização independente do XGBoost para cada valor de $h$.
 

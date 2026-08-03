@@ -57,7 +57,7 @@ Scripts adicionais que produzem figuras temáticas estão em `../SegundoPedido/S
 A monografia descreve o fluxo completo no Capítulo 3 (Metodologia). De forma resumida, o processamento passou por três estágios:
 
 1. **Coleta** (não automatizada neste pacote — fontes oficiais):
-   - **INMET** — Instituto Nacional de Meteorologia: estações automáticas A001 (Brasília) e adjacentes do DF, dados horários de temperatura, precipitação, vento médio, vento máximo e rajada máxima (2017-01-01 a 2025-05-31).
+   - **INMET** — Instituto Nacional de Meteorologia: estação automática A001 (Brasília), com dados horários de temperatura, precipitação, vento médio, vento máximo e rajada máxima (2017-01-01 a 2025-05-31).
    - **ANEEL** — Agência Nacional de Energia Elétrica: relatórios de continuidade do PRODIST, indicadores de interrupção da concessionária Neoenergia Brasília.
    - **SAMP/CCEE** — consumo mensal de energia no DF.
 2. **Consolidação diária** (`SegundoPedido/SegundoPedido/scripts/t0_construir_clima_diario_brasilia.py` e correlatos): agregação horária → diária, alinhamento de calendário, imputação por interpolação temporal nos pontos faltantes, união com a contagem diária de interrupções.
@@ -75,7 +75,7 @@ O script reproduz a estrutura e os valores do dataset; diferenças numéricas re
 ## Requisitos
 
 - Python ≥ 3.10 (testado com 3.14)
-- Bibliotecas (instaláveis via `pip install -r ../requirements.txt` se anexado):
+- Bibliotecas instaláveis via `pip install -r ../requirements.txt`:
   - pandas, numpy, scikit-learn ≥ 1.4, xgboost ≥ 2.0, torch ≥ 2.0,
     matplotlib, seaborn, statsmodels.
 
@@ -97,6 +97,7 @@ python 03_feature_engineering.py
 cd models
 python script_exploration_pipeline.py    # 3 figuras EDA finais
 python baseline_xgboost.py               # XGBoost (~1 min CPU)
+python baseline_persistence.py           # baseline ingênuo (~1 s)
 python lstm_bidirecional.py              # Bi-LSTM (~5-10 min CPU)
 python gru_avancada.py                   # Bi-GRU  (~5-10 min CPU)
 python previsao_multihorizonte.py        # avaliação multi-horizonte (h=1,3,7,14)

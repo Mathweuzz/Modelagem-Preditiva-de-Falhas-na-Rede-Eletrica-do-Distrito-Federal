@@ -85,7 +85,7 @@
 \backcite {hastie2009elements}{{39}{3.6}{section.3.6}}
 \backcite {hyndman2018forecasting}{{40}{3.6.2}{subsection.3.6.2}}
 \backcite {loshchilov2019decoupled}{{41}{3.7.2}{subsection.3.7.2}}
-\backcite {goodfellow2016deep}{{41}{3.7.2}{equation.3.8}}
+\backcite {goodfellow2016deep}{{42}{3.7.2}{equation.3.8}}
 \backcite {hyndman2018forecasting}{{49}{4.1.1}{subsection.4.1.1}}
 \backcite {box2015time}{{51}{4.2}{section.4.2}}
 \backcite {hastie2009elements}{{61}{4.4}{figure.4.16}}
@@ -93,7 +93,7 @@
 \backcite {goodfellow2016deep}{{70}{4.5.3}{figure.4.25}}
 \backcite {inpe2023painel}{{73}{4.7}{section.4.7}}
 \backcite {chen2016xgboost}{{88}{3}{Item.39}}
-\backcite {rudin2019stop}{{89}{5.2}{table.5.1}}
+\backcite {rudin2019stop}{{88}{5.2}{table.5.1}}
 \backcite {zhang2023deep}{{91}{5.2}{table.5.2}}
 \backcite {smith2021hybrid}{{91}{5.2}{table.5.2}}
 \backcite {saha2019machine}{{91}{5.2}{table.5.2}}

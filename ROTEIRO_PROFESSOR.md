@@ -113,7 +113,7 @@ Diagramas de fluxo (pipeline de dados, arquitetura experimental) — todos **Tik
 
 ### Origem dos dados brutos (não incluídos)
 
-- **INMET** — https://portal.inmet.gov.br/dadoshistoricos (estação automática A001 / Brasília + adjacentes)
+- **INMET** — https://portal.inmet.gov.br/dadoshistoricos (estação automática A001 / Brasília)
 - **ANEEL** — Relatórios PRODIST, indicadores de continuidade da Neoenergia Brasília
 - **CCEE/SAMP** — consumo mensal por classe consumidora no DF
 
@@ -121,7 +121,7 @@ Diagramas de fluxo (pipeline de dados, arquitetura experimental) — todos **Tik
 
 ## 5. Reprodutibilidade
 
-- **XGBoost**: `random_state=42`. Resultado **determinístico**. Protocolo h=1 direto (data-alvo split): MAE=61.09 / RMSE=99.72 / R²=0.409 / MAPE=20.64% — conforme reportado no Cap. 4 com protocolo equânime.
+- **XGBoost**: `random_state=42`. Resultado **determinístico**. Protocolo h=1 direto (separação pela data-alvo): MAE=61.09 / RMSE=99.72 / R²=0.409 / MAPE=20.64% — conforme reportado no Cap. 4.
 - **PyTorch (LSTM/GRU)**: pequenas variações entre execuções são esperadas (non-determinism do CUDA/cuDNN, ordem dos batches no DataLoader). As métricas reportadas no Cap. 4 foram obtidas no ambiente descrito no Apêndice (Reprodutibilidade) — versão dos pacotes em `Apendices`.
 
 ## 6. Limitações e ressalvas

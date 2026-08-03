@@ -2,16 +2,16 @@ Este capítulo discute os resultados obtidos à luz da literatura existente, int
 
 \section{Interpretação dos Resultados Preditivos}
 
-Os resultados apresentados no Capítulo~\ref{4_Resultados} revelaram um achado relevante sobre a comparabilidade entre paradigmas de aprendizado de máquina: sob protocolo unificado de previsão direta $h=1$ --- em que todos os modelos recebem a mesma informação histórica em $t$ para prever $t+1$ ---, o \textbf{XGBoost} (MAE $= 61{,}1$, $R^2 = 0{,}409$) e a \textbf{Bi-LSTM} (MAE $= 62{,}7$, $R^2 = 0{,}420$) apresentam desempenhos descritivamente próximos (diferença de 2,7\% em MAE), enquanto a Bi-GRU fica em terceiro lugar ($R^2 = 0{,}156$).
+Os resultados apresentados no Capítulo~\ref{4_Resultados} revelaram um achado relevante sobre a comparabilidade entre paradigmas de aprendizado de máquina: sob protocolo unificado de previsão direta $h=1$ --- mesmas variáveis por instante, mesmo corte da data de origem e mesmas datas-alvo, mas representação tabular para o XGBoost e sequencial para as redes --- o \textbf{XGBoost} (MAE $= 61{,}1$, $R^2 = 0{,}409$) e a \textbf{Bi-LSTM} (MAE $= 62{,}7$, $R^2 = 0{,}420$) apresentam desempenhos descritivamente próximos (diferença de 2,7\% em MAE), enquanto a Bi-GRU fica em terceiro lugar ($R^2 = 0{,}156$).
 
-O resultado contraria a hipótese de que arquiteturas de \textit{Deep Learning} seriam sistematicamente superiores a modelos baseados em árvores. O empate técnico pode ser atribuído a três fatores complementares:
+O resultado não sustenta a hipótese de superioridade sistemática das arquiteturas de \textit{Deep Learning} sobre modelos baseados em árvores neste conjunto de teste. A proximidade descritiva entre XGBoost e Bi-LSTM pode estar associada a três fatores complementares:
 
 \begin{enumerate}
-    \item \textbf{Engenharia de atributos como equalizador:} A construção manual de 40 \textit{features} --- incluindo defasagens de 1 a 7 dias, médias móveis exponenciais e codificações harmônicas --- transferiu ao XGBoost, de forma explícita, grande parte da informação temporal que as redes recorrentes aprendem implicitamente. Com essa engenharia, o XGBoost opera sobre uma representação tabular já enriquecida com memória temporal, reduzindo a vantagem arquitetural das RNNs.
+    \item \textbf{Engenharia de atributos temporais:} A construção manual de 40 \textit{features} --- incluindo defasagens de 1 a 7 dias, médias móveis exponenciais e codificações harmônicas --- forneceu ao XGBoost informação temporal explícita. Com a inclusão do alvo histórico, o modelo opera sobre 41 entradas tabulares, enquanto as redes recebem essas 41 variáveis em 14 instantes. Uma ablação seria necessária para quantificar quanto da proximidade observada decorre da engenharia de atributos.
 
     \item \textbf{Regularização robusta:} O XGBoost dispõe de múltiplos mecanismos de regularização nativos ($L_1$, $L_2$, Gamma, \texttt{max\_depth}, \texttt{subsample}), calibrados via \textit{Grid Search} com validação cruzada temporal. Essa parametrização finamente ajustada impede o \textit{overfitting} de forma mais controlável do que o Dropout e o \textit{Weight Decay} das redes neurais.
 
-    \item \textbf{Tamanho limitado do conjunto de dados:} Com 2.700 linhas de origem de treinamento (XGBoost) e 2.687 sequências (RNNs) com 40 \textit{features}, o volume de dados é modesto para redes recorrentes profundas que tipicamente exigem milhares a milhões de amostras para convergir a representações internas superiores. O XGBoost, por sua natureza \textit{ensemble} de árvores rasas, é mais eficiente com amostras limitadas \cite{chen2016xgboost}.
+    \item \textbf{Tamanho limitado do conjunto de dados:} Com 2.700 linhas de origem de treinamento (XGBoost) e 2.687 sequências (RNNs) com 41 variáveis por instante, o volume de dados é modesto para redes recorrentes profundas. O XGBoost, por sua natureza \textit{ensemble} de árvores, é adequado a dados tabulares desse porte \cite{chen2016xgboost}.
 \end{enumerate}
 
 \section{XGBoost vs. Deep Learning: Análise de Trade-offs}
@@ -34,7 +34,7 @@ Interpretabilidade & Alta (\textit{Feature Importance}) & Baixa (caixa-preta) \\
 Necessidade de GPU & Não & Recomendável \\
 Escalabilidade & Alta (paralelismo nativo) & Limitada pelo BPTT \\
 Sensibilidade a Outliers & Conservador (regularização) & Maior volatilidade \\
-Engenharia de Atributos & 40 \textit{features} & Mesmas 40 \textit{features} + janela de 14 dias \\
+Representação de entrada & 41 variáveis em uma linha & Mesmas 41 variáveis por instante + janela de 14 dias \\
 \bottomrule
 \end{tabular}
 \normalsize
@@ -48,17 +48,17 @@ Em contrapartida, as redes recorrentes demonstraram uma propriedade relevante na
 
 \section[Inversão da Hierarquia por Horizonte]{Inversão da Hierarquia no Contexto Multi-\hspace{0pt}Horizonte}\label{sec:discussao_multihorizonte}
 
-A análise multi-horizonte (Seção~\ref{sec:multihorizonte}, Capítulo~\ref{4_Resultados}), conduzida com o protocolo de \textbf{previsão direta} sobre 352 datas-alvo causais e idênticas por horizonte, revelou uma nuance fundamental: \textbf{a hierarquia de desempenho entre os modelos não é invariante ao horizonte de previsão, e as redes recorrentes são iguais ou superiores ao XGBoost para horizontes médios e longos}.
+A análise multi-horizonte (Seção~\ref{sec:multihorizonte}, Capítulo~\ref{4_Resultados}), conduzida com o protocolo de \textbf{previsão direta} sobre 352 datas-alvo idênticas por horizonte, revelou uma nuance fundamental: \textbf{a ordenação dos MAEs observados varia com o horizonte de previsão}.
 
-No recorte comum, em $h = 1$, XGBoost e Bi-LSTM apresentam resultados próximos (MAE de 62,5 e 64,2, respectivamente), com o XGBoost ligeiramente melhor em MAE e a Bi-LSTM ligeiramente melhor em $R^2$. Para $h = 3$ dias, a Bi-LSTM assume a liderança (MAE de 74,0 contra 78,8 do XGBoost e 77,7 da Bi-GRU). A Bi-GRU assume a liderança nos horizontes mais longos: MAE de 73,6 em $h=7$ (contra 83,8 do XGBoost) e 64,3 em $h=14$ (contra 71,3 do XGBoost). Em particular, o XGBoost registra $R^2 = -0{,}027$ em $h=7$, indicando desempenho inferior ao \textit{baseline} da média nesse horizonte específico.
+No recorte comum, em $h = 1$, XGBoost e Bi-LSTM apresentam resultados próximos (MAE de 62,5 e 64,2, respectivamente), com o XGBoost ligeiramente melhor em MAE e a Bi-LSTM ligeiramente melhor em $R^2$; ambos também registram MAE abaixo da persistência (69,8). Para $h = 3$ dias, a Bi-LSTM registra o menor MAE entre os modelos treinados (74,0, contra 78,8 do XGBoost e 77,7 da Bi-GRU), todos abaixo da persistência (86,2). A Bi-GRU registra os menores MAEs entre os modelos treinados nos horizontes mais longos: 73,6 em $h=7$ e 64,3 em $h=14$, também abaixo da persistência (84,6 e 88,0). Em particular, o XGBoost registra $R^2 = -0{,}027$ em $h=7$, indicando desempenho inferior ao \textit{baseline} da média nesse horizonte específico.
 
 \begin{itemize}
-    \item A \textbf{Bi-LSTM}, ao processar a janela de 14 dias anteriores de forma bidirecional, captura dependências temporais que se manifestam em horizontes de curto prazo ($h=1$, $h=3$), onde o padrão recente da série ainda é informativo.
-    \item A \textbf{Bi-GRU}, com sua estrutura mais compacta, generaliza melhor para horizontes intermediários e longos ($h=7$, $h=14$), possivelmente por ser menos suscetível ao sobreajuste a padrões de curto prazo específicos do período de treinamento.
-    \item O \textbf{XGBoost}, embora contenha \textit{features} de lag explícitas, realiza previsões independentes por dia sem mecanismo de memória sequencial implícita. Isso limita sua capacidade de capturar dinâmicas temporais no horizonte de previsão direta.
+    \item O menor MAE da \textbf{Bi-LSTM} em $h=3$ é compatível com o aproveitamento da janela recente, mas o experimento não isola esse mecanismo arquitetural de outras diferenças de treinamento e representação.
+    \item Os menores MAEs da \textbf{Bi-GRU} em $h=7$ e $h=14$ motivam a hipótese de que sua parametrização mais compacta tenha favorecido a generalização nesse recorte; uma ablação específica seria necessária para testar essa explicação.
+    \item O \textbf{XGBoost} utiliza defasagens explícitas em uma única linha, enquanto as redes recebem 14 instantes. Essa diferença de representação é parte do protocolo implementado e impede atribuir a ordenação observada exclusivamente à presença ou ausência de memória recorrente.
 \end{itemize}
 
-Essa constatação tem uma implicação prática relevante: embora XGBoost e Bi-LSTM sejam equivalentes em $h=1$, para horizontes mais longos ($h \geq 3$) as arquiteturas recorrentes apresentam menor MAE. Uma implantação operacional poderia combinar os modelos de forma complementar: XGBoost ou Bi-LSTM para curtíssimo prazo ($h=1$) e Bi-GRU para médio prazo ($h=7$, $h=14$).
+No conjunto avaliado, XGBoost e Bi-LSTM ficaram próximos em $h=1$, enquanto uma rede recorrente registrou o menor MAE entre os modelos treinados em cada horizonte $h \geq 3$. Uma eventual combinação operacional --- XGBoost ou Bi-LSTM no curtíssimo prazo e Bi-GRU em $h=7$ e $h=14$ --- deve ser validada prospectivamente antes da implantação.
 
 A decomposição mensal (Seção~\ref{sec:multihorizonte_mensal}) qualifica essa recomendação. A liderança não é uniforme ao longo do período de teste: o XGBoost obtém o menor MAE em 9 dos 12 meses civis abrangidos em $h=1$, enquanto a Bi-GRU vence 5 meses em $h=7$ e lidera no agregado desse horizonte. A vantagem agregada da Bi-GRU decorre menos de uma superioridade universal e mais da redução do erro em meses difíceis, especialmente durante a transição e a estação chuvosa. Assim, uma política operacional baseada apenas na média global ocultaria variações sazonais relevantes; a seleção ou combinação de modelos pode ser condicionada tanto à antecedência requerida quanto ao regime sazonal.
 
@@ -157,23 +157,23 @@ Memória necessária & $\sim$50 MB & $\sim$200 MB & $\sim$180 MB \\
 \small{Fonte: Estimado pelos autores com base nos experimentos realizados (2026).}
 \end{table}
 
-O XGBoost apresenta vantagem significativa em todos os critérios operacionais: treina em menos de 2 minutos em CPU convencional, não requer GPU, e realiza inferências em tempo desprezível ($<1$ ms por dia previsto). As redes recorrentes, por outro lado, demandam de 20 a 25 minutos de treinamento para 150 épocas (em CPU), com benefício substancial de aceleração via GPU. Embora os tempos de inferência das RNNs sejam aceitáveis para previsões diárias ($\sim$5 ms), a necessidade de retrainamento periódico (para incorporar dados recentes) torna o custo computacional das redes significativamente maior no ciclo de vida completo do modelo.
+O XGBoost apresenta vantagem operacional nos critérios medidos: treina em menos de 2 minutos em CPU convencional, não requer GPU, e realiza inferências em tempo desprezível ($<1$ ms por dia previsto). As redes recorrentes, por outro lado, demandam de 20 a 25 minutos de treinamento para 150 épocas (em CPU), com benefício de aceleração via GPU. Embora os tempos de inferência das RNNs sejam aceitáveis para previsões diárias ($\sim$5 ms), a necessidade de retrainamento periódico torna seu custo computacional observado maior no ciclo de vida do modelo.
 
 Essa análise reforça a adequação do XGBoost para implantação operacional na Neoenergia Brasília, onde as previsões precisam ser geradas diariamente com recursos computacionais limitados e sem dependência de infraestrutura de GPU.
 
 \section{Análise do Efeito de Amplificação pela Agregação Temporal}
 
-Um dos achados mais consistentes deste trabalho é a \textbf{amplificação sistemática das correlações} na transição da escala diária para a semanal e mensal (Tabela~\ref{tab:correlacoes}, Capítulo~\ref{4_Resultados}). A precipitação, por exemplo, evolui de $r = 0{,}35$ (diário) para $r = 0{,}48$ (semanal) e $r = 0{,}54$ (mensal). Esse fenômeno não é um artefato estatístico, mas reflete características físicas fundamentais do sistema:
+Um dos achados mais consistentes deste trabalho é o \textbf{aumento numérico das correlações} na transição da escala diária para a semanal e mensal (Tabela~\ref{tab:correlacoes}, Capítulo~\ref{4_Resultados}). A precipitação, por exemplo, evolui de $r = 0{,}35$ (diário) para $r = 0{,}48$ (semanal) e $r = 0{,}54$ (mensal). A agregação reduz variações diárias, enfatiza tendências compartilhadas e diminui o número de observações; portanto, os mecanismos físicos a seguir são hipóteses compatíveis com o padrão, não conclusões causais:
 
 \begin{enumerate}
-    \item \textbf{Efeito acumulativo do dano:} Uma chuva isolada pode causar falhas imediatas (queda de árvores) e falhas retardadas (infiltração em equipamentos, corrosão acelerada, saturação de solo que desestabiliza postes). Na escala diária, apenas o efeito imediato é capturado; na escala semanal e mensal, os efeitos retardados somam-se ao sinal, amplificando a correlação.
+    \item \textbf{Possível acumulação de dano:} Chuva e vento podem estar associados a efeitos imediatos e retardados; dados sobre causa e condição dos ativos seriam necessários para verificar se esses efeitos contribuem para as correlações agregadas.
 
-    \item \textbf{Redução da variância aleatória:} A agregação temporal suaviza o ruído estocástico diário --- interrupções causadas por acidentes de trânsito, vandalismo, falhas de equipamentos envelhecidos --- que diluem a correlação clima--falhas no nível diário. Ao agregar, o componente climático (sistemático) prevalece sobre o componente aleatório.
+    \item \textbf{Redução da variação diária:} A agregação suaviza oscilações de curto prazo de todas as séries e pode elevar correlações ao realçar tendências comuns, sem permitir separar um componente climático de outras causas não observadas.
 
-    \item \textbf{Efeito de \textit{threshold}:} Muitas falhas climáticas ocorrem quando limiares acumulados são ultrapassados. Um poste parcialmente comprometido por ventos moderados ao longo de uma semana pode colapsar sob uma rajada que, isoladamente, seria insuficiente para causar dano. A escala semanal captura essa dinâmica de acumulação.
+    \item \textbf{Possíveis efeitos de limiar:} Limiares acumulados de exposição são plausíveis, mas não foram testados neste estudo e exigem dados de ativos e causas das ocorrências.
 \end{enumerate}
 
-Esse achado possui implicação prática direta: modelos preditivos operando em \textbf{escala semanal} podem obter acurácias superiores àquelas reportadas neste trabalho (escala diária), ao custo de menor granularidade temporal. Para a concessionária, previsões semanais podem ser mais úteis para o planejamento logístico de equipes e materiais, enquanto previsões diárias são mais relevantes para a operação em tempo real.
+O padrão sugere testar modelos preditivos em \textbf{escala semanal}, ao custo de menor granularidade temporal. Para a concessionária, previsões semanais podem ser úteis ao planejamento logístico de equipes e materiais, enquanto previsões diárias permanecem mais alinhadas à operação de curto prazo.
 
 \section{Discussão sobre a Heteroscedasticidade}
 
@@ -213,7 +213,7 @@ Embora o período do El Niño 2023 integre o conjunto de treinamento (anterior a
 
 \section{Reflexão sobre a Escolha Metodológica: Engenharia de Atributos e Modelagem Sequencial}
 
-Uma reflexão metodológica importante emerge da comparação entre o XGBoost e as redes recorrentes: \textbf{todos os modelos receberam as mesmas 40 \textit{features} construídas com conhecimento de domínio}. A diferença é que Bi-LSTM e Bi-GRU processam essas variáveis em janelas sequenciais de 14 dias. A proximidade entre XGBoost e Bi-LSTM em $h=1$ mostra que as duas arquiteturas alcançaram desempenho semelhante sob essa representação comum, mas não demonstra que a rede substitua ou dispense a engenharia manual de atributos.
+Uma reflexão metodológica importante emerge da comparação entre o XGBoost e as redes recorrentes: \textbf{todos os modelos receberam as mesmas 41 variáveis por instante e compartilharam o corte temporal}. A diferença é que o XGBoost processa uma linha na origem, enquanto Bi-LSTM e Bi-GRU processam janelas sequenciais de 14 dias. A proximidade entre XGBoost e Bi-LSTM em $h=1$ mostra resultados semelhantes sob essas representações distintas, mas não demonstra que a rede substitua ou dispense a engenharia manual de atributos.
 
 O desempenho do XGBoost na avaliação \textit{one-step} é compatível com o uso de atributos de domínio em um conjunto de dados modesto (3.066 dias após a engenharia de atributos). Redes neurais profundas possuem potencial para extrair representações hierárquicas diretamente de dados menos processados \cite{goodfellow2016deep}; contudo, essa hipótese não foi testada neste trabalho, pois não se realizou uma comparação entre redes alimentadas por dados brutos e redes alimentadas pelas \textit{features} engenheiradas.
 

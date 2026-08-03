@@ -43,19 +43,20 @@ O trabalho desenvolve e avalia modelos preditivos para estimar o número diário
    - **Bi-LSTM** em PyTorch (2 camadas, hidden=64, Dropout=0.4, AdamW, 150 épocas, semente fixa)
    - **Bi-GRU** em PyTorch (mesma arquitetura da Bi-LSTM)
 
-4. **Avaliação multi-horizonte com previsão direta**: modelos independentes treinados para cada horizonte h ∈ {1, 3, 7, 14}, sem recursão — comparação causal e equânime com 352 datas-alvo idênticas por modelo e horizonte (14/06/2024 a 31/05/2025).
+4. **Avaliação multi-horizonte com previsão direta**: modelos independentes treinados para cada horizonte h ∈ {1, 3, 7, 14}, sem recursão — mesmas variáveis por instante, mesmo corte de origem e 352 datas-alvo idênticas por modelo e horizonte (14/06/2024 a 31/05/2025), com representação tabular no XGBoost e sequencial nas redes.
 
 ---
 
 ## Resultados
 
-### Avaliação principal (365 dias de teste, h=1 direto — todos os modelos com mesma informação)
+### Avaliação principal (365 dias de teste, h=1 direto — mesmas datas-alvo e mesmo corte causal)
 
 | Modelo | MAE | RMSE | R² | MAPE |
 |:---|:---:|:---:|:---:|:---:|
 | **XGBoost** | **61.09** | 99.72 | 0.409 | 20.64% |
 | **Bi-LSTM** | 62.71 | **98.80** | **0.420** | 20.94% |
 | Bi-GRU | 73.44 | 119.21 | 0.156 | 26.18% |
+| Persistência | 68.59 | 105.61 | 0.337 | 22.37% |
 
 ### Avaliação multi-horizonte com previsão direta (MAE, 352 alvos por horizonte)
 
@@ -66,7 +67,9 @@ O trabalho desenvolve e avalia modelos preditivos para estimar o número diário
 | h=7 dias | 83.83 | 79.49 | **73.61** |
 | h=14 dias | 71.34 | 67.69 | **64.31** |
 
-> **Achados principais**: (1) Em h=1, XGBoost e Bi-LSTM apresentam resultados próximos; (2) Para h≥3, as redes recorrentes superam o XGBoost: Bi-LSTM lidera em h=3, Bi-GRU lidera em h=7 e h=14. O XGBoost registra R²=-0.027 em h=7 (desempenho inferior ao baseline da média).
+O baseline ingênuo de persistência obteve MAE de 69.83, 86.22, 84.56 e 88.00 nos horizontes de 1, 3, 7 e 14 dias, respectivamente.
+
+> **Achados principais**: (1) Em h=1, XGBoost e Bi-LSTM apresentam resultados próximos e MAE inferior ao da persistência; (2) Para h≥3, a Bi-LSTM registra o menor MAE em h=3 e a Bi-GRU em h=7 e h=14. O XGBoost registra R²=-0.027 em h=7 (desempenho inferior ao baseline da média).
 
 ---
 
@@ -74,7 +77,7 @@ O trabalho desenvolve e avalia modelos preditivos para estimar o número diário
 
 ```
 TCC/
-├── Monografia/              # Texto integral em LaTeX (148 páginas)
+├── Monografia/              # Texto integral em LaTeX (PDF compilado)
 │   ├── tex/                 # Capítulos 1 a 6 + apêndices
 │   ├── img/                 # Figuras geradas em Python
 │   ├── monografia.tex       # Entrypoint (classe UnB-CIC)
@@ -89,6 +92,7 @@ TCC/
 │   │   ├── 04_eda_basica.py
 │   │   └── models/
 │   │       ├── baseline_xgboost.py
+│   │       ├── baseline_persistence.py
 │   │       ├── lstm_bidirecional.py
 │   │       ├── gru_avancada.py
 │   │       ├── previsao_multihorizonte.py   # avaliação multi-horizonte
@@ -125,6 +129,7 @@ Consulte [`Fonte/README.md`](Fonte/README.md) para instruções detalhadas de in
 cd Fonte/src/models
 
 python baseline_xgboost.py          # XGBoost (~1 min CPU)
+python baseline_persistence.py      # baseline ingênuo (segundos)
 python lstm_bidirecional.py         # Bi-LSTM (~5-10 min CPU/GPU)
 python gru_avancada.py              # Bi-GRU  (~5-10 min CPU/GPU)
 python previsao_multihorizonte.py   # análise multi-horizonte
