@@ -346,7 +346,7 @@ A Tabela~\ref{tab:longtable_features} apresenta o dicionário completo de todos 
 \node [block, below=1.2cm of aneel] (agg2) {Somatório Contínuo ($V_t$)};
 \node [block, below=1.2cm of $(agg1)!0.5!(agg2)$] (merge) {Fusão Horizontal (Pandas Merge)};
 \node [block, below=1.2cm of merge] (nan) {Interpolação Linear (NaNs)};
-\node [block, below=1.2cm of nan] (pearson) {Filtro de Multicolinearidade (Pearson $r < 0{,}90$)};
+\node [block, below=1.2cm of nan] (pearson) {Análise de Multicolinearidade (Pearson; sem exclusão)};
 \node [block, below=1.2cm of pearson, fill=green!10] (final) {Dataset Final (40 Features + Target)};
 
 % Paths
@@ -375,16 +375,16 @@ Para tratar as lacunas pontuais, aplicou-se \textbf{interpolação linear}, assu
 
 Essa estratégia preserva a continuidade temporal da série sem introduzir picos artificiais, sendo adequada para lacunas de poucos dias em variáveis meteorológicas de variação gradual.
 
-\subsection{Multicolinearidade e Seleção Dimensional de Recursos}
+\subsection{Análise de Multicolinearidade}
 A expansão do conjunto de preditores para mais de 40 variáveis, incluindo defasagens e médias móveis derivadas das mesmas séries originais, introduz o risco de \textbf{multicolinearidade}. Quando duas variáveis preditoras são altamente correlacionadas (por exemplo, \texttt{vento\_rajada\_max\_ms\_lag\_1} e \texttt{vento\_rajada\_max\_ms\_ema\_3}), ambas transmitem informação redundante ao modelo, o que pode inflacionar a variância dos coeficientes em modelos lineares e dificultar a interpretação da importância relativa das variáveis \cite{hastie2009elements}.
 
-Para identificar e remover variáveis redundantes, empregou-se a Correlação Produto-Momento de Pearson ($r$). O coeficiente mede a intensidade da associação linear entre duas variáveis, definido como a covariância normalizada pelo produto dos respectivos desvios padrão ($\sigma$):
+Para diagnosticar associações lineares e possíveis redundâncias entre variáveis, empregou-se a Correlação Produto-Momento de Pearson ($r$). O coeficiente mede a intensidade da associação linear entre duas variáveis, definido como a covariância normalizada pelo produto dos respectivos desvios padrão ($\sigma$):
 
 \begin{equation}
     r_{xy} = \frac{\sum_{i=1}^{n} (x_i - \bar{x})(y_i - \bar{y})}{\sqrt{\sum_{i=1}^{n} (x_i - \bar{x})^2} \sqrt{\sum_{i=1}^{n} (y_i - \bar{y})^2}} \quad \in [-1, 1]
 \end{equation}
 
-A matriz de correlação de Pearson (detalhada na Seção~\ref{sec:pearson}) foi utilizada para identificar pares de variáveis com correlação superior a $|r| > 0{,}90$. Nesses casos, manteve-se a variável com maior correlação com a variável \textit{target} (interrupções), removendo a variável redundante para reduzir a multicolinearidade sem perda de informação preditiva.
+A matriz de correlação de Pearson (detalhada na Seção~\ref{sec:pearson}) foi utilizada como diagnóstico de pares de variáveis com elevada associação linear, adotando-se $|r| > 0{,}90$ como limiar de inspeção. O \textit{pipeline} final não aplica filtro automático nem remove colunas com base nesse critério: as 40 \textit{features} construídas foram preservadas para os modelos, e a correlação foi utilizada apenas na análise exploratória e na interpretação das redundâncias. Essa decisão mantém a implementação reprodutível e evita atribuir ao experimento uma etapa de seleção dimensional que não foi executada.
 
 \section{Tratamento de Outliers e Qualidade dos Dados}\label{sec:outliers}
 
@@ -421,7 +421,7 @@ O protocolo adotado neste trabalho segue o paradigma de \textbf{separação temp
 
 % Training block
 \fill[blue!30] (0.5,0.3) rectangle (9.5,1.0);
-\node at (5,0.65) {\small\textbf{Treinamento + Validação (88\%)}};
+\node at (5,0.65) {\small\textbf{Treinamento (88\%)}};
 \node at (5,-0.4) {\small\textit{08/01/2017 --- 31/05/2024}};
 
 % Test block
@@ -443,7 +443,7 @@ O protocolo adotado neste trabalho segue o paradigma de \textbf{separação temp
 \label{fig:time_split}
 \end{figure}
 
-Dentro do conjunto de treinamento (2.700 linhas de origem para o XGBoost; 2.687 sequências para as redes neurais), o XGBoost utilizou \textbf{validação cruzada temporal} com 5 \textit{splits} (via \texttt{TimeSeriesSplit} do Scikit-Learn), onde cada \textit{fold} subsequente avança temporalmente, garantindo que a informação futura nunca contamine a avaliação.
+Dentro do conjunto de treinamento (2.700 linhas de origem para o XGBoost; 2.687 sequências para as redes neurais), somente o XGBoost utilizou \textbf{validação cruzada temporal} com 5 \textit{splits} (via \texttt{TimeSeriesSplit} do Scikit-Learn), em que cada \textit{fold} subsequente avança temporalmente. As redes Bi-LSTM e Bi-GRU foram treinadas por 150 épocas fixas, sem partição temporal interna de validação e sem \textit{early stopping}; o \texttt{ReduceLROnPlateau} monitorou exclusivamente a perda de treinamento. Em todos os casos, o conjunto de teste permaneceu isolado até a avaliação final.
 
 \subsection{Justificativa do Ponto de Corte}
 
@@ -545,7 +545,7 @@ A média diária de interrupções apresentou crescimento de 65,3\% entre 2017 (
 
 \section{Arquitetura Final dos Modelos}\label{sec:arquitetura_final}
 
-A Tabela~\ref{tab:hiperparametros} consolida os hiperparâmetros finais de cada modelo implementado, conforme determinados pela varredura \textit{Grid Search} (XGBoost) e pela exploração empírica guiada pelas curvas de aprendizado (redes neurais).
+A Tabela~\ref{tab:hiperparametros} consolida os hiperparâmetros finais de cada modelo implementado. No XGBoost, a configuração foi selecionada por \textit{Grid Search} temporal. Nas redes neurais, adotou-se uma configuração empírica final, sem validação temporal interna nem estudo de ablação exaustivo que permita afirmar a superioridade de duas camadas, 64 unidades, \textit{dropout} 0,4 ou 150 épocas sobre configurações alternativas.
 
 \begin{table}[H]
 \caption{Hiperparâmetros Finais dos Modelos Preditivos}
@@ -613,6 +613,8 @@ Adotou-se o protocolo de \textbf{previsão direta} para todos os modelos. Para c
 \end{itemize}
 
 Essa estratégia elimina a propagação de erros da abordagem recursiva e garante comparabilidade direta entre os três modelos. Como a primeira data-alvo comum é 14/06/2024, a primeira origem em $h=14$ é 31/05/2024; portanto, nenhum rótulo de treinamento nem parâmetro de normalização é posterior à origem da primeira previsão. Cada modelo recebe apenas informação disponível até o dia $t$ e prevê diretamente o alvo $h$ dias à frente, sem depender de estimativas intermediárias.
+
+Para o XGBoost, cada horizonte recebe um novo ajuste sobre os respectivos pares entrada--alvo, mas reutiliza os hiperparâmetros selecionados pelo \textit{Grid Search} da avaliação principal em $h=1$. Portanto, a análise multi-horizonte mede a estabilidade dessa configuração entre horizontes e não representa uma reotimização independente do XGBoost para cada valor de $h$.
 
 \subsection{Comparação Temporal e Mensal das Previsões}
 

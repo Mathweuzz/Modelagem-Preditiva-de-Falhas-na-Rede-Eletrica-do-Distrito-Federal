@@ -220,7 +220,7 @@ A Figura~\ref{fig:eda_boxplot} ilustra a sazonalidade através de \textit{Boxplo
     \label{fig:eda_boxplot}
 \end{figure}
 
-Para identificar relações lineares entre as variáveis e detectar multicolinearidade, a matriz de correlação de Pearson (Figura~\ref{fig:eda_heatmap}) apresenta os coeficientes de correlação entre todas as variáveis do conjunto de dados \cite{hastie2009elements}. Os coeficientes mais elevados (representados por cores quentes) entre variáveis climáticas e interrupções confirmam a relevância dessas covariáveis para a modelagem preditiva, enquanto correlações próximas de zero justificam a exclusão de variáveis com baixo poder preditivo.
+Para identificar relações lineares entre as variáveis e diagnosticar multicolinearidade, a matriz de correlação de Pearson (Figura~\ref{fig:eda_heatmap}) apresenta os coeficientes de correlação entre todas as variáveis do conjunto de dados \cite{hastie2009elements}. Os coeficientes mais elevados (representados por cores quentes) sinalizam associações lineares relevantes, enquanto correlações próximas de zero indicam baixa associação linear isolada. Essa análise teve caráter exploratório; nenhuma variável foi excluída automaticamente com base na matriz.
 
 \begin{figure}[H]
     \centering
@@ -375,7 +375,7 @@ A fim de ratificar matematicamente as variações probabilísticas de cada arqui
     \label{fig:kde_residuos}
 \end{figure}
 
-Observa-se que as redes recorrentes (Bi-LSTM e Bi-GRU) apresentam distribuições residuais mais leptocúrticas (picos mais elevados e concentrados em torno de zero), indicando que seus erros são frequentemente pequenos nos dias de operação normal. Já a distribuição do XGBoost é mais platicúrtica (pico mais achatado), porém com caudas mais controladas, refletindo sua menor variância nos erros extremos. Essa complementaridade evidencia que as redes neurais são mais precisas nos dias típicos, enquanto o XGBoost é mais robusto perante anomalias.
+Observa-se que as redes recorrentes (Bi-LSTM e Bi-GRU) apresentam distribuições KDE com maior densidade próxima de zero, enquanto o XGBoost apresenta pico mais achatado e caudas mais controladas. A forma da densidade descreve a distribuição global dos resíduos, mas não demonstra menor MAE das redes nos dias normais. Ao contrário, a segmentação por severidade da Tabela~\ref{tab:erro_faixa} mostra que o XGBoost possui o menor MAE nas três faixas, inclusive na normal (30,1 contra 47,4 da Bi-LSTM e 66,4 da Bi-GRU).
 
 Para averiguar a premissa linear clássica da homocedasticidade (variância constante do erro), compilou-se o Diagrama de Dispersão Residual do modelo vencedor neural (Bi-LSTM) (Figura~\ref{fig:scatter_hetero}). É nítida a característica heterocedástica imposta pela natureza intermitente da rede elétrica: quanto maior a escala de interrupções reais num dado temporal agressivo, maior dilata-se o cone de dispersão preditiva.
 
@@ -394,7 +394,7 @@ A inclusão desse período no conjunto de treinamento permite que os modelos apr
 
 \section{Análise das Curvas de Aprendizado}\label{sec:learning_curves}
 
-As curvas de aprendizado (\textit{Learning Curves}) permitem diagnosticar se os modelos neurais sofrem de \textit{underfitting} (subajuste) ou \textit{overfitting} (sobreajuste). A Figura~\ref{fig:learning_curves} apresenta a evolução da perda de treinamento (MSE) ao longo das 150 épocas para Bi-LSTM e Bi-GRU.
+As curvas da Figura~\ref{fig:learning_curves} apresentam a evolução da perda de treinamento (MSE) ao longo das 150 épocas para Bi-LSTM e Bi-GRU. Elas permitem verificar convergência e estabilidade numérica no conjunto de treino, mas, por não incluírem uma curva de validação independente, não permitem diagnosticar ou excluir \textit{overfitting} (sobreajuste).
 
 Para a \textbf{Bi-LSTM} (Figura~\ref{fig:learning_curves}, esquerda), observa-se que a perda de treinamento decresce de forma consistente e estabiliza-se nas épocas finais, sem oscilações abruptas. As curvas mostram apenas a convergência da função de perda no conjunto de treino; sem uma curva de validação independente, não é possível diagnosticar ou excluir sobreajuste com base apenas nessas figuras.
 

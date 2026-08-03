@@ -11,7 +11,7 @@ Os principais achados são:
 
     \item \textbf{Desempenhos próximos entre XGBoost e Bi-LSTM para $h=1$:} Sob protocolo unificado de previsão $h=1$, o XGBoost (MAE $= 61{,}1$, $R^2 = 0{,}409$) e a Bi-LSTM (MAE $= 62{,}7$, $R^2 = 0{,}420$) apresentaram desempenhos descritivamente próximos (diferença de 2,7\% em MAE), enquanto a Bi-GRU ficou em terceiro lugar ($R^2 = 0{,}156$). Esse resultado demonstra que a engenharia de atributos explícita (40 \textit{features}) pode equiparar-se à extração automática de padrões sequenciais das redes recorrentes no domínio de previsão de um dia à frente.
 
-    \item \textbf{Redes recorrentes com distribuição residual mais concentrada:} Em $h=1$, as redes Bi-LSTM e Bi-GRU apresentaram distribuições residuais mais leptocúrticas (concentradas em zero), sugerindo maior precisão em parte dos dias de menor volume, com penalização nos eventos extremos.
+    \item \textbf{Redes recorrentes com maior densidade residual próxima de zero:} Em $h=1$, as curvas KDE da Bi-LSTM e da Bi-GRU apresentaram picos mais concentrados em torno de zero. Essa característica não implica menor MAE nos dias normais: na segmentação por severidade, o XGBoost obteve o menor MAE em todas as faixas.
 
     \item \textbf{Tendência de crescimento nas interrupções:} A média diária de interrupções cresceu 65,3\% entre 2017 (183,5) e 2025 (303,4). Esse crescimento é descritivo e não permite inferência causal com as variáveis disponíveis; sua explicação demanda dados adicionais sobre ativos, manutenção, expansão da rede e causas das ocorrências.
 
@@ -57,7 +57,7 @@ Os resultados e limitações identificados neste trabalho abrem diversas frentes
 
     \item \textbf{Arquiteturas Transformer:} A aplicação de arquiteturas baseadas em mecanismos de atenção (\textit{Transformers}), como o \textit{Temporal Fusion Transformer} (TFT) proposto por \cite{lim2021temporal}, poderia superar tanto o XGBoost quanto as RNNs ao modelar dependências de longo e curto prazo simultaneamente, com interpretabilidade nativa via pesos de atenção.
 
-    \item \textbf{Modelos híbridos (Ensemble):} A dualidade observada entre XGBoost (robusto em extremos) e Bi-LSTM (precisa em dias normais) sugere a criação de modelos \textit{ensemble} que combinem ambas as arquiteturas, potencialmente atribuindo pesos dinâmicos conforme a previsão meteorológica do dia.
+    \item \textbf{Modelos híbridos (Ensemble):} As diferenças observadas entre as formas das distribuições residuais e o desempenho por horizonte sugerem investigar modelos \textit{ensemble} que combinem XGBoost e redes recorrentes, com pesos calibrados em validação temporal e condicionados à antecedência da previsão.
 
     \item \textbf{Expansão geográfica:} A replicação da metodologia para concessionárias de outros biomas brasileiros --- como o Litoral Nordestino (exposição marítima), a Bacia Amazônica (regime pluviométrico equatorial) ou a região Sul (geadas e ciclones extratropicais) --- permitiria avaliar a generalização dos modelos e construir um sistema preditivo nacional.
 

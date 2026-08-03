@@ -44,7 +44,7 @@ Engenharia Manual & Necessária (40 features) & Potencialmente dispensável \\
 
 Uma vantagem frequentemente subestimada do XGBoost é a \textbf{interpretabilidade}. Conforme evidenciado pela Figura~\ref{fig:importancia} (Capítulo~\ref{4_Resultados}), o modelo fornece nativamente a importância relativa de cada \textit{feature}, permitindo que engenheiros da Neoenergia identifiquem quais variáveis climáticas são mais determinantes para a previsão. Essa transparência é crítica em contextos regulados, onde decisões operacionais precisam ser justificadas perante a ANEEL \cite{rudin2019stop}.
 
-Em contrapartida, as redes recorrentes demonstraram uma propriedade relevante na distribuição residual (Seção~\ref{sec:residuais}): suas distribuições KDE são mais concentradas em torno de zero (mais leptocúrticas), indicando que ``acertam mais vezes'' nos dias normais, embora errem mais nos extremos. Isso sugere que, com dados adicionais e em cenários de maior complexidade temporal (resolução horária, por exemplo), as redes recorrentes poderiam superar o XGBoost.
+Em contrapartida, as redes recorrentes demonstraram uma propriedade relevante na distribuição residual (Seção~\ref{sec:residuais}): suas distribuições KDE apresentam maior densidade próxima de zero. Essa forma, isoladamente, não implica menor MAE nos dias normais; a análise segmentada mostra que o XGBoost obteve o menor MAE em todas as faixas de severidade. Com dados adicionais e em cenários de maior complexidade temporal (resolução horária, por exemplo), permanece como hipótese de trabalho avaliar se as redes recorrentes poderiam superar o XGBoost.
 
 \section[Inversão da Hierarquia por Horizonte]{Inversão da Hierarquia no Contexto Multi-\hspace{0pt}Horizonte}\label{sec:discussao_multihorizonte}
 
@@ -145,7 +145,7 @@ Além das métricas de acurácia, a viabilidade operacional dos modelos preditiv
 \toprule
 \textbf{Critério} & \textbf{XGBoost} & \textbf{Bi-LSTM} & \textbf{Bi-GRU} \\
 \midrule
-Parâmetros treináveis & $\sim$5.000 nós & $\sim$63.600 & $\sim$49.900 \\
+Parâmetros treináveis & $\sim$5.000 nós & 162.433 & 123.905 \\
 Tempo de treino (CPU) & $<$ 2 min & $\sim$25 min & $\sim$20 min \\
 Necessidade de GPU & Nenhuma & Recomendável & Recomendável \\
 Tempo de inferência & $<$ 1 ms/dia & $\sim$5 ms/dia & $\sim$4 ms/dia \\

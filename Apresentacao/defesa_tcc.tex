@@ -301,19 +301,19 @@ Orientador: Prof. Jan Mendonça Corrêa}
     \fill[UnBBlue!28] (0.4,0.35) rectangle (9.7,1.1);
     \fill[UnBGreen!35] (9.7,0.35) rectangle (13.8,1.1);
     \draw[very thick,dashed,UnBBlue] (9.7,0.05) -- (9.7,1.45);
-    \node at (5.05,0.72) {\textbf{Treinamento + validação temporal}};
+    \node at (5.05,0.72) {\textbf{Treinamento}};
     \node at (11.75,0.72) {\textbf{Teste}};
     \node[font=\scriptsize] at (5.05,-0.35) {08/01/2017 -- 31/05/2024};
     \node[font=\scriptsize] at (11.75,-0.35) {14/06/2024 -- 31/05/2025};
-    \node[font=\scriptsize,align=center] at (5.05,1.55) {$\approx$ 2.700 dias\\5 divisões temporais};
+    \node[font=\scriptsize,align=center] at (5.05,1.55) {$\approx$ 2.700 dias\\5 divisões: só XGBoost};
     \node[font=\scriptsize,align=center] at (11.75,1.55) {352 datas-alvo\\iguais por horizonte};
   \end{tikzpicture}
 
   \vspace{1.2em}
   \begin{itemize}
+    \item XGBoost: \texttt{TimeSeriesSplit} no treino; RNNs: 150 épocas fixas, sem validação interna.
     \item Normalização ajustada com dados até 31/05/2024.
-    \item Modelos independentes para cada horizonte.
-    \item Nenhuma previsão intermediária é reutilizada.
+    \item Modelos diretos independentes; nenhuma previsão intermediária é reutilizada.
   \end{itemize}
 
   \source{Monografia, Seções 3.6, 3.7 e 3.10.}
@@ -531,7 +531,7 @@ Orientador: Prof. Jan Mendonça Corrêa}
     \end{column}
   \end{columns}
 
-  \source{Elaboração dos autores; 352 alvos causais idênticos por horizonte.}
+  \source{Elaboração dos autores; 352 alvos causais; XGBoost reutiliza os hiperparâmetros de $h=1$.}
   \note{%
     Apresentador: Mateus. Tempo-alvo: 1 minuto e 40 segundos.
     Este é o principal resultado comparativo. Explicar que cada ponto vem de um modelo treinado diretamente para aquele horizonte.
@@ -722,7 +722,7 @@ Orientador: Prof. Jan Mendonça Corrêa}
       \toprule
       Critério & XGBoost & Bi-LSTM & Bi-GRU \\
       \midrule
-      Parâmetros/nós & $\sim$5.000 nós & $\sim$63.600 & $\sim$49.900 \\
+      Parâmetros/nós & $\sim$5.000 nós & 162.433 & 123.905 \\
       Treino em CPU & $<2$ min & $\sim$25 min & $\sim$20 min \\
       GPU & Não & Sim & Sim \\
       Inferência & $<1$ ms/dia & $\sim$5 ms/dia & $\sim$4 ms/dia \\
