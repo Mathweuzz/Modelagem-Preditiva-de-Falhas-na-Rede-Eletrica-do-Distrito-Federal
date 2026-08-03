@@ -237,7 +237,7 @@ def render_overview(df: pd.DataFrame) -> None:
 
     st.markdown("### Resumo multi-horizonte")
     st.caption(
-        "Comparação causal dos horizontes de 1, 3, 7 e 14 dias em 352 datas-alvo."
+        "Comparação temporal dos horizontes de 1, 3, 7 e 14 dias em 352 datas-alvo."
     )
     try:
         metrics, _ = cached_reference_results()

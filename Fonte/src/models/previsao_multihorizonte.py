@@ -8,7 +8,8 @@ Para cada horizonte h em {1, 3, 7, 14}:
   informacao historica), prever interrupcoes[t+h].
 
   Protocolo:
-  - Todos os modelos recebem a mesma informacao historica ate o dia t.
+  - Todos os modelos usam as mesmas 41 variaveis por instante e o mesmo corte.
+    O XGBoost recebe uma linha em t; as RNNs recebem 14 linhas ate t.
   - O treino usa alvos estritamente anteriores a 01/06/2024.
   - O teste comum usa dias-alvo em [14/06/2024, 31/05/2025] = 352 datas.
   - Esse inicio garante que, ate para h=14, a primeira data de origem

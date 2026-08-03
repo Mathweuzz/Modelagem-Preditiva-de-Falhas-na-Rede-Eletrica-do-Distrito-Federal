@@ -502,17 +502,35 @@ def _run_arimax(
     features = [column for column in ARIMAX_FEATURES if column in X_train.columns]
     standardizer = StandardScaler()
     exog_train = standardizer.fit_transform(X_train[features])
-    exog_test = standardizer.transform(X_test[features])
-
     endog = pd.Series(y_train.to_numpy(dtype=float), index=train_targets)
     exog_train_df = pd.DataFrame(
         exog_train,
         index=train_targets,
         columns=features,
     )
-    exog_test_df = pd.DataFrame(
-        exog_test,
-        index=test_targets,
+    # O componente autorregressivo precisa avançar por todas as datas posteriores
+    # ao último alvo de treino. Quando a avaliação começa após uma lacuna causal
+    # (por exemplo, h=14), prever apenas ``len(test_targets)`` passos faria o
+    # Statsmodels gerar valores para datas anteriores e estes seriam rotulados
+    # incorretamente com as datas de teste. Construímos, portanto, as covariáveis
+    # de todos os alvos intermediários e selecionamos o recorte solicitado somente
+    # depois de atualizar o estado do ARIMAX ao longo da lacuna.
+    forecast_targets = pd.date_range(
+        train_targets.max() + pd.Timedelta(days=1),
+        test_targets.max(),
+        freq="D",
+    )
+    forecast_origins = forecast_targets - pd.Timedelta(days=horizon)
+    missing_origins = forecast_origins.difference(df.index)
+    if not missing_origins.empty:
+        raise ValueError(
+            "Faltam datas de origem para avançar o ARIMAX até o período de teste: "
+            f"{missing_origins.min().date()} a {missing_origins.max().date()}."
+        )
+    exog_forecast = standardizer.transform(df.loc[forecast_origins, features])
+    exog_forecast_df = pd.DataFrame(
+        exog_forecast,
+        index=forecast_targets,
         columns=features,
     )
 
@@ -526,10 +544,11 @@ def _run_arimax(
             enforce_stationarity=False,
             enforce_invertibility=False,
         ).fit(disp=False, maxiter=100)
-        predictions = fitted.get_forecast(
-            steps=len(exog_test_df),
-            exog=exog_test_df,
-        ).predicted_mean.to_numpy()
+        forecast = fitted.get_forecast(
+            steps=len(exog_forecast_df),
+            exog=exog_forecast_df,
+        ).predicted_mean
+        predictions = forecast.loc[test_targets].to_numpy()
 
     return _prediction_rows(
         "ARIMAX",
