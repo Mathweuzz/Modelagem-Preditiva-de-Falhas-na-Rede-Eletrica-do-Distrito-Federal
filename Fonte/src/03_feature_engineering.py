@@ -70,7 +70,10 @@ def fix_continuity(df):
     if 'n_registros' in df.columns:
         df = df.drop(columns=['n_registros'])
 
-    # Interpolar apenas variaveis meteorologicas
+    # Reconstrucao historica offline: a interpolacao linear usa pontos anteriores
+    # e posteriores, portanto nao e causal. Em producao, usar imputacao baseada
+    # somente nas observacoes disponiveis ate o instante corrente.
+    # Interpolar apenas variaveis meteorologicas.
     meteo_present = [c for c in METEO_COLUMNS if c in df.columns]
     n_before = df[meteo_present].isnull().sum().sum()
     df[meteo_present] = df[meteo_present].interpolate(method='linear',

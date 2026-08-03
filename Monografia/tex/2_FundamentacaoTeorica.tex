@@ -262,7 +262,7 @@ Essa concatenação resulta num vetor de dimensão $2 \times d_h$ (onde $d_h$ é
 Na implementação deste trabalho, ambas as redes (Bi-LSTM e Bi-GRU) utilizam $d_h = 64$ unidades ocultas por direção, resultando em vetores concatenados de dimensão 128. A saída da camada recorrente bidirecional é o estado oculto do último passo temporal ($\mathbf{h}_T$), que é passado por uma camada densa (\textit{fully connected}) com ativação ReLU para produzir a previsão escalar final (número de interrupções previstas para o dia $T+1$).
 
 \subsection{Gated Recurrent Unit (GRU)}
-Proposta por \cite{cho2014learning} como uma alternativa computacionalmente mais eficiente à LSTM, a GRU (\textit{Gated Recurrent Unit}) elimina o \textit{Cell State} separado e reduz o número de portões de três para dois: o \textit{Update Gate} ($\mathbf{z}_t$) e o \textit{Reset Gate} ($\mathbf{r}_t$). Essa simplificação reduz em aproximadamente um terço o número de parâmetros treináveis em relação à LSTM para uma mesma dimensão oculta.
+Proposta por \cite{cho2014learning} como uma alternativa computacionalmente mais eficiente à LSTM, a GRU (\textit{Gated Recurrent Unit}) elimina o \textit{Cell State} separado e reduz o número de portões de três para dois: o \textit{Update Gate} ($\mathbf{z}_t$) e o \textit{Reset Gate} ($\mathbf{r}_t$). Essa simplificação reduz o número de parâmetros treináveis em relação à LSTM para uma mesma dimensão oculta. Na implementação deste trabalho, a Bi-GRU possui 123.905 parâmetros, aproximadamente 24\% menos que os 162.433 parâmetros da Bi-LSTM.
 
 As equações completas da GRU são \cite{cho2014learning, brownlee2018machine}:
 \begin{enumerate}

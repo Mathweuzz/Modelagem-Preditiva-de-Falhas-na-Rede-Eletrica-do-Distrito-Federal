@@ -29,12 +29,12 @@ A comparação entre os paradigmas vai além das métricas numéricas. A Tabela~
 \midrule
 Acurácia Geral ($h=1$, 365 dias) & $R^2 = 0{,}409$, MAE $= 61{,}1$ & Bi-LSTM: $R^2 = 0{,}420$, MAE $= 62{,}7$ \\
 Previsão $h>1$ (direto) & Queda acentuada ($R^2 \approx 0$ em $h=7$) & \textbf{Bi-GRU} lidera em $h=7$ e $h=14$ \\
-Velocidade de Treino & Minutos & Horas (150 épocas) \\
+Velocidade de Treino & $<2$ min & 20--25 min (150 épocas) \\
 Interpretabilidade & Alta (\textit{Feature Importance}) & Baixa (caixa-preta) \\
 Necessidade de GPU & Não & Recomendável \\
 Escalabilidade & Alta (paralelismo nativo) & Limitada pelo BPTT \\
 Sensibilidade a Outliers & Conservador (regularização) & Maior volatilidade \\
-Engenharia Manual & Necessária (40 features) & Potencialmente dispensável \\
+Engenharia de Atributos & 40 \textit{features} & Mesmas 40 \textit{features} + janela de 14 dias \\
 \bottomrule
 \end{tabular}
 \normalsize
@@ -211,10 +211,10 @@ O conjunto de treinamento (janeiro/2017 a maio/2024) inclui integralmente o per�
 
 Embora o período do El Niño 2023 integre o conjunto de treinamento (anterior ao corte em junho/2024), sua presença como evento singular de forte intensidade na série levanta uma questão relevante sobre generalização: caso futuros eventos ENSO de intensidade similar ocorram durante o período de previsão, os modelos terão aprendido com apenas um exemplar desse tipo de anomalia. A incorporação de teleconexões climáticas --- como o Oceanic Niño Index (ONI) --- e de dados de períodos anteriores (El Niño 2015--2016) emerge como uma direção promissora para aumentar a robustez dos modelos preditivos perante perturbações climáticas de larga escala.
 
-\section{Reflexão sobre a Escolha Metodológica: Engenharia Manual vs. Automática}
+\section{Reflexão sobre a Escolha Metodológica: Engenharia de Atributos e Modelagem Sequencial}
 
-Uma reflexão metodológica importante emerge da comparação entre o XGBoost e as redes recorrentes: a \textbf{engenharia de atributos manual} (40 \textit{features} explicitamente construídas com conhecimento de domínio) \textbf{equiparou-se} à capacidade de \textbf{extração automática de representações} da Bi-LSTM, empatando em MAE e $R^2$ para $h=1$. Esse resultado dialoga com o debate mais amplo na comunidade de \textit{Machine Learning} sobre a relação entre investimento em engenharia de dados versus complexidade arquitetural.
+Uma reflexão metodológica importante emerge da comparação entre o XGBoost e as redes recorrentes: \textbf{todos os modelos receberam as mesmas 40 \textit{features} construídas com conhecimento de domínio}. A diferença é que Bi-LSTM e Bi-GRU processam essas variáveis em janelas sequenciais de 14 dias. A proximidade entre XGBoost e Bi-LSTM em $h=1$ mostra que as duas arquiteturas alcançaram desempenho semelhante sob essa representação comum, mas não demonstra que a rede substitua ou dispense a engenharia manual de atributos.
 
-O sucesso do XGBoost na avaliação \textit{one-step} com \textit{features} manuais pode ser atribuído ao tamanho modesto do conjunto de dados (3.066 dias após engenharia de atributos). Em regimes de dados abundantes (milhões de observações), as redes neurais profundas tipicamente superam modelos tabulares ao extrair automaticamente representações hierárquicas que transcendem a capacidade de engenharia humana \cite{goodfellow2016deep}. Contudo, em regimes de dados escassos --- comuns em aplicações de engenharia elétrica onde séries históricas longas nem sempre estão disponíveis --- o conhecimento de domínio codificado em \textit{features} manuais compensa a limitação amostral.
+O desempenho do XGBoost na avaliação \textit{one-step} é compatível com o uso de atributos de domínio em um conjunto de dados modesto (3.066 dias após a engenharia de atributos). Redes neurais profundas possuem potencial para extrair representações hierárquicas diretamente de dados menos processados \cite{goodfellow2016deep}; contudo, essa hipótese não foi testada neste trabalho, pois não se realizou uma comparação entre redes alimentadas por dados brutos e redes alimentadas pelas \textit{features} engenheiradas.
 
 Essa evidência sugere que, para concessionárias brasileiras que desejem implementar modelos preditivos com dados históricos limitados ($<$10.000 dias), a abordagem recomendada é investir na engenharia de atributos informada por conhecimento de domínio (defasagens, médias móveis, codificações sazonais) e combinar modelos tabulares (XGBoost, LightGBM) com redes recorrentes, escolhendo a arquitetura conforme o horizonte de previsão operacional desejado.

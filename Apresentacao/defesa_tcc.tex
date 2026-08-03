@@ -434,14 +434,14 @@ Orientador: Prof. Jan Mendonça Corrêa}
       \keynumber{2,7\%}{diferença de MAE entre XGBoost e Bi-LSTM}
       \vspace{1.0em}
       \textbf{Interpretação}\\
-      A engenharia manual de atributos equiparou a memória aprendida pela Bi-LSTM no curtíssimo prazo.
+      Com as mesmas 40 \textit{features}, XGBoost e Bi-LSTM tiveram desempenho próximo em $h=1$.
     \end{column}
   \end{columns}
 
   \source{Elaboração dos autores; 365 dias de teste.}
   \note{%
     Apresentador: Mateus. Tempo-alvo: 1 minuto e 30 segundos.
-    Evitar declarar vencedor absoluto: XGBoost vence em MAE/MAPE; Bi-LSTM em RMSE e R2.
+    Evitar declarar vencedor absoluto: XGBoost vence em MAE/MAPE; Bi-LSTM em RMSE e R2. Ambos recebem as mesmas features engenheiradas.
     [Sources] Monografia, Tabela 4.2; arquivos de métricas do repositório.
   }
 \end{frame}

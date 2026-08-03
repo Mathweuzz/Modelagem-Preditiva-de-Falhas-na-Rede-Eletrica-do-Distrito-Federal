@@ -367,13 +367,13 @@ A Tabela~\ref{tab:longtable_features} apresenta o dicionário completo de todos 
 \subsection{Engenharia de Interpolação de Valores Ausentes (NaNs)}
 A continuidade temporal é um requisito fundamental para modelos baseados em janelas deslizantes. Eventuais valores ausentes (\textit{NaN}) nos dados meteorológicos --- causados por falhas nos sensores da estação INMET --- não podem ser simplesmente descartados, pois a remoção de um dia da série interromperia a janela de \textit{lookback} de 14 dias utilizada pelas redes recorrentes.
 
-Para tratar as lacunas pontuais, aplicou-se \textbf{interpolação linear}, assumindo que a variação das grandezas climáticas em intervalos curtos (1--2 dias) é aproximadamente linear. Para um ponto ausente $x$ entre dois pontos conhecidos $(x_0, y_0)$ e $(x_1, y_1)$, o valor interpolado é:
+Para tratar a lacuna pontual, aplicou-se \textbf{interpolação linear}, assumindo que a variação da grandeza climática no intervalo curto é aproximadamente linear. Na base utilizada, havia um único valor meteorológico ausente: \texttt{temperatura\_media} em 03/01/2018, integralmente dentro do período de treinamento. Para um ponto ausente $x$ entre dois pontos conhecidos $(x_0, y_0)$ e $(x_1, y_1)$, o valor interpolado é:
 
 \begin{equation}
     y = y_0 + (x - x_0) \frac{y_1 - y_0}{x_1 - x_0}
 \end{equation}
 
-Essa estratégia preserva a continuidade temporal da série sem introduzir picos artificiais, sendo adequada para lacunas de poucos dias em variáveis meteorológicas de variação gradual.
+Essa estratégia preserva a continuidade da reconstrução histórica, mas não é estritamente causal, pois utiliza observações anteriores e posteriores ao ponto ausente. Como a única lacuna ocorre em janeiro de 2018, ela não transfere informação do período de teste de 2024--2025 para o treinamento. Em uma implantação em tempo real, a imputação deverá empregar somente informações disponíveis até o instante corrente, por exemplo, preenchimento pelo último valor observado ou um método causal equivalente.
 
 \subsection{Análise de Multicolinearidade}
 A expansão do conjunto de preditores para mais de 40 variáveis, incluindo defasagens e médias móveis derivadas das mesmas séries originais, introduz o risco de \textbf{multicolinearidade}. Quando duas variáveis preditoras são altamente correlacionadas (por exemplo, \texttt{vento\_rajada\_max\_ms\_lag\_1} e \texttt{vento\_rajada\_max\_ms\_ema\_3}), ambas transmitem informação redundante ao modelo, o que pode inflacionar a variância dos coeficientes em modelos lineares e dificultar a interpretação da importância relativa das variáveis \cite{hastie2009elements}.
@@ -400,7 +400,7 @@ Optou-se deliberadamente por \textbf{não remover} os \textit{outliers} da séri
     \item \textbf{Robustez do XGBoost:} O mecanismo de regularização do XGBoost (parâmetros $\gamma$, \texttt{max\_depth}, \texttt{subsample}) confere robustez intrínseca a \textit{outliers}, limitando o impacto de valores extremos individuais sobre a estrutura global das árvores \cite{chen2016xgboost}. Para as redes neurais, a normalização Min-Max comprime os extremos ao intervalo $[0, 1]$, atenuando naturalmente seu efeito sobre os gradientes.
 \end{enumerate}
 
-A qualidade dos dados meteorológicos do INMET foi verificada através de três critérios: (i) \textbf{completude temporal}, confirmando a ausência de lacunas superiores a 3 dias consecutivos na série; (ii) \textbf{consistência física}, validando que todos os valores de temperatura, precipitação e vento situam-se dentro dos limites climatológicos esperados para o Cerrado; e (iii) \textbf{consistência cruzada}, verificando que dias com precipitação elevada ($>30$ mm) coincidem com rajadas de vento superiores à mediana, conforme esperado pela dinâmica das tempestades convectivas. Das 3.073 observações, apenas 12 apresentaram valores ausentes (0,39\%), tratados por interpolação linear conforme descrito anteriormente.
+A qualidade dos dados meteorológicos do INMET foi verificada através de três critérios: (i) \textbf{completude temporal}, confirmando a ausência de lacunas superiores a 3 dias consecutivos na série; (ii) \textbf{consistência física}, validando que todos os valores de temperatura, precipitação e vento situam-se dentro dos limites climatológicos esperados para o Cerrado; e (iii) \textbf{consistência cruzada}, verificando que dias com precipitação elevada ($>30$ mm) coincidem com rajadas de vento superiores à mediana, conforme esperado pela dinâmica das tempestades convectivas. Das 3.073 observações, uma (0,03\%) continha um valor meteorológico ausente, tratado por interpolação linear conforme descrito anteriormente.
 
 \section{Separação Temporal e Validação Cruzada}\label{sec:protocolo_validacao}
 
