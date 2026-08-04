@@ -353,9 +353,9 @@ Para quantificar a dependência do erro em relação à magnitude das interrupç
 \toprule
 \textbf{Faixa} & \textbf{Dias (\%)} & \textbf{XGBoost} & \textbf{Bi-LSTM} & \textbf{Bi-GRU} \\
 \midrule
-Normal ($< 200$) & 20,3\% & 30,1 & 47,4 & 66,4 \\
-Moderada (200--400) & 66,0\% & 38,9 & 50,0 & 61,8 \\
-Severa ($> 400$) & 13,7\% & 135,9 & 146,8 & 140,1 \\
+Normal ($< 200$) & 20,3\% & 44,6 & 47,9 & 66,9 \\
+Moderada (200--400) & 66,0\% & 50,6 & 49,8 & 61,7 \\
+Severa ($> 400$) & 13,7\% & 136,0 & 146,8 & 140,1 \\
 \bottomrule
 \end{tabular}
 \normalsize
@@ -363,7 +363,7 @@ Severa ($> 400$) & 13,7\% & 135,9 & 146,8 & 140,1 \\
 \small{Fonte: Elaborado pelos autores (2026).}
 \end{table}
 
-Os resultados mostram que o erro de todos os modelos aumenta substancialmente nos dias de operação severa ($>400$ interrupções), nos quais o MAE do XGBoost é cerca de 4,5 vezes o observado na faixa normal (135,9 vs. 30,1). O XGBoost apresenta o menor MAE observado nas três faixas. Na faixa moderada (200--400 interrupções), que representa a maioria dos dias de teste (66,0\%), o XGBoost alcança MAE de 38,9 contra 50,0 da Bi-LSTM e 61,8 da Bi-GRU. A concentração de 66,0\% dos dias na faixa moderada reflete o período de teste (junho/2024 a maio/2025), que abrange tanto a estação seca quanto a chuvosa do Cerrado.
+Os resultados mostram que o erro de todos os modelos aumenta substancialmente nos dias de operação severa ($>400$ interrupções), nos quais o MAE do XGBoost é cerca de 3 vezes o observado na faixa normal (136,0 vs. 44,6). O XGBoost apresenta o menor MAE observado na faixa normal. Na faixa moderada (200--400 interrupções), que representa a maioria dos dias de teste (66,0\%), a Bi-LSTM é ligeiramente melhor do que os dois modelos: alcança MAE de 49,8 contra 66,0 do XGBoost e 61,7 da Bi-GRU. A concentração de 66,0\% dos dias na faixa moderada reflete o período de teste (junho/2024 a maio/2025), que abrange tanto a estação seca quanto a chuvosa do Cerrado.
 
 \section{Análise da Distribuição Residual (KDE)}\label{sec:residuais}
 A fim de ratificar matematicamente as variações probabilísticas de cada arquitetura, abstraiu-se a Função de Densidade de Probabilidade (PDF) do Erro Residual ($e_t = y_t - \hat{y}_t$) de toda a partição do Bloco de Testes. A estimativa não-paramétrica \textit{Kernel Density Estimation} (KDE) foi computada com \textit{kernel} Gaussiano, conforme apresentado na Figura~\ref{fig:kde_residuos}.
