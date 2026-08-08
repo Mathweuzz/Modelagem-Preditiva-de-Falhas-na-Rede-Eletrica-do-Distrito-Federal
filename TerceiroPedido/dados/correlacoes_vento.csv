@@ -1,6 +1,6 @@
 variavel,pearson_r
-vento_direcao_media_gr,0.3664921362972562
-vento_rajada_max_ms,0.2530266267421241
-vento_direcao_moda_gr,0.18119134241216547
-vento_velocidade_max_ms,0.01572791530455836
-vento_velocidade_media_ms,-0.19394694693918837
+vento_rajada_max_ms,0.25440107936572165
+vento_dir_cos,0.21027429732012476
+vento_velocidade_max_ms,0.033575157164898325
+vento_velocidade_media_ms,-0.14905456422730237
+vento_dir_sin,-0.34535913178336347

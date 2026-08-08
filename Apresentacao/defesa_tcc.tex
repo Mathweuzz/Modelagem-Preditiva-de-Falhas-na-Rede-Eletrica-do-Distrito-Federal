@@ -246,7 +246,7 @@ Orientador: Prof. Jan Mendonça Corrêa}
 
   \vspace{1.2em}
   \begin{itemize}
-    \item Somatório para chuva e interrupções; médias para temperatura e vento.
+    \item Somatório para chuva/interrupções; médias para temperatura e vento, com direção circular.
     \item Interpolação linear apenas em lacunas curtas; extremos reais foram preservados.
     \item O consumo do SAMP foi integrado somente à análise exploratória mensal.
   \end{itemize}
@@ -396,10 +396,12 @@ Orientador: Prof. Jan Mendonça Corrêa}
     \end{column}
     \begin{column}{0.27\textwidth}
       \vspace{0.6em}
-      \keynumber{0,59}{direção do vento, mensal}
-      \vspace{0.9em}
+      \keynumber{$-0,52$}{direção circular (seno), mensal}
+      \vspace{0.45em}
+      \keynumber{$0,57$}{direção circular (cosseno), mensal}
+      \vspace{0.45em}
       \keynumber{0,54}{precipitação, mensal}
-      \vspace{0.9em}
+      \vspace{0.45em}
       \keynumber{0,48}{consumo, mensal\\{\scriptsize (exploratório)}}
     \end{column}
   \end{columns}
@@ -605,7 +607,7 @@ Orientador: Prof. Jan Mendonça Corrêa}
       \textbf{\large Modelagem}
       \begin{itemize}
         \item Apenas 2.687 sequências para as RNNs.
-        \item Direção do vento tratada por média simples.
+        \item Sem efeitos espaciais explícitos no modelo.
         \item Previsões pontuais sem intervalo de incerteza.
       \end{itemize}
     \end{column}

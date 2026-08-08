@@ -59,7 +59,7 @@ Todos os dados foram disponibilizados pelas autarquias públicas no formato \tex
 
 Para documentar as variáveis utilizadas na modelagem, organizou-se um dicionário de dados descrevendo cada atributo, seu tipo e sua relevância para o problema. A Tabela~\ref{tab:dic_inmet} apresenta as variáveis meteorológicas extraídas do portal INMET.
 
-Optou-se por incluir cinco variáveis eólicas distintas (velocidade média, velocidade máxima, rajada máxima, direção média e moda da direção) ao invés de apenas a velocidade média. Essa decisão é compatível com a literatura física sobre carregamento mecânico da infraestrutura: rajadas instantâneas podem impor esforços superiores aos representados pela velocidade média contínua. As defasagens e EMAs foram calculadas sobre a \textbf{rajada máxima} (\texttt{vento\_rajada\_max\_ms}) por sua relevância física e por sua associação exploratória com as interrupções. A precipitação acumulada complementa essa caracterização meteorológica, sem que essas variáveis isoladamente identifiquem a causa de cada ocorrência.
+Optou-se por incluir cinco atributos eólicos: velocidade média, velocidade máxima, rajada máxima e as duas componentes unitárias (seno e cosseno) da direção média circular. Essa decisão é compatível com a literatura física sobre carregamento mecânico da infraestrutura: rajadas instantâneas podem impor esforços superiores aos representados pela velocidade média contínua. As defasagens e EMAs foram calculadas sobre a \textbf{rajada máxima} (\texttt{vento\_rajada\_max\_ms}) por sua relevância física e por sua associação exploratória com as interrupções. A precipitação acumulada complementa essa caracterização meteorológica, sem que essas variáveis isoladamente identifiquem a causa de cada ocorrência.
 
 \begin{table}[H]
 \caption{Dicionário de Dados Meteorológicos (INMET - Arquivos A001 Históricos)}
@@ -75,7 +75,7 @@ Optou-se por incluir cinco variáveis eólicas distintas (velocidade média, vel
 \texttt{TEMPERATURA DO AR - BULBO SECO (°C)} & \texttt{Float64} & Temperatura do ar. Agregada por \textbf{média} aritmética diária. \\
 \texttt{VENTO, VELOCIDADE HORARIA (m/s)} & \texttt{Float64} & Velocidade do vento. Agregada por \textbf{média} e \textbf{máximo} diários. \\
 \texttt{VENTO, RAJADA MAXIMA (m/s)} & \texttt{Float64} & Rajada máxima horária. Agregada pelo \textbf{máximo} diário. \\
-\texttt{VENTO, DIRECAO HORARIA (gr)} & \texttt{Float64} & Direção do vento em graus. Agregada por \textbf{média} e \textbf{moda} diárias. \\
+\texttt{VENTO, DIRECAO HORARIA (gr)} & \texttt{Float64} & Direção do vento em graus. Agregada por \textbf{média vetorial circular} e codificada em seno e cosseno. \\
 \bottomrule
 \end{tabular}
 \normalsize
@@ -83,7 +83,7 @@ Optou-se por incluir cinco variáveis eólicas distintas (velocidade média, vel
 \small{Fonte: INMET (2025). Colunas nominais extraídas do portal de Dados Históricos.}
 \end{table}
 
-A Tabela~\ref{tab:dic_aneel} descreve os campos da base de interrupções da ANEEL e do balanço energético SAMP utilizados, respectivamente, na construção da variável \textit{target} e na análise exploratória mensal do consumo. Os relatórios de interrupções são produzidos pelas concessionárias em cumprimento às exigências regulatórias do PRODIST \cite{aneel2023prodist}. Para garantir que o modelo capture exclusivamente a relação entre clima e interrupções, aplicou-se um filtro na coluna \texttt{FatGeradorInterrupcao}, excluindo interrupções de origem não-climática: ``Manutenção Programada'', ``Abalroamento de Poste'' e ``Furto de Condutores''. Retiveram-se apenas interrupções causadas por ``Descargas Atmosféricas'', ``Árvores sobre a Rede'', ``Vendaval'' e demais causas de origem climática ou ambiental. Os dados de consumo do SAMP (\texttt{VlrEnergia}, em kWh) foram agregados mensalmente como \texttt{consumo\_total\_kwh} e empregados somente nas análises correlacionais, não como entrada dos modelos preditivos.
+A Tabela~\ref{tab:dic_aneel} descreve os campos da base de interrupções da ANEEL e do balanço energético SAMP relacionados, respectivamente, à construção da variável \textit{target} e à análise exploratória mensal do consumo. Os relatórios de interrupções são produzidos pelas concessionárias em cumprimento às exigências regulatórias do PRODIST \cite{aneel2023prodist}. O alvo corresponde ao total diário de identificadores \texttt{NumOrdemInterrupcao} distintos no período analisado, \textbf{sem filtro por causa}. O campo \texttt{FatGeradorInterrupcao} existe na fonte, mas não foi usado para excluir ocorrências; por isso, os modelos estimam o volume total de interrupções e as associações climáticas são descritivas, não uma classificação causal. Os dados de consumo do SAMP (\texttt{VlrEnergia}, em kWh) foram agregados mensalmente como \texttt{consumo\_total\_kwh} e empregados somente nas análises correlacionais, não como entrada dos modelos preditivos.
 
 \begin{table}[H]
 \caption{Dicionário Oficial de Metadados (Pilar ANEEL e SAMP Balanço)}
@@ -96,7 +96,7 @@ A Tabela~\ref{tab:dic_aneel} descreve os campos da base de interrupções da ANE
 \midrule
 \texttt{NumOrdemInterrupcao} & \texttt{String (UID)} & Identidade Única (Ofício ou normativo determinando interrupções). \\
 \texttt{DatInicioInterrupcao} & \texttt{Datetime64} & Data e hora do início efetivo fático da interrupção. \\
-\texttt{FatGeradorInterrupcao} & \texttt{String} & Descrição do fato gerador, essencial para triagem climática. \\
+\texttt{FatGeradorInterrupcao} & \texttt{String} & Descrição do fato gerador disponível na fonte; não utilizada para filtrar o alvo. \\
 \texttt{VlrEnergia} (OPC - SAMP) & \texttt{Numérico} & Valor da energia injetada em kWh (Balanço Energético local). \\
 \bottomrule
 \end{tabular}
@@ -201,7 +201,7 @@ A GPU foi empregada para acelerar o treinamento das redes neurais recorrentes (B
 A Configuração 1 foi utilizada no desenvolvimento e treinamento dos modelos principais apresentados neste trabalho. A Configuração 2, com maior capacidade de processamento, foi empregada na implementação complementar da previsão multi-horizonte, mantendo o mesmo ambiente de software e versionamento de bibliotecas para garantir a reprodutibilidade dos resultados.
 
 \subsection{Reprodutibilidade e Controle de Versão}\label{sec:reprodutibilidade}
-Para garantir a reprodutibilidade dos experimentos, o código-fonte integral do \textit{pipeline} de dados, do treinamento dos modelos e da geração de gráficos, bem como os dados processados, estão disponíveis no repositório público do projeto. O XGBoost foi instanciado com semente fixa (\texttt{random\_state=42}). As redes neurais utilizam controle completo de aleatoriedade (\texttt{SEED=42}): \texttt{random.seed}, \texttt{numpy\-.random\-.seed}, \texttt{torch\-.manual\_seed}, \texttt{torch\-.cuda\-.manual\_seed\_all}, com \texttt{cudnn\-.deterministic=True} e \texttt{cudnn\-.benchmark=False}, assegurando resultados determinísticos no mesmo ambiente de hardware e versão de software; pequenas variações numéricas são esperadas ao mudar hardware ou versão de bibliotecas. As versões das bibliotecas utilizadas são: Python 3.14, PyTorch 2.10, XGBoost 3.2, Scikit-Learn 1.8, Pandas 3.0 e NumPy 2.4.
+Para garantir a reprodutibilidade dos experimentos, o projeto preserva o \textit{pipeline} de dados, o treinamento, a geração de gráficos e os dados processados. O XGBoost foi instanciado com semente fixa (\texttt{random\_state=42}). Nas redes neurais, a semente \texttt{SEED=42} foi aplicada às bibliotecas \texttt{random}, NumPy e PyTorch, inclusive às operações CUDA. Também se configurou o cuDNN em modo determinístico e sem \textit{benchmark}. Essas medidas asseguram resultados determinísticos no mesmo ambiente; pequenas variações numéricas são esperadas quando mudam o hardware ou as versões das bibliotecas. As versões utilizadas são: Python 3.14, PyTorch 2.10, XGBoost 3.2, Scikit-Learn 1.8, Pandas 3.0 e NumPy 2.4.
 
 \subsection{Enquadramento Legal dos Dados}\label{sec:legal}
 Todos os conjuntos de dados utilizados neste trabalho são de domínio público e estão disponíveis em portais de dados abertos mantidos por órgãos do governo federal brasileiro. A utilização desses dados é respaldada por dois marcos legais:
@@ -227,6 +227,13 @@ Diferentemente da precipitação, variáveis contínuas como velocidade do vento
     \bar{x}_t = \frac{1}{n} \sum_{i=1}^{n} x_i
 \end{equation}
 
+Para a direção do vento, a média aritmética não é adequada à transição entre $360^\circ$ e $0^\circ$. Cada observação horária $\theta_i$ foi convertida em vetor unitário, e a direção diária foi obtida pela média vetorial circular:
+\begin{equation}
+    \bar{\theta}_t = \operatorname{atan2}\!\left(\sum_i \sin\theta_i,\sum_i \cos\theta_i\right), \qquad
+    d_{\mathrm{sen},t}=\sin\bar{\theta}_t,\quad d_{\mathrm{cos},t}=\cos\bar{\theta}_t.
+\end{equation}
+As componentes foram mantidas como atributos dos modelos, evitando a descontinuidade numérica dos graus.
+
 \subsection{Médias Móveis na Análise Exploratória e na Engenharia de Atributos}
 A Média Móvel Simples (SMA) foi utilizada na análise exploratória para visualização de tendências (gráficos de séries temporais). No \textit{pipeline} final de engenharia de atributos, optou-se pela \textbf{Média Móvel Exponencial} (EMA) como \textit{feature} de entrada dos modelos, por atribuir maior peso às observações mais recentes. Aplicaram-se janelas de 3, 7 e 14 dias para as variáveis de precipitação, temperatura e rajada de vento, conforme detalhado na Tabela~\ref{tab:longtable_features}.
 
@@ -236,12 +243,13 @@ Para capturar a \textbf{variabilidade} recente das séries climáticas, calculou
 \subsection{Codificação Temporal}
 A variável \texttt{mês} foi codificada em coordenadas polares via funções harmônicas, preservando a continuidade cíclica (a transição dezembro $\rightarrow$ janeiro é contígua no tempo, mas descontínua numericamente) \cite{goodfellow2016deep}:
 \begin{equation}
-    Mês_{sen} = \sin\left(\frac{2\pi \cdot \text{mês}}{12}\right), \quad Mês_{cos} = \cos\left(\frac{2\pi \cdot \text{mês}}{12}\right)
+    \text{mês}_{\mathrm{sen}} = \sin\left(\frac{2\pi \cdot \text{mês}}{12}\right), \quad
+    \text{mês}_{\mathrm{cos}} = \cos\left(\frac{2\pi \cdot \text{mês}}{12}\right)
 \end{equation}
 As variáveis \texttt{dia\_semana} e \texttt{dia\_ano} foram mantidas como inteiros, sendo que o XGBoost (baseado em árvores de decisão) é capaz de capturar padrões não-lineares sem necessidade de codificação adicional \cite{chen2016xgboost}.
 
 \subsection{Matriz Extensiva de Engenharia de Atributos (Feature Engineering)}
-O processo de engenharia de atributos expandiu a base de dados original (8 variáveis meteorológicas brutas após a integração INMET--ANEEL) para um conjunto de \textbf{40 \textit{features} de entrada} mais a variável alvo, totalizando 41 colunas no \textit{dataset} final. As categorias de atributos incluem: variáveis base meteorológicas e eólicas, codificações temporais (inteiras e cíclicas), defasagens de 1 a 7 dias, médias móveis exponenciais (EMA) de 3, 7 e 14 dias, e desvios padrão em janela deslizante de 7 dias.
+O processo de engenharia de atributos expandiu as sete variáveis preditoras de base integradas ao alvo diário para um conjunto de \textbf{40 \textit{features} de entrada} mais a variável alvo, totalizando 41 colunas no \textit{dataset} final. As categorias de atributos incluem: variáveis base meteorológicas e eólicas, codificações temporais (inteiras e cíclicas), defasagens de 1 a 7 dias, médias móveis exponenciais (EMA) de 3, 7 e 14 dias, e desvios padrão em janela deslizante de 7 dias.
 
 A Tabela~\ref{tab:longtable_features} apresenta o dicionário completo de todos os atributos, conforme extraídos do arquivo \texttt{dataset\_engenharia\_features.csv} utilizado na modelagem.
 
@@ -276,8 +284,8 @@ A Tabela~\ref{tab:longtable_features} apresenta o dicionário completo de todos 
 \textbf{vento\_velocidade\_media\_ms} & \textit{Float} & Velocidade média diária do vento (m/s). \\
 \textbf{vento\_velocidade\_max\_ms} & \textit{Float} & Velocidade máxima diária do vento (m/s). \\
 \textbf{vento\_rajada\_max\_ms} & \textit{Float} & Rajada máxima diária (m/s). Principal variável eólica preditiva. \\
-\textbf{vento\_direcao\_media\_gr} & \textit{Float} & Direção média do vento em graus (0--360°). \\
-\textbf{vento\_direcao\_moda\_gr} & \textit{Float} & Moda da direção horária do vento (graus). \\
+\textbf{vento\_dir\_sin} & \textit{Float} & Componente seno da direção média circular do vento. \\
+\textbf{vento\_dir\_cos} & \textit{Float} & Componente cosseno da direção média circular do vento. \\
 \midrule
 \multicolumn{3}{c}{\textbf{Variáveis Temporais (5: 3 inteiras + 2 cíclicas)}} \\
 \midrule
@@ -378,7 +386,7 @@ Essa estratégia preserva a continuidade da reconstrução histórica, mas não 
 \subsection{Análise de Multicolinearidade}
 A expansão do conjunto de preditores para mais de 40 variáveis, incluindo defasagens e médias móveis derivadas das mesmas séries originais, introduz o risco de \textbf{multicolinearidade}. Quando duas variáveis preditoras são altamente correlacionadas (por exemplo, \texttt{vento\_rajada\_max\_ms\_lag\_1} e \texttt{vento\_rajada\_max\_ms\_ema\_3}), ambas transmitem informação redundante ao modelo, o que pode inflacionar a variância dos coeficientes em modelos lineares e dificultar a interpretação da importância relativa das variáveis \cite{hastie2009elements}.
 
-Para diagnosticar associações lineares e possíveis redundâncias entre variáveis, empregou-se a Correlação Produto-Momento de Pearson ($r$). O coeficiente mede a intensidade da associação linear entre duas variáveis, definido como a covariância normalizada pelo produto dos respectivos desvios padrão ($\sigma$):
+Empregou-se a Correlação Produto-Momento de Pearson ($r$) para diagnosticar associações lineares e possíveis redundâncias. O coeficiente mede a intensidade da associação linear entre duas variáveis e corresponde à covariância normalizada pelo produto de seus desvios padrão ($\sigma$):
 
 \begin{equation}
     r_{xy} = \frac{\sum_{i=1}^{n} (x_i - \bar{x})(y_i - \bar{y})}{\sqrt{\sum_{i=1}^{n} (x_i - \bar{x})^2} \sqrt{\sum_{i=1}^{n} (y_i - \bar{y})^2}} \quad \in [-1, 1]
@@ -400,7 +408,7 @@ Optou-se deliberadamente por \textbf{não remover} os \textit{outliers} da séri
     \item \textbf{Robustez do XGBoost:} O mecanismo de regularização do XGBoost (parâmetros $\gamma$, \texttt{max\_depth}, \texttt{subsample}) confere robustez intrínseca a \textit{outliers}, limitando o impacto de valores extremos individuais sobre a estrutura global das árvores \cite{chen2016xgboost}. Para as redes neurais, a normalização Min-Max comprime os extremos ao intervalo $[0, 1]$, atenuando naturalmente seu efeito sobre os gradientes.
 \end{enumerate}
 
-A qualidade dos dados meteorológicos do INMET foi verificada através de três critérios: (i) \textbf{completude temporal}, confirmando a ausência de lacunas superiores a 3 dias consecutivos na série; (ii) \textbf{consistência física}, inspecionando os intervalos observados de temperatura, precipitação e vento; e (iii) \textbf{consistência cruzada descritiva}, quantificando a coexistência de chuva e rajadas sem exigir correspondência determinística. Entre os 102 dias com precipitação superior a 30 mm, 56 apresentaram rajada acima da mediana e 46 não, evidenciando que chuva intensa e rajada elevada são fenômenos relacionados, porém não equivalentes. Das 3.073 observações, uma (0,03\%) continha um valor meteorológico ausente, tratado por interpolação linear conforme descrito anteriormente.
+A qualidade dos dados meteorológicos do INMET foi verificada através de três critérios: (i) \textbf{completude temporal}, confirmando a ausência de lacunas superiores a 3 dias consecutivos na série; (ii) \textbf{consistência física}, inspecionando os intervalos observados de temperatura, precipitação e vento; e (iii) \textbf{consistência cruzada descritiva}, quantificando a coexistência de chuva e rajadas sem exigir correspondência determinística. Entre os 102 dias com precipitação superior a 30 mm, 76 apresentaram rajada acima da mediana de 8,4 m/s e 26 não, evidenciando que chuva intensa e rajada elevada são fenômenos relacionados, porém não equivalentes. Em um dos 3.073 dias não havia registros horários da A001, o que deixou sete campos meteorológicos ausentes; esses valores foram tratados por interpolação linear antes da engenharia de atributos.
 
 \section{Separação Temporal e Validação Cruzada}\label{sec:protocolo_validacao}
 
@@ -505,13 +513,16 @@ Antes da modelagem preditiva, é imprescindível caracterizar estatisticamente o
 Interrupções (diárias) & 243,6 & 116,7 & 63 & 219 & 1.424 & 130 \\
 Temperatura Média (°C) & 21,6 & 2,1 & 11,3 & 21,5 & 29,9 & 2,6 \\
 Precipitação Total (mm) & 4,0 & 10,0 & 0,0 & 0,0 & 113,0 & 2,0 \\
-Vento Vel. Média (m/s) & 2,1 & 0,6 & 1,0 & 2,0 & 4,6 & 0,8 \\
-Vento Rajada Máx. (m/s) & 11,4 & 2,6 & 5,3 & 11,0 & 30,4 & 3,2 \\
+Vento Vel. Média (m/s) & 2,2 & 0,6 & 0,8 & 2,1 & 5,0 & 0,8 \\
+Vento Vel. Máxima (m/s) & 4,0 & 0,9 & 1,7 & 3,9 & 9,1 & 1,1 \\
+Vento Rajada Máx. (m/s) & 8,6 & 1,9 & 4,4 & 8,4 & 21,0 & 2,3 \\
+Direção Circular (seno) & 0,5 & 0,6 & $-1{,}0$ & 0,9 & 1,0 & 0,8 \\
+Direção Circular (cosseno) & 0,1 & 0,6 & $-1{,}0$ & 0,0 & 1,0 & 0,9 \\
 \bottomrule
 \end{tabular}
 \normalsize
 \end{center}
-\small{Fonte: Calculado pelos autores a partir dos dados do INMET e ANEEL (2017--2025).}
+\small{Fonte: Calculado pelos autores a partir dos dados do INMET e ANEEL (2017--2025). A base contém 3.073 datas; as variáveis meteorológicas têm 3.072 observações antes da interpolação da única lacuna diária.}
 \end{table}
 
 Observa-se que a variável \textit{target} (interrupções diárias) apresenta distribuição assimétrica positiva (média $= 243{,}6$ superior à mediana $= 219$), com cauda longa à direita evidenciada pelo máximo de 1.424 interrupções --- quase seis vezes a média. Essa assimetria reflete a ocorrência esporádica de dias com volume muito elevado de interrupções, sem identificar sua causa. A precipitação total diária é igualmente assimétrica: a mediana é zero (63,8\% dos dias não registraram chuva), porém o máximo atinge 113 mm.

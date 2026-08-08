@@ -97,12 +97,14 @@ As correlações entre interrupções e variáveis climáticas foram calculadas 
 \toprule
 \textbf{Variável} & \textbf{Diário} & \textbf{Semanal} & \textbf{Mensal} \\
 \midrule
-Direção Média do Vento (°) & 0,366 & 0,496 & 0,588 \\
-Precipitação Total (mm) & 0,347 & 0,477 & 0,539 \\
+Direção do Vento (cosseno) & 0,210 & 0,395 & 0,570 \\
+Direção do Vento (seno) & $-$0,345 & $-$0,437 & $-$0,522 \\
+Precipitação Total (mm) & 0,348 & 0,495 & 0,539 \\
 Consumo Total (kWh) & --- & --- & 0,476 \\
-Rajada Máxima (m/s) & 0,253 & 0,340 & 0,379 \\
-Temperatura Média (°C) & 0,102 & --- & 0,394 \\
-Vel. Média do Vento (m/s) & $-$0,194 & $-$0,314 & $-$0,364 \\
+Rajada Máxima (m/s) & 0,254 & 0,401 & 0,449 \\
+Temperatura Média (°C) & 0,102 & 0,251 & 0,394 \\
+Vel. Média do Vento (m/s) & $-$0,149 & $-$0,250 & $-$0,310 \\
+Vel. Máxima do Vento (m/s) & 0,034 & 0,072 & 0,070 \\
 \bottomrule
 \end{tabular}
 \normalsize
@@ -113,15 +115,15 @@ Vel. Média do Vento (m/s) & $-$0,194 & $-$0,314 & $-$0,364 \\
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.90\textwidth]{img/correlacoes_escala_temporal.png}
-    \caption{Correlação de Pearson entre interrupções e variáveis climáticas em três escalas temporais. A agregação temporal amplifica consistentemente a força da correlação.}
+    \caption{Correlação de Pearson entre interrupções e variáveis climáticas em três escalas temporais. Para os principais sinais climáticos, as magnitudes são maiores nas escalas agregadas.}
     \small{Fonte: Elaborado pelos autores (2026).}
     \label{fig:corr_escala}
 \end{figure}
 
 Três achados emergem da análise:
 \begin{enumerate}
-    \item \textbf{Associação em escalas agregadas:} As magnitudes observadas aumentam na transição do diário para o semanal e para o mensal. A precipitação passa de $r = 0{,}35$ (diário) para $r = 0{,}54$ (mensal). A agregação reduz variação diária e enfatiza tendências compartilhadas, mas não demonstra efeito acumulado causal.
-    \item \textbf{Direção média do vento:} A direção média do vento apresenta $r = 0{,}59$ mensal, o maior coeficiente da tabela. Como a direção é circular e foi resumida por média aritmética, esse valor pode incorporar sazonalidade e artefatos próximos à transição 360°/0°; por isso, não é interpretado como evidência de uma direção física dominante.
+    \item \textbf{Associação em escalas agregadas:} Para precipitação, rajada e componentes direcionais, as magnitudes aumentam na transição do diário para o semanal e para o mensal. A precipitação passa de $r = 0{,}35$ (diário) para $r = 0{,}54$ (mensal). A agregação reduz variação diária e enfatiza tendências compartilhadas, mas não demonstra efeito acumulado causal; a velocidade máxima, por exemplo, permanece próxima de zero nas três escalas.
+    \item \textbf{Direção do vento:} A direção média circular foi representada por seno e cosseno, evitando a descontinuidade entre $360^\circ$ e $0^\circ$. Em escala mensal, as componentes apresentam $r=-0{,}52$ e $r=0{,}57$. Esses dois coeficientes descrevem a projeção da direção em eixos ortogonais e não devem ser lidos como uma correlação linear única com graus nem como evidência de uma direção física dominante.
     \item \textbf{Consumo e temperatura:} A correlação mensal entre consumo e temperatura ($r = 0{,}56$) é compatível com maior uso de climatização em meses quentes, mas as associações agregadas não isolam sobrecarga de transformadores nem outros mecanismos operacionais.
 \end{enumerate}
 
@@ -147,7 +149,7 @@ As Figuras~\ref{fig:precip_semanal} e~\ref{fig:precip_mensal} detalham a relaç�
 
 \subsection{Relação Vento--Interrupções e Consumo--Interrupções}
 
-A Figura~\ref{fig:vento_diario} apresenta a relação diária entre rajada máxima de vento e interrupções. Foram observados 247 dias com rajada superior a 15 m/s: 125 tiveram mais de 300 interrupções e 122 tiveram até 300. A dispersão é compatível com maior carregamento aerodinâmico em parte dos eventos, mas mostra que esse limiar, isoladamente, não determina o volume de interrupções nem confirma uma relação quadrática entre vento e ocorrências.
+A Figura~\ref{fig:vento_diario} apresenta a relação diária entre rajada máxima de vento e interrupções. Foram observados 27 dias com rajada superior a 15 m/s: 20 tiveram mais de 300 interrupções e 7 tiveram até 300. A dispersão é compatível com maior carregamento aerodinâmico em parte dos eventos, mas mostra que esse limiar, isoladamente, não determina o volume de interrupções nem confirma uma relação quadrática entre vento e ocorrências.
 
 \begin{figure}[H]
     \centering
@@ -202,7 +204,7 @@ A Figura~\ref{fig:rajada_mensal} apresenta a relação entre a rajada máxima me
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.85\textwidth]{img/mensal_interrupcoes_vs_rajada_max.png}
-    \caption{Interrupções mensais vs. rajada máxima mensal de vento (m/s). A correlação mensal observada é $r = 0{,}38$.}
+    \caption{Interrupções mensais vs. rajada máxima mensal de vento (m/s). A correlação mensal observada é $r = 0{,}45$.}
     \small{Fonte: Elaborado pelos autores (2026).}
     \label{fig:rajada_mensal}
 \end{figure}
@@ -505,7 +507,7 @@ A Figura~\ref{fig:multihorizonte_degradacao} apresenta as curvas de desempenho p
     \label{fig:multihorizonte_degradacao}
 \end{figure}
 
-O protocolo de \textbf{previsão direta} (\textit{Direct Multi-Step Forecasting}) mantém, para cada horizonte $h$, as mesmas 41 variáveis por instante, a mesma data-limite de origem e as mesmas datas-alvo. O XGBoost recebe uma linha tabular na origem $t$, enquanto Bi-LSTM e Bi-GRU recebem 14 linhas terminando em $t$; portanto, compartilham variáveis e corte causal, mas não uma representação idêntica. Todos preveem diretamente $\text{interrupcoes}[t+h]$, sem estimativas intermediárias. As 352 datas-alvo são comuns (14/06/2024 a 31/05/2025), e a divisão treino/teste é feita pela data-alvo. Como a primeira origem em $h=14$ é 31/05/2024, nenhum alvo de treinamento nem observação usada pelo normalizador é posterior à origem da primeira previsão.
+O protocolo de \textbf{previsão direta} (\textit{Direct Multi-Step Forecasting}) mantém, para cada horizonte $h$, as mesmas 41 variáveis por instante, a mesma data-limite de origem e as mesmas datas-alvo. O XGBoost recebe uma linha tabular na origem $t$. Bi-LSTM e Bi-GRU recebem 14 linhas terminando em $t$; portanto, os modelos compartilham variáveis e corte causal, mas não uma representação idêntica. Todos preveem diretamente o alvo no instante $t+h$, sem estimativas intermediárias. As 352 datas-alvo são comuns, de 14/06/2024 a 31/05/2025, e a divisão treino/teste usa a data-alvo. Como a primeira origem em $h=14$ é 31/05/2024, nenhum alvo de treinamento nem observação usada pelo normalizador é posterior à origem da primeira previsão.
 
 Para $h=1$, XGBoost (MAE$=62{,}46$) e Bi-LSTM (MAE$=64{,}19$) apresentam resultados descritivamente próximos e menores que a persistência (69,83); a Bi-GRU registra 75,10. Para $h=3$, a Bi-LSTM apresenta o menor MAE observado entre os modelos treinados (74,01), seguida pela Bi-GRU (77,67) e pelo XGBoost (78,77), todos abaixo da persistência (86,22). Em $h=7$ e $h=14$, a Bi-GRU apresenta os menores MAEs observados: 73,61 e 64,31, respectivamente. Os três modelos treinados registram MAE menor que a persistência nos horizontes de 3, 7 e 14 dias; em $h=1$, apenas XGBoost e Bi-LSTM o fazem. O XGBoost apresenta $R^2 = -0{,}027$ em $h=7$, indicando desempenho inferior ao \textit{baseline} da média nesse horizonte.
 
@@ -595,7 +597,7 @@ A Tabela~\ref{tab:sintese} consolida os principais achados empíricos deste cap�
 Tendência Temporal & Crescimento de 65,3\% na média diária de interrupções entre 2017 (183,5) e 2025 (303,4) \\
 Sazonalidade & Picos entre outubro e março (chuvosa: 292,0) vs. vales entre maio e agosto (seca: 182,3) \\
 Autocorrelação & Dependência temporal significativa até $k=14$ dias, fundamentando o \textit{Lookback Window} \\
-Correlação Climática & Direção do vento ($r=0{,}59$ mensal) e precipitação ($r=0{,}54$ mensal) como preditores dominantes \\
+Correlação Climática & Componentes seno/cosseno da direção circular ($r=-0{,}52/0{,}57$ mensal) e precipitação ($r=0{,}54$ mensal), em análise descritiva \\
 Resultados em $h=1$ & XGBoost e Bi-LSTM descritivamente próximos (MAE$\approx$61--63) e melhores que a persistência (MAE$=68{,}6$); Bi-GRU com MAE$=73{,}4$ \\
 Distribuição Residual & Redes recorrentes mais concentradas em zero (leptocúrticas); XGBoost mais disperso nos extremos \\
 Eventos Extremos & XGBoost conservador (saturação arbórea); Bi-LSTM superestima picos inéditos \\

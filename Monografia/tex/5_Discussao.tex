@@ -111,7 +111,7 @@ O presente trabalho possui limitações que devem ser explicitadas para contextu
 
     \item \textbf{Ausência de variáveis de vegetação:} A queda de árvores sobre a rede é uma das principais causas de interrupção, porém o estudo não incorpora dados de cobertura vegetal, índice de vegetação (NDVI) ou proximidade de árvores aos condutores. Dados de sensoriamento remoto poderiam enriquecer significativamente o modelo.
 
-    \item \textbf{Variável de direção do vento:} A direção do vento é uma variável circular (0°--360°), e a média aritmética simples utilizada neste trabalho é uma aproximação que pode introduzir artefatos quando os valores se distribuem próximos à transição 360°/0°. Métodos de estatística circular seriam mais apropriados.
+    \item \textbf{Representação espacial do vento:} A direção foi tratada com média vetorial circular e componentes seno/cosseno, evitando o artefato da transição $360^\circ/0^\circ$. A limitação remanescente é espacial: uma única estação não descreve a variação do campo de vento entre todas as regiões administrativas nem a orientação local da rede.
 
     \item \textbf{Estação meteorológica única:} Os dados climáticos provêm de uma única estação (A001 --- Brasília), que pode não representar adequadamente as condições microclimáticas de todas as regiões administrativas do DF. A incorporação de múltiplas estações ou de dados de reanálise (ERA5) proporcionaria cobertura espacial mais abrangente.
 
@@ -129,7 +129,7 @@ Os resultados deste trabalho apresentam aplicabilidade direta para a gestão ope
 
     \item \textbf{Gestão regulatória:} A capacidade de prever picos de interrupções permite à concessionária documentar proativamente os eventos climáticos causadores, fortalecendo as justificativas técnicas perante a ANEEL em processos de apuração de violação dos limites DEC e FEC.
 
-    \item \textbf{Planejamento de investimentos:} A identificação das variáveis climáticas mais impactantes (rajada de vento, precipitação) e dos períodos de maior vulnerabilidade (outubro a março) pode orientar investimentos em infraestrutura resiliente, como a substituição de redes aéreas por subterrâneas em áreas críticas ou a intensificação da poda preventiva de vegetação.
+    \item \textbf{Planejamento de investimentos:} As associações observadas para rajada, precipitação e sazonalidade podem apoiar a formulação de hipóteses para investimentos em infraestrutura resiliente. Decisões como substituição de redes aéreas ou intensificação da poda preventiva exigem validação adicional com causas das ocorrências, topologia da rede e condição dos ativos.
 \end{itemize}
 
 \section{Análise Comparativa do Custo Computacional}
@@ -163,7 +163,7 @@ Essa análise reforça a adequação do XGBoost para implantação operacional n
 
 \section{Análise do Efeito de Amplificação pela Agregação Temporal}
 
-Um dos achados mais consistentes deste trabalho é o \textbf{aumento numérico das correlações} na transição da escala diária para a semanal e mensal (Tabela~\ref{tab:correlacoes}, Capítulo~\ref{4_Resultados}). A precipitação, por exemplo, evolui de $r = 0{,}35$ (diário) para $r = 0{,}48$ (semanal) e $r = 0{,}54$ (mensal). A agregação reduz variações diárias, enfatiza tendências compartilhadas e diminui o número de observações; portanto, os mecanismos físicos a seguir são hipóteses compatíveis com o padrão, não conclusões causais:
+Um dos achados mais consistentes deste trabalho é o \textbf{aumento numérico das correlações dos principais sinais climáticos} na transição da escala diária para a semanal e mensal (Tabela~\ref{tab:correlacoes}, Capítulo~\ref{4_Resultados}). A precipitação, por exemplo, evolui de $r = 0{,}35$ (diário) para $r = 0{,}50$ (semanal) e $r = 0{,}54$ (mensal). O comportamento não é universal: a velocidade máxima permanece próxima de zero nas três escalas. A agregação reduz variações diárias, enfatiza tendências compartilhadas e diminui o número de observações; portanto, os mecanismos físicos a seguir são hipóteses compatíveis com o padrão, não conclusões causais:
 
 \begin{enumerate}
     \item \textbf{Possível acumulação de dano:} Chuva e vento podem estar associados a efeitos imediatos e retardados; dados sobre causa e condição dos ativos seriam necessários para verificar se esses efeitos contribuem para as correlações agregadas.

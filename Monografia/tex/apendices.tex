@@ -4,7 +4,7 @@ Este apêndice descreve os módulos centrais da implementação desenvolvida em 
 O módulo \texttt{Fonte/src/models/data\_loader\_dl.py} contém a função \texttt{prepare\_data\_dl}, que carrega o \textit{dataset} e aplica a normalização \texttt{MinMaxScaler} ajustada exclusivamente nos dados de treinamento. A função auxiliar \texttt{create\_sequences} transforma a série temporal em janelas deslizantes de tamanho $L = 14$ (\textit{lookback}), gerando tensores tridimensionais $(B \times L \times F)$ compatíveis com as camadas recorrentes do PyTorch.
 
 \section{Rede Recorrente Bidirecional (LSTM-Bi)}
-O módulo \texttt{Fonte/src/models/lstm\_bidirecional.py} implementa a arquitetura Bi-LSTM com processamento bidirecional e portas de esquecimento (\textit{Forget Gates}), utilizando Dropout ($p = 0{,}4$) e otimizador AdamW com \textit{Weight Decay} ($\lambda = 10^{-4}$) para regularização. O treinamento aplica \texttt{ReduceLROnPlateau} como \textit{learning rate scheduler} e \textit{gradient clipping} ($\|\nabla\| \leq 1{,}0$) para mitigar a explosão do gradiente característica de redes recorrentes profundas.
+O módulo \path{Fonte/src/models/lstm_bidirecional.py} implementa a arquitetura Bi-LSTM com processamento bidirecional e portas de esquecimento (\textit{Forget Gates}). Emprega Dropout ($p = 0{,}4$) e o otimizador AdamW com \textit{Weight Decay} ($\lambda = 10^{-4}$) para regularização. O treinamento aplica \texttt{ReduceLROnPlateau} como \textit{learning rate scheduler} e \textit{gradient clipping} ($\|\nabla\| \leq 1{,}0$) para mitigar a explosão do gradiente.
 
 \section{Rede Gated Recurrent Unit Bidirecional (GRU-Bi)}
 O módulo \texttt{Fonte/src/models/gru\_avancada.py} implementa a arquitetura alternativa baseada em \textit{Gated Recurrent Units}, que simplifica a LSTM ao eliminar a célula de estado ($C_t$) separada. Reaproveita as funções utilitárias \texttt{reverse\_\-scaling} e \texttt{plot\_loss} do módulo Bi-LSTM, e a função genérica \texttt{evaluate\_\-and\_\-plot} do módulo XGBoost para padronizar a avaliação e a geração de gráficos. Aplica \texttt{Reduce\-LR\-On\-Plateau} como \textit{scheduler} e \textit{gradient clipping} idêntico ao da Bi-LSTM.
@@ -22,21 +22,22 @@ O script \texttt{Fonte/src/models/advanced\_plots.py} gera os gráficos comparat
 O script \texttt{Fonte/src/models/previsao\_multihorizonte.py} avalia os três modelos nos horizontes de 1, 3, 7 e 14 dias com \textbf{previsão direta}: para cada horizonte $h$, um modelo independente mapeia os atributos da origem $t$ diretamente para $\text{interrupcoes}[t+h]$, sem recursão. Os modelos compartilham as mesmas 41 variáveis por instante, o mesmo corte de origem e as mesmas datas-alvo; o XGBoost recebe uma linha em $t$, enquanto Bi-LSTM e Bi-GRU recebem uma janela de 14 instantes terminando em $t$. O treino utiliza alvos anteriores a \texttt{01/06/2024}, e a avaliação comum contém 352 datas-alvo entre \texttt{14/06/2024} e \texttt{31/05/2025}. Esse início garante que, inclusive em $h=14$, a primeira origem (\texttt{31/05/2024}) não anteceda as observações usadas no ajuste dos modelos e do normalizador.
 
 \section{Baseline de Persistência}
-O script \texttt{Fonte/src/models/baseline\_persistence.py} calcula a referência ingênua $\hat{y}_{t+h}=y_t$ nos mesmos recortes oficiais das avaliações principal e multi-horizonte. As métricas são exportadas para \texttt{Fonte/results/ml/metrics\_persistence.csv}, permitindo verificar se os modelos treinados acrescentam poder preditivo à simples repetição do último valor observado.
+O script \path{Fonte/src/models/baseline_persistence.py} calcula a referência ingênua $\hat{y}_{t+h}=y_t$ nos mesmos recortes oficiais das avaliações principal e multi-horizonte. As métricas são exportadas para \path{Fonte/results/ml/metrics_persistence.csv}, permitindo verificar se os modelos treinados acrescentam poder preditivo à simples repetição do último valor observado.
 
 \section{Geração dos Gráficos Multi-Horizonte}
 Script complementar (\texttt{Fonte/src/models/plot\_\-multi\-horizonte.py}) que regenera os gráficos de desempenho por horizonte (MAE e RMSE) a partir do arquivo \texttt{previsao\_\-multi\-horizonte\_\-metricas.csv}, sem necessidade de re-executar os modelos. Produz três figuras: comparação de MAE por horizonte com anotações, comparação de RMSE e painel duplo MAE/RMSE. O código integral deste módulo está incluído no repositório público do projeto.
 
 O módulo \texttt{plot\_\-multi\-horizonte\_\-temporal.py} complementa essa análise consumindo diretamente as 4.224 observações de \texttt{predictions\_all.csv}. O script valida as 352 datas-alvo comuns a cada combinação modelo--horizonte, calcula MAE e RMSE por mês civil e produz os painéis Real $\times$ Previsto ao longo dos 12 meses abrangidos, além dos mapas de calor mensais. Todas essas saídas são derivadas das previsões oficiais já reproduzidas, sem novo treinamento dos modelos.
 
-\section{Scripts Complementares de Análise Exploratória}
-Em complemento aos módulos descritos acima, o diretório \texttt{Fonte/src/} contém quatro scripts dedicados à análise exploratória dos dados e à engenharia de atributos, cujo conteúdo é descrito no Capítulo~\ref{3_Metodologia} e no Capítulo~\ref{4_Resultados}:
+\section{Scripts Complementares de Análise}
+Em complemento aos módulos descritos acima, o diretório \texttt{Fonte/src/} contém cinco scripts dedicados à análise exploratória e à engenharia de atributos, descritos nos Capítulos~\ref{3_Metodologia} e~\ref{4_Resultados}:
 
 \begin{itemize}
     \item \texttt{01\_eda\_sazonalidade.py}: decomposição STL aditiva e funções de autocorrelação (ACF/PACF) sobre a série diária de interrupções e precipitação.
     \item \texttt{02\_correlacoes\_nao\_lineares.py}: matrizes de correlação de Spearman e Kendall e correlogramas cruzados (\textit{cross-correlation}) entre variáveis climáticas e interrupções.
     \item \texttt{03\_feature\_\-engineering.py}: construção do \textit{dataset} final (\texttt{dataset\_\-engenharia\_\-features.csv}) a partir da base diária consolidada, aplicando defasagens, médias móveis exponenciais (EMA), desvio-padrão móvel e features cíclicas de calendário.
-    \item \texttt{04\_eda\_basica.py}: geração da série temporal completa, distribuição estatística, evolução anual, comparação multi-escala de correlações e \textit{violin plot} térmico por faixas descritivas do volume diário.
+    \item \texttt{04\_eda\_basica.py}: geração da série temporal completa, distribuição estatística, evolução anual e \textit{violin plot} térmico por faixas descritivas do volume diário.
+    \item \texttt{05\_correlacoes\_unificadas.py}: cálculo e visualização canônicos das correlações de Pearson nas escalas diária, semanal e mensal.
 \end{itemize}
 
 Os códigos-fonte descritos neste apêndice estão disponíveis publicamente para consulta e execução no repositório do projeto.

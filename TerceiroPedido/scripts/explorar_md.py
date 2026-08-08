@@ -1,183 +1,143 @@
-import sys
+"""Regenera o resumo Markdown da terceira entrega com dados canônicos atuais."""
+
 from pathlib import Path
+
 import pandas as pd
 
-ROOT = Path("/home/mateus/CLEAR DATA/TerceiroPedido/TerceiroPedido")
+
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[1]
 DADOS = ROOT / "dados"
 GRAF = ROOT / "graficos"
-
 OUT_MD = ROOT / "TerceiroPedido.md"
 
-CORR_CONSOL = DADOS / "correlacoes_consolidadas.csv"
-CORR_VENTO = DADOS / "correlacoes_vento.csv"
-
-BASE_MM = DADOS / "base_diaria_interrupcoes_clima_mm.csv"
+CORR_CONSOL = PROJECT_ROOT / "Fonte" / "data" / "correlacoes_consolidadas.csv"
 BASE_DIARIA_CLIMA = DADOS / "base_diaria_interrupcoes_clima.csv"
 BASE_DIARIA_VENTO = DADOS / "base_diaria_interrupcoes_clima_vento.csv"
 BASE_MENSAL = DADOS / "base_mensal_interrupcoes_clima_consumo.csv"
-
 PREV = DADOS / "previsoes_diarias_baselines.csv"
 
-AGG_W_TEMP = DADOS / "aggregados_semanal_interrupcoes_temperatura.csv"
-AGG_W_PREC = DADOS / "aggregados_semanal_interrupcoes_precipitacao.csv"
-AGG_M_PREC = DADOS / "aggregados_mensal_interrupcoes_precipitacao.csv"
-AGG_W_VENTO = DADOS / "aggregados_semanal_interrupcoes_vento.csv"
-AGG_M_VENTO = DADOS / "aggregados_mensal_interrupcoes_vento.csv"
 
-
-def md_table(df: pd.DataFrame, max_rows: int = 30) -> str:
-    df2 = df.copy()
-    if len(df2) > max_rows:
-        df2 = df2.head(max_rows)
-    return df2.to_markdown(index=False)
+def md_table(frame: pd.DataFrame, max_rows: int = 30) -> str:
+    """Formata uma tabela Markdown sem depender do pacote opcional tabulate."""
+    clipped = frame.head(max_rows).copy()
+    headers = [str(column) for column in clipped.columns]
+    rows = [
+        [str(value) for value in row]
+        for row in clipped.itertuples(index=False, name=None)
+    ]
+    widths = [
+        max([len(headers[index]), *[len(row[index]) for row in rows]])
+        for index in range(len(headers))
+    ]
+    lines = [
+        "| " + " | ".join(value.ljust(widths[index]) for index, value in enumerate(headers)) + " |",
+        "| " + " | ".join("-" * width for width in widths) + " |",
+    ]
+    lines.extend(
+        "| " + " | ".join(value.ljust(widths[index]) for index, value in enumerate(row)) + " |"
+        for row in rows
+    )
+    return "\n".join(lines)
 
 
 def file_list_md(folder: Path) -> str:
     if not folder.exists():
         return "_(pasta não encontrada)_"
-    files = sorted([p.name for p in folder.glob("*.png")])
+    files = sorted(path.name for path in folder.glob("*.png"))
     if not files:
         return "_(sem imagens)_"
-    return "\n".join([f"- `{f}`" for f in files])
+    return "\n".join(f"- `{name}`" for name in files)
 
 
-def resumo_periodo(df: pd.DataFrame, col_data: str) -> str:
-    if col_data not in df.columns:
+def resumo_periodo(frame: pd.DataFrame, date_column: str) -> str:
+    if date_column not in frame.columns:
         return "N/A"
-    dmin = pd.to_datetime(df[col_data]).min().date()
-    dmax = pd.to_datetime(df[col_data]).max().date()
-    return f"{dmin} a {dmax}"
+    dates = pd.to_datetime(frame[date_column])
+    return f"{dates.min().date()} a {dates.max().date()}"
 
 
-def main():
-    lines = []
-    lines.append("# Terceira Entrega — Ajustes Visuais, Correlações e Vento (INMET)\n")
-    lines.append("Este documento resume as alterações e resultados produzidos na **Terceira Entrega**, conforme sugestões do Prof. Jan Corrêa.\n")
-
-    # =====================================================
-    # Principais mudanças (texto pronto pro e-mail)
-    # =====================================================
-    lines.append("## Principais ajustes solicitados e implementados\n")
-    lines.append("- **Médias móveis**: gráficos diários passaram a ser gerados em **janelas de 1 ano** (melhor legibilidade).\n"
-                 "- **Padronização de cores**: interrupções em **vermelho**, temperatura em **azul** e precipitação em **azul forte**.\n"
-                 "- **Interrupções x temperatura (semanal)**: geração por **intervalos anuais**.\n"
-                 "- **Scatters mensais**: cada ponto representa **1 mês**, com **cor por ano/gradiente temporal** e **linha de regressão + R²**.\n"
-                 "- **Previsão (baselines)**: visualização do período de teste em **janelas de 1 ano**.\n"
-                 "- **Consumo**: visualização também em **GWh** para evitar notação científica no eixo e facilitar interpretação.\n"
-                 "- **Vento (INMET)**: criação de variáveis diárias (velocidade, rajada e direção), integração com interrupções e análise em escalas diária/semanal/mensal.\n")
-
-    # =====================================================
-    # Dados e períodos
-    # =====================================================
-    lines.append("## Bases utilizadas nesta entrega\n")
-
-    if BASE_DIARIA_CLIMA.exists():
-        df = pd.read_csv(BASE_DIARIA_CLIMA)
-        lines.append(f"- `dados/base_diaria_interrupcoes_clima.csv` — período: **{resumo_periodo(df,'data')}**; linhas: **{len(df)}**")
+def describe_base(lines: list[str], path: Path, date_column: str, unit: str) -> None:
+    relative = path.relative_to(ROOT)
+    if path.exists():
+        frame = pd.read_csv(path)
+        lines.append(
+            f"- `{relative}` — período: **{resumo_periodo(frame, date_column)}**; "
+            f"{unit}: **{len(frame)}**"
+        )
     else:
-        lines.append("- `dados/base_diaria_interrupcoes_clima.csv` — _(não encontrado)_")
+        lines.append(f"- `{relative}` — _(não encontrado)_")
 
-    if BASE_DIARIA_VENTO.exists():
-        df = pd.read_csv(BASE_DIARIA_VENTO)
-        lines.append(f"- `dados/base_diaria_interrupcoes_clima_vento.csv` — período: **{resumo_periodo(df,'data')}**; linhas: **{len(df)}**")
-    else:
-        lines.append("- `dados/base_diaria_interrupcoes_clima_vento.csv` — _(não encontrado)_")
 
-    if BASE_MENSAL.exists():
-        df = pd.read_csv(BASE_MENSAL)
-        lines.append(f"- `dados/base_mensal_interrupcoes_clima_consumo.csv` — período: **{resumo_periodo(df,'data_referencia')}**; meses: **{len(df)}**")
-    else:
-        lines.append("- `dados/base_mensal_interrupcoes_clima_consumo.csv` — _(não encontrado)_")
+def main() -> None:
+    lines = [
+        "# Terceira Entrega — Ajustes Visuais, Correlações e Vento (INMET)\n",
+        "Este documento resume as alterações e os resultados produzidos na terceira entrega.\n",
+        "## Principais ajustes implementados\n",
+        "- **Médias móveis**: gráficos diários em janelas de um ano, para melhorar a legibilidade.\n"
+        "- **Padronização de cores**: interrupções em vermelho, temperatura em azul e precipitação em azul-escuro.\n"
+        "- **Agregações**: visualizações semanais e mensais, além de dispersões mensais com regressão e $R^2$.\n"
+        "- **Consumo**: visualização em GWh para facilitar a leitura dos eixos.\n"
+        "- **Vento**: variáveis diárias da estação A001, com direção representada por seno e cosseno e agregada circularmente.\n",
+        "## Bases utilizadas nesta entrega\n",
+    ]
 
-    if PREV.exists():
-        df = pd.read_csv(PREV)
-        lines.append(f"- `dados/previsoes_diarias_baselines.csv` — período: **{resumo_periodo(df,'data')}**; linhas: **{len(df)}**")
-    else:
-        lines.append("- `dados/previsoes_diarias_baselines.csv` — _(não encontrado)_")
-
+    describe_base(lines, BASE_DIARIA_CLIMA, "data", "linhas")
+    describe_base(lines, BASE_DIARIA_VENTO, "data", "linhas")
+    describe_base(lines, BASE_MENSAL, "data_referencia", "meses")
+    describe_base(lines, PREV, "data", "linhas")
     lines.append("")
 
-    # =====================================================
-    # Resultados por tarefa (onde estão os gráficos)
-    # =====================================================
     lines.append("## Artefatos gerados por tarefa\n")
+    tasks = [
+        ("T1", "Médias móveis diárias por ano", "T1_mm_1ano"),
+        ("T3", "Interrupções e temperatura semanal por ano", "T3_semanal_temp_ano"),
+        ("T4", "Precipitação semanal e mensal", "T4_precipitacao"),
+        ("T5", "Dispersões mensais com regressão", "T5_scatter_regressao"),
+        ("T6", "Baselines no período de teste", "T6_previsao_zoom_1ano"),
+        ("T8", "Vento diário integrado", "T8_vento"),
+        ("T9", "Vento agregado semanal e mensal", "T9_vento_agregados"),
+    ]
+    for code, title, folder in tasks:
+        lines.append(f"### {code} — {title}\n")
+        lines.append(f"**Pasta:** `graficos/{folder}/`\n\n{file_list_md(GRAF / folder)}\n")
 
-    # T1
-    lines.append("### T1 — Médias móveis diárias por ano (1 ano por gráfico)\n")
-    lines.append(f"**Pasta:** `graficos/T1_mm_1ano/`\n\n{file_list_md(GRAF / 'T1_mm_1ano')}\n")
-
-    # T3
-    lines.append("### T3 — Interrupções x Temperatura (semanal) por ano\n")
-    lines.append(f"**Pasta:** `graficos/T3_semanal_temp_ano/`\n\n{file_list_md(GRAF / 'T3_semanal_temp_ano')}\n")
-
-    # T4
-    lines.append("### T4 — Interrupções x Precipitação (semanal e mensal) com cores padronizadas\n")
-    lines.append(f"**Pasta:** `graficos/T4_precipitacao/`\n\n{file_list_md(GRAF / 'T4_precipitacao')}\n")
-
-    # T5
-    lines.append("### T5 — Scatters mensais com cor por ano/gradiente + regressão\n")
-    lines.append(f"**Pasta:** `graficos/T5_scatter_regressao/`\n\n{file_list_md(GRAF / 'T5_scatter_regressao')}\n")
-
-    # T6
-    lines.append("### T6 — Previsão (baselines) no teste com zoom de 1 ano\n")
-    lines.append(f"**Pasta:** `graficos/T6_previsao_zoom_1ano/`\n\n{file_list_md(GRAF / 'T6_previsao_zoom_1ano')}\n")
-
-    # T8
-    lines.append("### T8 — Vento diário (INMET) integrado e gráficos diários\n")
-    lines.append(f"**Pasta:** `graficos/T8_vento/`\n\n{file_list_md(GRAF / 'T8_vento')}\n")
-
-    # T9
-    lines.append("### T9 — Vento agregado semanal/mensal e gráficos\n")
-    lines.append(f"**Pasta:** `graficos/T9_vento_agregados/`\n\n{file_list_md(GRAF / 'T9_vento_agregados')}\n")
-
-    # =====================================================
-    # Correlações consolidadas
-    # =====================================================
-    lines.append("## Correlações (Pearson) — resumo consolidado\n")
-
+    lines.append("## Correlações de Pearson — resumo canônico\n")
     if CORR_CONSOL.exists():
-        corr = pd.read_csv(CORR_CONSOL)
-
-        # Destaques
-        lines.append("### Destaques (maiores correlações em módulo)\n")
-        corr2 = corr.copy()
-        corr2["abs_r"] = corr2["pearson_r"].abs()
-        top = corr2.sort_values("abs_r", ascending=False).drop(columns=["abs_r"]).head(12)
-        lines.append(md_table(top, max_rows=12))
-        lines.append("")
-
-        # Tabela completa
-        lines.append("### Tabela completa\n")
-        lines.append(md_table(corr, max_rows=200))
-        lines.append("")
+        correlations = pd.read_csv(CORR_CONSOL)
+        top = (
+            correlations.assign(abs_r=correlations["pearson_r"].abs())
+            .sort_values("abs_r", ascending=False)
+            .drop(columns="abs_r")
+            .head(12)
+        )
+        lines.extend([
+            "### Maiores correlações em módulo\n",
+            md_table(top, max_rows=12),
+            "",
+            "### Tabela completa\n",
+            md_table(correlations, max_rows=200),
+            "",
+        ])
     else:
-        lines.append("_Arquivo `correlacoes_consolidadas.csv` não encontrado._\n")
+        lines.append(f"_Arquivo canônico não encontrado: `{CORR_CONSOL}`._\n")
 
-    # =====================================================
-    # Interpretação curta (para e-mail / relatório)
-    # =====================================================
-    lines.append("## Interpretação resumida dos achados\n")
-    lines.append("- **Agregação aumenta clareza do padrão**: a relação entre interrupções e variáveis meteorológicas tende a ficar mais forte em escalas **semanal/mensal** do que no diário.\n"
-                 "- **Precipitação**: correlação cresce de **diário (~0,35)** para **semanal (~0,48)** e **mensal (~0,54)**.\n"
-                 "- **Consumo e temperatura (mensal)**: correlação moderada/alta (**~0,56**), e interrupções também se correlacionam com consumo (**~0,48**).\n"
-                 "- **Vento**: após limpeza de valores inválidos do INMET, a **direção média do vento** apresenta correlação relevante com interrupções, especialmente em escala **mensal (~0,59)**; semanal também é significativa (**~0,50**).\n"
-                 "- **Observação metodológica**: direção do vento é uma variável circular (0–360°); a média simples é uma aproximação inicial e pode ser refinada com estatística circular, se necessário.\n")
-
-    # =====================================================
-    # Próximos passos (o que o prof sugeriu)
-    # =====================================================
-    lines.append("## Próximos passos sugeridos (planejamento)\n")
-    lines.append("- Implementar modelos mais avançados de previsão (DeepAR, TFT, LSTM, GRU), garantindo **divisão temporal** sem vazamento (treino até t e previsão para t+1).\n"
-                 "- Definir janela de features (lags) e estratégia de validação (walk-forward).\n"
-                 "- Comparar modelos por MAE/RMSE e incluir gráfico de previsão com zoom (1 ano) no período de teste.\n")
+    lines.extend([
+        "## Interpretação resumida dos achados\n",
+        "- A agregação temporal não fortalece todas as relações, mas evidencia alguns padrões acumulados.\n"
+        "- A precipitação apresenta correlação de aproximadamente **0,348** no diário, **0,495** no semanal e **0,539** no mensal.\n"
+        "- No nível mensal, interrupções e consumo têm correlação de aproximadamente **0,476**.\n"
+        "- A direção do vento é circular: seus componentes seno e cosseno alcançam, no mensal, aproximadamente **-0,522** e **0,570**, respectivamente.\n"
+        "- Correlação descreve associação e, isoladamente, não demonstra causalidade.\n",
+        "## Próximos passos sugeridos\n",
+        "- Comparar modelos preditivos por divisão temporal e validação walk-forward, sempre evitando vazamento.\n"
+        "- Documentar janelas de atributos, hiperparâmetros e métricas de teste.\n"
+        "- Manter os artefatos históricos sincronizados com a base e as regras canônicas do projeto.\n",
+    ])
 
     OUT_MD.write_text("\n".join(lines), encoding="utf-8")
-    print("[OK] Markdown gerado em:", OUT_MD)
+    print(f"[OK] Markdown regenerado em {OUT_MD}")
 
 
 if __name__ == "__main__":
-    try:
-        main()
-    except Exception as e:
-        print("\n[ERRO]", e)
-        sys.exit(1)
+    main()

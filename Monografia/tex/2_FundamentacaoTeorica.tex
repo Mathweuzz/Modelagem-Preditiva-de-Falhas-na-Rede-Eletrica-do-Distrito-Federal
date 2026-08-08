@@ -344,7 +344,7 @@ onde $\mu_\mathcal{B}$ e $\sigma^2_\mathcal{B}$ são a média e variância do mi
 
 \section{Normalização de Dados de Entrada}\label{sec:normalizacao}
 
-A convergência eficiente dos algoritmos de descida de gradiente exige que as variáveis de entrada operem em escalas comparáveis. No contexto deste trabalho, as \textit{features} brutas possuem magnitudes drasticamente distintas: a precipitação varia de 0 a 113 mm, a temperatura de 11,3 a 29,9 °C, e a rajada de vento de 5,3 a 30,4 m/s. Sem normalização, as variáveis de maior magnitude dominariam o gradiente, retardando ou impedindo a convergência \cite{bishop2006pattern}.
+A convergência eficiente dos algoritmos de descida de gradiente exige que as variáveis de entrada operem em escalas comparáveis. No contexto deste trabalho, as \textit{features} brutas possuem magnitudes drasticamente distintas: a precipitação varia de 0 a 113 mm, a temperatura de 11,3 a 29,9 °C, e a rajada de vento de 4,4 a 21,0 m/s. Sem normalização, as variáveis de maior magnitude dominariam o gradiente, retardando ou impedindo a convergência \cite{bishop2006pattern}.
 
 \subsection{Normalização Min-Max}
 A técnica \textit{Min-Max Scaling} empregada neste trabalho confina cada atributo ao intervalo $[0, 1]$:

@@ -2,12 +2,12 @@ Este capítulo sintetiza os principais achados do trabalho, avalia o cumprimento
 
 \section{Síntese dos Achados}
 
-Este trabalho de conclusão de curso desenvolveu e avaliou modelos preditivos para estimar o número diário de interrupções no fornecimento de energia elétrica no Distrito Federal, integrando dados climáticos do INMET e registros de ocorrências da ANEEL ao longo de 3.073 dias consecutivos de dados brutos (janeiro de 2017 a maio de 2025), reduzidos a 3.066 dias após a engenharia de atributos. Dados de consumo energético do SAMP foram utilizados complementarmente na análise exploratória mensal, sem integrar as entradas dos modelos.
+Este trabalho de conclusão de curso desenvolveu e avaliou modelos preditivos para estimar o número diário de interrupções no fornecimento de energia elétrica no Distrito Federal, integrando fontes oficiais previamente padronizadas do INMET e registros de ocorrências da ANEEL ao longo de 3.073 dias consecutivos (janeiro de 2017 a maio de 2025), reduzidos a 3.066 dias após a engenharia de atributos. Dados de consumo energético do SAMP foram utilizados complementarmente na análise exploratória mensal, sem integrar as entradas dos modelos.
 
 Os principais achados são:
 
 \begin{enumerate}
-    \item \textbf{Associações clima--falhas quantificadas:} A análise em múltiplas escalas mostrou que a precipitação ($r = 0{,}54$ mensal), a direção do vento ($r = 0{,}59$ mensal) e o consumo de energia ($r = 0{,}48$ mensal) exibiram as maiores correlações com as interrupções. Os coeficientes aumentam na transição do nível diário para o semanal e o mensal; esse padrão é descritivo e não demonstra efeitos climáticos cumulativos.
+    \item \textbf{Associações clima--falhas quantificadas:} A análise em múltiplas escalas mostrou correlações mensais de $r = 0{,}54$ para precipitação, $r = -0{,}52/0{,}57$ para as componentes seno/cosseno da direção circular e $r = 0{,}48$ para consumo de energia. Para precipitação, rajada e componentes direcionais, as magnitudes são maiores nas escalas agregadas; esse padrão é descritivo e não demonstra efeitos climáticos cumulativos.
 
     \item \textbf{Desempenhos próximos entre XGBoost e Bi-LSTM para $h=1$:} Sob protocolo unificado de previsão $h=1$, o XGBoost (MAE $= 61{,}1$, $R^2 = 0{,}409$) e a Bi-LSTM (MAE $= 62{,}7$, $R^2 = 0{,}420$) apresentaram desempenhos descritivamente próximos (diferença de 2,7\% em MAE), enquanto a Bi-GRU ficou em terceiro lugar ($R^2 = 0{,}156$). XGBoost e Bi-LSTM também registraram MAE inferior ao da persistência (68,6). Todos compartilharam as mesmas 41 variáveis por instante e o corte temporal, mas o XGBoost recebeu uma linha e as redes, janelas de 14 dias; logo, não se trata de uma representação idêntica.
 
@@ -27,7 +27,7 @@ Em relação aos objetivos específicos propostos na Seção~\ref{sec:objetivos}
 \begin{enumerate}
     \item \textbf{Base de dados integrada:} Construiu-se uma base diária multivariada inédita de 3.073 dias brutos a partir do INMET e dos registros de interrupções da ANEEL, reduzida a 3.066 dias após engenharia de atributos com 40 \textit{features} derivadas. Uma base mensal complementar integra essas informações ao consumo energético do SAMP para fins de análise exploratória. O código e os artefatos reproduzíveis estão disponíveis no repositório público do projeto. \textit{Objetivo cumprido.}
 
-    \item \textbf{Agregações em múltiplas escalas:} Realizaram-se análises em escala diária, semanal e mensal, revelando que a agregação temporal amplifica as correlações clima--falhas e facilita a identificação de padrões sazonais. \textit{Objetivo cumprido.}
+    \item \textbf{Agregações em múltiplas escalas:} Realizaram-se análises em escala diária, semanal e mensal. Para os principais sinais climáticos, as magnitudes das correlações foram maiores nas escalas agregadas, que também facilitaram a identificação de padrões sazonais. \textit{Objetivo cumprido.}
 
     \item \textbf{Engenharia de atributos temporais:} Desenvolveu-se um \textit{pipeline} de 40 \textit{features} derivadas incluindo defasagens de 1 a 7 dias, EMAs de 3, 7 e 14 dias, desvios padrão em janela de 7 dias e codificações harmônicas cíclicas. \textit{Objetivo cumprido.}
 
