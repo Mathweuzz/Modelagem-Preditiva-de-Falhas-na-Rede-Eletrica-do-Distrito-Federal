@@ -2,9 +2,10 @@
 import sys
 from pathlib import Path
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 
-ROOT = Path("/home/mateus/CLEAR DATA/TerceiroPedido/TerceiroPedido")
+ROOT = Path(__file__).resolve().parents[1]
 DADOS_DIR = ROOT / "dados"
 GRAFICOS_DIR = ROOT / "graficos" / "T9_vento_agregados"
 GRAFICOS_DIR.mkdir(parents=True, exist_ok=True)
@@ -45,8 +46,8 @@ def carregar_base():
         "vento_velocidade_media_ms",
         "vento_velocidade_max_ms",
         "vento_rajada_max_ms",
-        "vento_direcao_media_gr",
-        "vento_direcao_moda_gr",
+        "vento_dir_sin",
+        "vento_dir_cos",
     ]
     for c in need:
         if c not in df.columns:
@@ -64,10 +65,16 @@ def agregar(df: pd.DataFrame, freq: str) -> pd.DataFrame:
         vento_velocidade_media_ms=("vento_velocidade_media_ms", "mean"),
         vento_velocidade_max_ms=("vento_velocidade_max_ms", "max"),
         vento_rajada_max_ms=("vento_rajada_max_ms", "max"),
-        vento_direcao_media_gr=("vento_direcao_media_gr", "mean"),
-        vento_direcao_moda_gr=("vento_direcao_moda_gr", moda_series),
+        vento_dir_sin=("vento_dir_sin", "mean"),
+        vento_dir_cos=("vento_dir_cos", "mean"),
         n_dias=("interrupcoes", "count"),
     ).reset_index()
+    norm = np.hypot(agg["vento_dir_sin"], agg["vento_dir_cos"])
+    agg["vento_dir_sin"] = agg["vento_dir_sin"] / norm
+    agg["vento_dir_cos"] = agg["vento_dir_cos"] / norm
+    agg["vento_direcao_media_gr"] = np.degrees(
+        np.arctan2(agg["vento_dir_sin"], agg["vento_dir_cos"])
+    ) % 360.0
 
     agg = agg.rename(columns={"data": "data_referencia"})
     return agg
@@ -128,7 +135,7 @@ def main():
     )
     plot_duplo(
         sem, "vento_direcao_media_gr",
-        "Interrupções semanais x Direção média do vento (graus) *",
+        "Interrupções semanais x Direção média circular do vento (graus)",
         GRAFICOS_DIR / "semanal_interrupcoes_vs_direcao_media.png",
         COR_DIRECAO
     )
@@ -155,13 +162,13 @@ def main():
     )
     plot_duplo(
         men, "vento_direcao_media_gr",
-        "Interrupções mensais x Direção média do vento (graus) *",
+        "Interrupções mensais x Direção média circular do vento (graus)",
         GRAFICOS_DIR / "mensal_interrupcoes_vs_direcao_media.png",
         COR_DIRECAO
     )
 
     print("\n[OK] T9 concluído: agregados semanal/mensal de vento + gráficos.")
-    print("(*) Nota: direção do vento é variável circular; média simples é uma aproximação inicial.")
+    print("Direção agregada por média vetorial das componentes seno/cosseno.")
 
 
 if __name__ == "__main__":

@@ -1,23 +1,23 @@
-nivel_temporal,variavel_x,variavel_y,pearson_r
-diario,interrupcoes,vento_direcao_media_gr,0.3664921362972562
-diario,interrupcoes,precipitacao_total_mm,0.3474050273971871
-diario,interrupcoes,vento_rajada_max_ms,0.2530266267421241
-diario,interrupcoes,vento_velocidade_media_ms,-0.19394694693918835
-diario,interrupcoes,vento_direcao_moda_gr,0.18119134241216547
-diario,interrupcoes,temperatura_media,0.1018850744761465
-diario,interrupcoes,vento_velocidade_max_ms,0.01572791530455836
-mensal,interrupcoes,vento_direcao_media_gr,0.5879103896566974
-mensal,consumo_total_kwh,temperatura_media,0.5550313266443844
-mensal,interrupcoes,precipitacao_total_mm,0.5385577719045647
-mensal,interrupcoes,consumo_total_kwh,0.4763950046888337
-mensal,interrupcoes,temperatura_media,0.3937289450527472
-mensal,interrupcoes,vento_rajada_max_ms,0.3788899143308082
-mensal,interrupcoes,vento_velocidade_media_ms,-0.3635067214597034
-mensal,interrupcoes,vento_direcao_moda_gr,-0.1858872935561104
-mensal,interrupcoes,vento_velocidade_max_ms,-0.08357228783751909
-semanal,interrupcoes,vento_direcao_media_gr,0.4962225202264188
-semanal,interrupcoes,precipitacao_total_mm,0.47684271998455
-semanal,interrupcoes,vento_rajada_max_ms,0.3401328347571635
-semanal,interrupcoes,vento_velocidade_media_ms,-0.31359341309998784
-semanal,interrupcoes,vento_direcao_moda_gr,-0.08362080922583635
-semanal,interrupcoes,vento_velocidade_max_ms,-0.06920425705001211
+nivel_temporal,variavel,pearson_r,rotulo
+diario,temperatura_media,0.10188507447614664,Temperatura media
+diario,precipitacao_total_mm,0.3476214074842249,Precipitacao total
+diario,vento_velocidade_media_ms,-0.1490545642273024,Velocidade media do vento
+diario,vento_velocidade_max_ms,0.03357515716489835,Velocidade maxima do vento
+diario,vento_rajada_max_ms,0.2544010793657217,Rajada maxima
+diario,vento_dir_sin,-0.34535913178336347,Direcao do vento (seno)
+diario,vento_dir_cos,0.21027429732012476,Direcao do vento (cosseno)
+semanal,temperatura_media,0.2508928603096201,Temperatura media
+semanal,precipitacao_total_mm,0.49524137807116464,Precipitacao total
+semanal,vento_velocidade_media_ms,-0.24976141858440473,Velocidade media do vento
+semanal,vento_velocidade_max_ms,0.07236294930305341,Velocidade maxima do vento
+semanal,vento_rajada_max_ms,0.40139096849666195,Rajada maxima
+semanal,vento_dir_sin,-0.43666460203564916,Direcao do vento (seno)
+semanal,vento_dir_cos,0.39481396808971453,Direcao do vento (cosseno)
+mensal,temperatura_media,0.3937289450527473,Temperatura media
+mensal,precipitacao_total_mm,0.5385577719045647,Precipitacao total
+mensal,vento_velocidade_media_ms,-0.3102246509225288,Velocidade media do vento
+mensal,vento_velocidade_max_ms,0.06954574085171147,Velocidade maxima do vento
+mensal,vento_rajada_max_ms,0.44860546935296486,Rajada maxima
+mensal,vento_dir_sin,-0.5221782839437505,Direcao do vento (seno)
+mensal,vento_dir_cos,0.5699785186785606,Direcao do vento (cosseno)
+mensal,consumo_total_kwh,0.4763950046888337,Consumo total

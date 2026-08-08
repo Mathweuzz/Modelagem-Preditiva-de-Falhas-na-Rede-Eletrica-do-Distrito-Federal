@@ -23,12 +23,14 @@ def calculate_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> dict[str, float
     """Calcula as quatro métricas reportadas para os demais modelos."""
     y_true = np.asarray(y_true, dtype=float)
     y_pred = np.asarray(y_pred, dtype=float)
+    nonzero = y_true != 0
+    mape = np.mean(np.abs((y_true[nonzero] - y_pred[nonzero]) / y_true[nonzero])) * 100
     return {
         "n": int(len(y_true)),
         "MAE": float(mean_absolute_error(y_true, y_pred)),
         "RMSE": float(np.sqrt(mean_squared_error(y_true, y_pred))),
         "R2": float(r2_score(y_true, y_pred)),
-        "MAPE": float(np.mean(np.abs((y_true - y_pred) / (y_true + 1e-8))) * 100),
+        "MAPE": float(mape) if nonzero.any() else float("nan"),
     }
 
 

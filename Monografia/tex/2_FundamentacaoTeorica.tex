@@ -319,7 +319,7 @@ Proposto por \cite{srivastava2014dropout}, o Dropout desativa aleatoriamente uma
 \begin{equation}
     \tilde{\mathbf{h}} = \mathbf{m} \odot \mathbf{h}, \quad m_i \sim \text{Bernoulli}(1 - p)
 \end{equation}
-onde $\mathbf{m}$ é uma máscara binária amostrada independentemente a cada iteração. No presente trabalho, adotou-se $p = 0{,}4$ (40\% de desativação) nas camadas intermediárias entre a saída da rede recorrente bidirecional e a camada densa final. Durante a inferência, o Dropout é desativado e as ativações são escaladas pelo fator $(1 - p)$ para manter a consistência estatística.
+onde $\mathbf{m}$ é uma máscara binária amostrada independentemente a cada iteração. No presente trabalho, adotou-se $p = 0{,}4$ (40\% de desativação) nas camadas intermediárias entre a saída da rede recorrente bidirecional e a camada densa final. O PyTorch emprega \textit{inverted dropout}: a escala compensatória é aplicada durante o treinamento e, em \texttt{model.eval()}, a camada torna-se a identidade, sem reescala adicional das ativações.
 
 \subsection{Regularização por Decaimento de Pesos ($L_2$)}
 A regularização $L_2$ (\textit{Weight Decay}) adiciona um termo de penalidade proporcional à norma euclidiana dos pesos à função de perda \cite{goodfellow2016deep}:
@@ -377,7 +377,7 @@ O MAPE expressa o erro como porcentagem do valor real, facilitando a interpreta�
 \begin{equation}
     \text{MAPE} = \frac{1}{N} \sum_{t=1}^N \left|\frac{y_t - \hat{y}_t}{y_t}\right| \times 100\%
 \end{equation}
-Embora intuitivo, o MAPE apresenta limitações quando os valores reais são muito pequenos ou nulos, pois a divisão por $y_t$ torna-se numericamente instável \cite{hyndman2018forecasting}. No presente estudo, o mínimo de interrupções diárias no conjunto de teste é 63, evitando esse problema.
+Embora intuitivo, o MAPE apresenta limitações quando os valores reais são muito pequenos ou nulos, pois a divisão por $y_t$ torna-se numericamente instável \cite{hyndman2018forecasting}. No conjunto de teste principal não há valores reais iguais a zero; por robustez, a implementação calcula o MAPE somente sobre observações com $y_t \neq 0$.
 
 \subsection{Coeficiente de Determinação ($R^2$)}
 O coeficiente de determinação $R^2$ quantifica a proporção da variância total da variável dependente que é explicada pelo modelo:

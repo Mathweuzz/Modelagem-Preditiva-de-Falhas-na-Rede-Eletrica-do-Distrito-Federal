@@ -1,15 +1,16 @@
 import sys
 from pathlib import Path
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 
-ROOT = Path("/home/mateus/CLEAR DATA/TerceiroPedido/TerceiroPedido")
+ROOT = Path(__file__).resolve().parents[1]
 DADOS_DIR = ROOT / "dados"
 GRAFICOS_DIR = ROOT / "graficos" / "T8_vento"
 GRAFICOS_DIR.mkdir(parents=True, exist_ok=True)
 
 # INMET horários (limpos)
-INMET_DIR = Path("/home/mateus/CLEAR DATA/dados_clima-inmet_limpos")
+INMET_DIR = ROOT.parents[2] / "dados_clima-inmet_limpos"
 
 # Base diária (com interrupções) já pronta
 BASE_DIARIA = DADOS_DIR / "base_diaria_interrupcoes_clima.csv"
@@ -84,15 +85,24 @@ def construir_vento_diario():
 
     df = pd.concat(dfs, ignore_index=True)
     df = df.sort_values("data")
+    radians = np.deg2rad(df["vento_direcao_horaria_gr"] % 360.0)
+    df["_dir_sin"] = np.sin(radians)
+    df["_dir_cos"] = np.cos(radians)
 
     vento_diario = df.groupby("data").agg(
         vento_velocidade_media_ms=("vento_velocidade_horaria_ms", "mean"),
         vento_velocidade_max_ms=("vento_velocidade_horaria_ms", "max"),
         vento_rajada_max_ms=("vento_rajada_max_ms", "max"),
-        vento_direcao_media_gr=("vento_direcao_horaria_gr", "mean"),
-        vento_direcao_moda_gr=("vento_direcao_horaria_gr", moda_series),
+        _dir_sin=("_dir_sin", "mean"),
+        _dir_cos=("_dir_cos", "mean"),
         n_registros=("vento_velocidade_horaria_ms", "count"),
     ).reset_index()
+    norm = np.hypot(vento_diario["_dir_sin"], vento_diario["_dir_cos"])
+    vento_diario["vento_dir_sin"] = vento_diario["_dir_sin"] / norm
+    vento_diario["vento_dir_cos"] = vento_diario["_dir_cos"] / norm
+    vento_diario["vento_direcao_media_gr"] = np.degrees(
+        np.arctan2(vento_diario["vento_dir_sin"], vento_diario["vento_dir_cos"])
+    ) % 360.0
 
     print(f"[1] Vento diário gerado com {len(vento_diario)} dias: {vento_diario['data'].min().date()} a {vento_diario['data'].max().date()}")
     print("[1] Salvando:", VENTO_DIARIO_CSV)
@@ -132,8 +142,8 @@ def correlacoes_e_graficos(df: pd.DataFrame):
         "vento_velocidade_media_ms",
         "vento_velocidade_max_ms",
         "vento_rajada_max_ms",
-        "vento_direcao_media_gr",
-        "vento_direcao_moda_gr",
+        "vento_dir_sin",
+        "vento_dir_cos",
     ]
 
     for v in vars_vento:

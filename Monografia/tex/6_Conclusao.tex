@@ -2,22 +2,22 @@ Este capítulo sintetiza os principais achados do trabalho, avalia o cumprimento
 
 \section{Síntese dos Achados}
 
-Este trabalho de conclusão de curso desenvolveu e avaliou modelos preditivos para estimar o número diário de interrupções no fornecimento de energia elétrica no Distrito Federal, integrando dados climáticos do INMET e registros de ocorrências da ANEEL ao longo de 3.073 dias consecutivos de dados brutos (janeiro de 2017 a maio de 2025), reduzidos a 3.066 dias após a engenharia de atributos. Dados de consumo energético do SAMP foram utilizados complementarmente na análise exploratória mensal, sem integrar as entradas dos modelos.
+Este trabalho desenvolveu e avaliou modelos para estimar o número diário total de interrupções no Distrito Federal. A base integra observações do INMET e 748.542 ocorrências deduplicadas da ANEEL, sem filtro por causa, em 3.073 dias brutos (janeiro de 2017 a maio de 2025), reduzidos a 3.066 dias após a engenharia de atributos. Dados de consumo energético do SAMP foram usados apenas na análise exploratória mensal.
 
 Os principais achados são:
 
 \begin{enumerate}
-    \item \textbf{Associações clima--falhas quantificadas:} A análise em múltiplas escalas mostrou que a precipitação ($r = 0{,}54$ mensal), a direção do vento ($r = 0{,}59$ mensal) e o consumo de energia ($r = 0{,}48$ mensal) exibiram as maiores correlações com as interrupções. Os coeficientes aumentam na transição do nível diário para o semanal e o mensal; esse padrão é descritivo e não demonstra efeitos climáticos cumulativos.
+    \item \textbf{Associações clima--falhas quantificadas:} Em escala mensal, as componentes seno e cosseno da direção do vento ($r=-0{,}522$ e $0{,}570$), a precipitação ($r=0{,}539$) e o consumo ($r=0{,}476$) apresentaram as maiores magnitudes. Nem todas aumentaram monotonicamente com a agregação, e nenhuma demonstra efeito causal.
 
-    \item \textbf{Desempenhos próximos entre XGBoost e Bi-LSTM para $h=1$:} Sob protocolo unificado de previsão $h=1$, o XGBoost (MAE $= 61{,}1$, $R^2 = 0{,}409$) e a Bi-LSTM (MAE $= 62{,}7$, $R^2 = 0{,}420$) apresentaram desempenhos descritivamente próximos (diferença de 2,7\% em MAE), enquanto a Bi-GRU ficou em terceiro lugar ($R^2 = 0{,}156$). XGBoost e Bi-LSTM também registraram MAE inferior ao da persistência (68,6). Todos compartilharam as mesmas 41 variáveis por instante e o corte temporal, mas o XGBoost recebeu uma linha e as redes, janelas de 14 dias; logo, não se trata de uma representação idêntica.
+    \item \textbf{Resultados complementares em $h=1$:} A Bi-GRU alcançou o menor MAE (60,36) e MAPE (18,89\%), enquanto a Bi-LSTM apresentou o menor RMSE (98,70) e o maior $R^2$ (0,421). Os três modelos treinados superaram a persistência em todas as métricas.
 
-    \item \textbf{Redes recorrentes com maior densidade residual próxima de zero:} Em $h=1$, as curvas KDE da Bi-LSTM e da Bi-GRU apresentaram picos mais concentrados em torno de zero. Essa característica não implica menor MAE nos dias normais: na segmentação por severidade, o XGBoost obteve o menor MAE em todas as faixas.
+    \item \textbf{Avaliação por severidade:} O teste contém 73 dias Normais, 242 Moderados e 50 Severos. A Bi-GRU apresentou o menor MAE na faixa Normal, a Bi-LSTM na Moderada e o XGBoost na Severa; os erros aumentaram substancialmente nos maiores valores.
 
-    \item \textbf{Tendência de crescimento nas interrupções:} A média diária de interrupções cresceu 65,3\% entre 2017 (183,5) e 2025 (303,4). Esse crescimento é descritivo e não permite inferência causal com as variáveis disponíveis; sua explicação demanda dados adicionais sobre ativos, manutenção, expansão da rede e causas das ocorrências.
+    \item \textbf{Mudança do patamar do alvo:} A média diária do alvo total passa de 183,5 em 2017 para 303,4 no período disponível de 2025. Esse resultado é descritivo e demanda dados adicionais para separar alterações de registro, exposição, ativos, manutenção, expansão e clima.
 
     \item \textbf{Dependência temporal caracterizada:} A autocorrelação (ACF) permaneceu estatisticamente significativa além de 14 dias e fundamentou o \textit{Lookback Window} de 14 dias, os \textit{lags} e as médias móveis exponenciais. A correlação cruzada foi exploratória e, sem pré-branqueamento e intervalos de confiança por defasagem, não validou uma defasagem ótima nem causalidade.
 
-    \item \textbf{Ordenação variável nos horizontes mais longos:} Na análise multi-horizonte direta (1, 3, 7 e 14 dias à frente, 352 datas-alvo idênticas por horizonte), a Bi-LSTM registrou o menor MAE entre os modelos treinados em $h=3$ (74,0) e a Bi-GRU em $h=7$ (73,6) e $h=14$ (64,3). Os três modelos registraram MAE inferior ao da persistência nesses três horizontes. O XGBoost apresentou $R^2 = -0{,}027$ em $h=7$, abaixo do \textit{baseline} da média. Esses resultados descritivos indicam que a seleção operacional deve considerar o horizonte e ser validada prospectivamente.
+    \item \textbf{Ordenação variável nos horizontes mais longos:} Em 352 datas-alvo idênticas, a Bi-GRU teve o menor MAE em $h=1$ (61,67), $h=7$ (71,24) e $h=14$ (68,19); a Bi-LSTM obteve o menor valor em $h=3$ (65,56). A seleção operacional deve considerar o horizonte e ser validada prospectivamente.
 \end{enumerate}
 
 \section{Cumprimento dos Objetivos}
@@ -25,13 +25,13 @@ Os principais achados são:
 Em relação aos objetivos específicos propostos na Seção~\ref{sec:objetivos}:
 
 \begin{enumerate}
-    \item \textbf{Base de dados integrada:} Construiu-se uma base diária multivariada inédita de 3.073 dias brutos a partir do INMET e dos registros de interrupções da ANEEL, reduzida a 3.066 dias após engenharia de atributos com 40 \textit{features} derivadas. Uma base mensal complementar integra essas informações ao consumo energético do SAMP para fins de análise exploratória. O código e os artefatos reproduzíveis estão disponíveis no repositório público do projeto. \textit{Objetivo cumprido.}
+    \item \textbf{Base de dados integrada:} Construiu-se uma base diária de 3.073 dias a partir do INMET e de 748.542 registros deduplicados da ANEEL, sem filtro por causa, reduzida a 3.066 dias após engenharia de atributos. Uma base mensal complementar integra o consumo do SAMP apenas para análise exploratória. \textit{Objetivo cumprido.}
 
-    \item \textbf{Agregações em múltiplas escalas:} Realizaram-se análises em escala diária, semanal e mensal, revelando que a agregação temporal amplifica as correlações clima--falhas e facilita a identificação de padrões sazonais. \textit{Objetivo cumprido.}
+    \item \textbf{Agregações em múltiplas escalas:} Realizaram-se análises diária, semanal e mensal sob uma regra canônica: soma para contagens e precipitação, média para temperatura e velocidade, máximo para rajada e componentes circulares para direção. \textit{Objetivo cumprido.}
 
-    \item \textbf{Engenharia de atributos temporais:} Desenvolveu-se um \textit{pipeline} de 40 \textit{features} derivadas incluindo defasagens de 1 a 7 dias, EMAs de 3, 7 e 14 dias, desvios padrão em janela de 7 dias e codificações harmônicas cíclicas. \textit{Objetivo cumprido.}
+    \item \textbf{Engenharia de atributos temporais:} Desenvolveu-se um \textit{pipeline} com 40 variáveis de entrada, sete base e 33 derivadas, incluindo defasagens em 1, 2, 3 e 7 dias, EMAs de 3, 7 e 14 dias, desvios padrão em janela de 7 dias e codificações cíclicas. \textit{Objetivo cumprido.}
 
-    \item \textbf{Modelo de referência XGBoost:} Implementou-se o XGBoost com \textit{Grid Search} temporal (\texttt{TimeSeriesSplit}, 5 \textit{folds}, 7 hiperparâmetros), encontrando configuração ótima com \texttt{max\_depth}$=4$, $\eta=0{,}03$, \texttt{n\_estimators}$=300$, \texttt{subsample}$=0{,}7$ e \texttt{colsample\_bytree}$=0{,}8$, alcançando MAE $= 61{,}1$ e $R^2 = 0{,}409$ no protocolo comum de $h=1$. \textit{Objetivo cumprido.}
+    \item \textbf{Modelo de referência XGBoost:} Implementou-se o XGBoost com \textit{Grid Search} temporal (\texttt{TimeSeriesSplit}, 5 \textit{folds}, 7 hiperparâmetros), alcançando MAE de 63,81 e $R^2$ de 0,385 no protocolo comum de $h=1$. \textit{Objetivo cumprido.}
 
     \item \textbf{Redes Neurais Recorrentes Bidirecionais:} Implementaram-se Bi-LSTM e Bi-GRU em PyTorch com 150 épocas, Dropout 0,4, \textit{Weight Decay} $10^{-4}$, semente aleatória fixa e otimizador AdamW com \texttt{ReduceLROnPlateau}, comparando sistematicamente contra o XGBoost. \textit{Objetivo cumprido.}
 
@@ -42,11 +42,11 @@ Em relação aos objetivos específicos propostos na Seção~\ref{sec:objetivos}
 
 \section{Considerações Finais}
 
-Este trabalho mostrou desempenho preditivo útil no recorte avaliado, com MAPE de 20,6\% (XGBoost) e 20,9\% (Bi-LSTM) em $h=1$; ambos registraram MAE inferior ao da persistência. Nos horizontes $h \geq 3$, uma rede recorrente registrou o menor MAE entre os modelos treinados e todos ficaram abaixo da persistência em MAE. Como as representações tabular e sequencial não são idênticas e não houve teste prospectivo, os resultados não isolam uma vantagem arquitetural; eles indicam que a escolha do modelo deve considerar o horizonte, o custo operacional e validação adicional.
+A Bi-GRU apresentou o menor MAE agregado em $h=1$, $h=7$ e $h=14$, e a Bi-LSTM obteve o menor valor em $h=3$. Como as representações tabular e sequencial diferem, o período de teste é único e não houve teste prospectivo, os resultados não isolam uma vantagem arquitetural universal. A escolha operacional deve considerar horizonte, custo e validação adicional.
 
-A tendência de crescimento de 65,3\% nas interrupções ao longo de oito anos constitui um sinal relevante para o planejamento operacional. Entretanto, os dados deste trabalho não permitem projetar que a qualidade do fornecimento continuará a deteriorar-se nem atribuir o crescimento a uma causa específica. O resultado justifica o acompanhamento contínuo dos indicadores e a investigação conjunta de dados sobre infraestrutura, manutenção, expansão da rede e eventos meteorológicos.
+A mudança do patamar do alvo total ao longo do período justifica acompanhamento contínuo, mas não permite projetar deterioração futura da qualidade do fornecimento nem atribuir uma causa específica. Investigações futuras devem incorporar dados sobre regras de registro, infraestrutura, manutenção, expansão da rede e eventos meteorológicos.
 
-O código-fonte e os artefatos reproduzíveis estão disponíveis no repositório público do projeto, complementados pela metodologia descrita nos capítulos e pelas descrições dos módulos apresentadas no apêndice. Essa medida favorece a replicabilidade e a continuidade desta linha de pesquisa por outros grupos acadêmicos e pelas concessionárias de distribuição.
+O código-fonte inclui reconstrução desde os arquivos brutos, manifesto com SHA-256 e definição explícita do alvo sem filtro por causa, testes automatizados e um comando que executa preparação, treinamento, avaliação e sincronização das figuras. Essa estrutura favorece a replicabilidade e a continuidade da pesquisa.
 
 \section{Trabalhos Futuros}\label{sec:futuros}
 

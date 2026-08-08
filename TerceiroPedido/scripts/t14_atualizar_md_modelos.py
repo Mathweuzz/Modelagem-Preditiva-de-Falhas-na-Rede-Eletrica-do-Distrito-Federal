@@ -3,7 +3,7 @@ import sys
 from pathlib import Path
 import pandas as pd
 
-ROOT = Path("/home/mateus/CLEAR DATA/TerceiroPedido/TerceiroPedido")
+ROOT = Path(__file__).resolve().parents[1]
 MD = ROOT / "TerceiroPedido.md"
 MET = ROOT / "dados" / "metricas_dl_lstm_gru.csv"
 

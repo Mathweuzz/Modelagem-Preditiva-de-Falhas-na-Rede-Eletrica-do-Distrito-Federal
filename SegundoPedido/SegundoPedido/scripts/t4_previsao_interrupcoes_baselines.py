@@ -11,8 +11,8 @@ import matplotlib.pyplot as plt
 
 THIS_FILE = Path(__file__).resolve()
 
-# /home/mateus/CLEAR DATA
-ROOT_DIR = THIS_FILE.parents[3]
+# <raiz-do-projeto>
+ROOT_DIR = THIS_FILE.parents[5]
 
 # Pasta da nova entrega (inner SegundoPedido)
 SEGUNDO_PEDIDO_DIR = THIS_FILE.parents[1]

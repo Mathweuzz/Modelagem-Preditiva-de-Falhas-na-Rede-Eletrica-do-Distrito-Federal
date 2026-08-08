@@ -2,12 +2,12 @@ Este capítulo discute os resultados obtidos à luz da literatura existente, int
 
 \section{Interpretação dos Resultados Preditivos}
 
-Os resultados apresentados no Capítulo~\ref{4_Resultados} revelaram um achado relevante sobre a comparabilidade entre paradigmas de aprendizado de máquina: sob protocolo unificado de previsão direta $h=1$ --- mesmas variáveis por instante, mesmo corte da data de origem e mesmas datas-alvo, mas representação tabular para o XGBoost e sequencial para as redes --- o \textbf{XGBoost} (MAE $= 61{,}1$, $R^2 = 0{,}409$) e a \textbf{Bi-LSTM} (MAE $= 62{,}7$, $R^2 = 0{,}420$) apresentam desempenhos descritivamente próximos (diferença de 2,7\% em MAE), enquanto a Bi-GRU fica em terceiro lugar ($R^2 = 0{,}156$).
+Sob o protocolo unificado de previsão direta $h=1$ --- mesmas variáveis por instante, corte temporal e datas-alvo, mas representação tabular para o XGBoost e sequencial para as redes --- a \textbf{Bi-GRU} apresentou o menor MAE (60,36) e MAPE (18,89\%), enquanto a Bi-LSTM obteve o menor RMSE (98,70) e o maior $R^2$ (0,421). O XGBoost teve MAE de 63,81. Os três modelos treinados superaram a persistência nas quatro métricas.
 
-O resultado não sustenta a hipótese de superioridade sistemática das arquiteturas de \textit{Deep Learning} sobre modelos baseados em árvores neste conjunto de teste. A proximidade descritiva entre XGBoost e Bi-LSTM pode estar associada a três fatores complementares:
+O resultado também não sustenta superioridade arquitetural universal: as duas redes lideraram métricas diferentes, e o XGBoost permaneceu competitivo sob uma representação tabular. Seu desempenho pode estar associado a três fatores complementares:
 
 \begin{enumerate}
-    \item \textbf{Engenharia de atributos temporais:} A construção manual de 40 \textit{features} --- incluindo defasagens de 1 a 7 dias, médias móveis exponenciais e codificações harmônicas --- forneceu ao XGBoost informação temporal explícita. Com a inclusão do alvo histórico, o modelo opera sobre 41 entradas tabulares, enquanto as redes recebem essas 41 variáveis em 14 instantes. Uma ablação seria necessária para quantificar quanto da proximidade observada decorre da engenharia de atributos.
+    \item \textbf{Engenharia de atributos temporais:} As 40 variáveis de entrada --- sete meteorológicas base e 33 derivadas, incluindo defasagens em 1, 2, 3 e 7 dias, médias móveis exponenciais e codificações cíclicas --- fornecem informação temporal explícita. A série-alvo histórica forma um canal adicional disponível na origem. Uma ablação seria necessária para quantificar a contribuição de cada grupo.
 
     \item \textbf{Regularização robusta:} O XGBoost dispõe de múltiplos mecanismos de regularização nativos ($L_1$, $L_2$, Gamma, \texttt{max\_depth}, \texttt{subsample}), calibrados via \textit{Grid Search} com validação cruzada temporal. Essa parametrização finamente ajustada impede o \textit{overfitting} de forma mais controlável do que o Dropout e o \textit{Weight Decay} das redes neurais.
 
@@ -27,14 +27,14 @@ A comparação entre os paradigmas vai além das métricas numéricas. A Tabela~
 \toprule
 \textbf{Critério} & \textbf{XGBoost} & \textbf{Bi-LSTM / Bi-GRU} \\
 \midrule
-Acurácia Geral ($h=1$, 365 dias) & $R^2 = 0{,}409$, MAE $= 61{,}1$ & Bi-LSTM: $R^2 = 0{,}420$, MAE $= 62{,}7$ \\
-Previsão $h>1$ (direto) & Queda acentuada ($R^2 \approx 0$ em $h=7$) & \textbf{Bi-GRU} lidera em $h=7$ e $h=14$ \\
+Acurácia Geral ($h=1$, 365 dias) & $R^2 = 0{,}385$, MAE $= 63{,}81$ & Bi-GRU: MAE $= 60{,}36$; Bi-LSTM: $R^2 = 0{,}421$ \\
+Previsão $h>1$ (direto) & Competitivo, sem menor MAE agregado & Bi-LSTM lidera $h=3$; Bi-GRU lidera $h=7$ e $h=14$ \\
 Velocidade de Treino & $<2$ min & 20--25 min (150 épocas) \\
 Interpretabilidade & Alta (\textit{Feature Importance}) & Baixa (caixa-preta) \\
 Necessidade de GPU & Não & Recomendável \\
 Escalabilidade & Alta (paralelismo nativo) & Limitada pelo BPTT \\
 Sensibilidade a Outliers & Conservador (regularização) & Maior volatilidade \\
-Representação de entrada & 41 variáveis em uma linha & Mesmas 41 variáveis por instante + janela de 14 dias \\
+Representação de entrada & Variáveis em uma linha na origem & Mesmas variáveis + janela de 14 dias \\
 \bottomrule
 \end{tabular}
 \normalsize
@@ -44,27 +44,27 @@ Representação de entrada & 41 variáveis em uma linha & Mesmas 41 variáveis p
 
 Uma vantagem frequentemente subestimada do XGBoost é a \textbf{interpretabilidade}. Conforme evidenciado pela Figura~\ref{fig:importancia} (Capítulo~\ref{4_Resultados}), o modelo fornece nativamente a importância relativa de cada \textit{feature}, permitindo que engenheiros da Neoenergia identifiquem quais variáveis climáticas são mais determinantes para a previsão. Essa transparência é crítica em contextos regulados, onde decisões operacionais precisam ser justificadas perante a ANEEL \cite{rudin2019stop}.
 
-Em contrapartida, as redes recorrentes demonstraram uma propriedade relevante na distribuição residual (Seção~\ref{sec:residuais}): suas distribuições KDE apresentam maior densidade próxima de zero. Essa forma, isoladamente, não implica menor MAE nos dias normais; a análise segmentada mostra que o XGBoost obteve o menor MAE nas faixas Normal e Severa de severidade. Com dados adicionais e em cenários de maior complexidade temporal (resolução horária, por exemplo), permanece como hipótese de trabalho avaliar se as redes recorrentes poderiam superar o XGBoost.
+As distribuições residuais (Seção~\ref{sec:residuais}) permanecem centradas próximas de zero, mas apresentam caudas associadas aos maiores valores reais. Na faixa Normal, a Bi-GRU obteve o menor MAE; a Bi-LSTM liderou na Moderada, e o XGBoost na Severa. As 50 observações severas permitem o diagnóstico do aumento de erro, embora não substituam validação prospectiva. Com dados adicionais, permanece como hipótese avaliar se redes recorrentes poderiam apresentar vantagem em outros regimes.
 
 \section[Inversão da Hierarquia por Horizonte]{Inversão da Hierarquia no Contexto Multi-\hspace{0pt}Horizonte}\label{sec:discussao_multihorizonte}
 
 A análise multi-horizonte (Seção~\ref{sec:multihorizonte}, Capítulo~\ref{4_Resultados}), conduzida com o protocolo de \textbf{previsão direta} sobre 352 datas-alvo idênticas por horizonte, revelou uma nuance fundamental: \textbf{a ordenação dos MAEs observados varia com o horizonte de previsão}.
 
-No recorte comum, em $h = 1$, XGBoost e Bi-LSTM apresentam resultados próximos (MAE de 62,5 e 64,2, respectivamente), com o XGBoost ligeiramente melhor em MAE e a Bi-LSTM ligeiramente melhor em $R^2$; ambos também registram MAE abaixo da persistência (69,8). Para $h = 3$ dias, a Bi-LSTM registra o menor MAE entre os modelos treinados (74,0, contra 78,8 do XGBoost e 77,7 da Bi-GRU), todos abaixo da persistência (86,2). A Bi-GRU registra os menores MAEs entre os modelos treinados nos horizontes mais longos: 73,6 em $h=7$ e 64,3 em $h=14$, também abaixo da persistência (84,6 e 88,0). Em particular, o XGBoost registra $R^2 = -0{,}027$ em $h=7$, indicando desempenho inferior ao \textit{baseline} da média nesse horizonte específico.
+No recorte comum, a Bi-GRU apresenta o menor MAE em $h=1$ (61,67), $h=7$ (71,24) e $h=14$ (68,19). Em $h=3$, a Bi-LSTM apresenta o menor MAE (65,56). A persistência registra 69,83, 86,22, 84,56 e 88,00, respectivamente; todos os modelos treinados a superam nos quatro horizontes.
 
 \begin{itemize}
-    \item O menor MAE da \textbf{Bi-LSTM} em $h=3$ é compatível com o aproveitamento da janela recente, mas o experimento não isola esse mecanismo arquitetural de outras diferenças de treinamento e representação.
-    \item Os menores MAEs da \textbf{Bi-GRU} em $h=7$ e $h=14$ motivam a hipótese de que sua parametrização mais compacta tenha favorecido a generalização nesse recorte; uma ablação específica seria necessária para testar essa explicação.
+    \item A \textbf{Bi-GRU} registra o menor MAE em três dos quatro horizontes, mas não domina todos os meses do período de teste.
+    \item A vantagem agregada das redes varia por horizonte e não sustenta superioridade arquitetural universal sem repetição com outras sementes e períodos.
     \item O \textbf{XGBoost} utiliza defasagens explícitas em uma única linha, enquanto as redes recebem 14 instantes. Essa diferença de representação é parte do protocolo implementado e impede atribuir a ordenação observada exclusivamente à presença ou ausência de memória recorrente.
 \end{itemize}
 
-No conjunto avaliado, XGBoost e Bi-LSTM ficaram próximos em $h=1$, enquanto uma rede recorrente registrou o menor MAE entre os modelos treinados em cada horizonte $h \geq 3$. Uma eventual combinação operacional --- XGBoost ou Bi-LSTM no curtíssimo prazo e Bi-GRU em $h=7$ e $h=14$ --- deve ser validada prospectivamente antes da implantação.
+No conjunto avaliado, a Bi-GRU apresentou o menor MAE em três horizontes, e a Bi-LSTM em um. Qualquer política operacional de seleção ou combinação deve ser validada prospectivamente antes da implantação.
 
-A decomposição mensal (Seção~\ref{sec:multihorizonte_mensal}) qualifica essa recomendação. A liderança não é uniforme ao longo do período de teste: o XGBoost obtém o menor MAE em 9 dos 12 meses civis abrangidos em $h=1$, enquanto a Bi-GRU vence 5 meses em $h=7$ e lidera no agregado desse horizonte. A vantagem agregada da Bi-GRU decorre menos de uma superioridade universal e mais da redução do erro em meses difíceis, especialmente durante a transição e a estação chuvosa. Assim, uma política operacional baseada apenas na média global ocultaria variações sazonais relevantes; a seleção ou combinação de modelos pode ser condicionada tanto à antecedência requerida quanto ao regime sazonal.
+A decomposição mensal qualifica essa recomendação: o XGBoost obtém o menor MAE em 6 dos 12 meses em $h=1$ e 3 em $h=3$; nos horizontes 7 e 14, cada arquitetura vence quatro meses. Como a contagem de vitórias não pondera a magnitude do erro nem o número de dias, as métricas agregadas permanecem o critério principal.
 
 \section{Análise da Importância das Variáveis}
 
-O gráfico de importância por ganho médio do XGBoost (Figura~\ref{fig:importancia}) mostra as variáveis que mais contribuíram para as predições do modelo. O número de interrupções do dia de origem (\texttt{interrupcoes}[$t$]) ocupa a primeira posição, refletindo que o estado imediato da rede é a informação mais preditiva para $h=1$. Na sequência aparecem \texttt{interrupcoes\_lag\_1}, \texttt{mes\_cos}, \texttt{interrupcoes\_lag\_2}, a EMA de sete dias da precipitação, \texttt{mes\_sin} e a precipitação defasada de um dia.
+O gráfico de importância por ganho médio do XGBoost (Figura~\ref{fig:importancia}) mostra as variáveis que mais contribuíram para as predições do modelo. O número de interrupções do dia de origem (\texttt{interrupcoes}[$t$]) ocupa a primeira posição, refletindo que o estado imediato da rede é a informação mais preditiva para $h=1$. Na sequência aparecem \texttt{interrupcoes\_lag\_1}, \texttt{interrupcoes\_lag\_3}, \texttt{interrupcoes\_lag\_2}, \texttt{mes\_sin}, \texttt{mes\_cos} e a EMA de sete dias da precipitação.
 
 Esse ranking é coerente com a forte autocorrelação temporal evidenciada na análise ACF (Seção~\ref{sec:autocorrelacao}): o estado recente da série é o melhor preditor de curto prazo. As codificações harmônicas (\texttt{mes\_sin}, \texttt{mes\_cos}) indicam que a posição no ciclo sazonal do Cerrado é relevante para o modelo. As EMAs climáticas complementam com a tendência de médio prazo das condições meteorológicas.
 
@@ -84,7 +84,7 @@ A Tabela~\ref{tab:comparacao_literatura} contextualiza os resultados deste traba
 \toprule
 \textbf{Estudo} & \textbf{Melhor Modelo} & \textbf{Tarefa} & \textbf{Métrica Principal} & \textbf{Contexto} \\
 \midrule
-\textbf{Este trabalho} & XGBoost/Bi-LSTM & Regressão & $R^2 = 0{,}409/0{,}420$; MAE = 61,1/62,7 & Diário, Brasil (DF) \\
+\textbf{Este trabalho} & Bi-GRU / Bi-LSTM & Regressão & MAE = 60,36; $R^2 = 0{,}421$ & Diário, Brasil (DF) \\
 \cite{zhang2023deep} & MLP & Regressão & MAE = 0,013; RMSE = 0,048 & Horário, EUA \\
 \cite{smith2021hybrid} & Árvores+Vegetação & Regressão & MdAPE = 59\% & Diário, EUA \\
 \cite{saha2019machine} & PSO+XGBoost & Risco de falha & Acurácia = 96,2\% & Diário, China \\
@@ -98,7 +98,7 @@ A Tabela~\ref{tab:comparacao_literatura} contextualiza os resultados deste traba
 \small{Fonte: Compilado pelos autores (2026).}
 \end{table}
 
-O $R^2 = 0{,}409$ (XGBoost) e $R^2 = 0{,}420$ (Bi-LSTM) obtidos neste trabalho representam uma contribuição relevante ao estado da arte, considerando as especificidades do contexto. A comparação direta de métricas entre estudos é limitada pelas diferenças metodológicas substanciais: os trabalhos da literatura variam em resolução temporal (diária, semanal, por evento), variáveis disponíveis, tamanho do conjunto de dados e região geográfica. \cite{zhang2023deep} utilizam dados socioeconômicos e de infraestrutura adicionais; \cite{smith2021hybrid} incorporam dados de vegetação de alta resolução; \cite{saha2019machine} empregam otimização por enxame de partículas para seleção de hiperparâmetros. A contribuição diferencial deste trabalho reside na aplicação ao bioma Cerrado, com seu regime climático bimodal único, e na comparação sistemática entre modelos tabulares e redes recorrentes bidirecionais sob um mesmo protocolo experimental.
+Os valores de $R^2 = 0{,}385$ (XGBoost), $R^2 = 0{,}421$ (Bi-LSTM) e $R^2 = 0{,}375$ (Bi-GRU) obtidos neste trabalho representam uma contribuição relevante ao estado da arte, considerando as especificidades do contexto. A comparação direta de métricas entre estudos é limitada pelas diferenças metodológicas substanciais: os trabalhos da literatura variam em resolução temporal (diária, semanal, por evento), variáveis disponíveis, tamanho do conjunto de dados e região geográfica. \cite{zhang2023deep} utilizam dados socioeconômicos e de infraestrutura adicionais; \cite{smith2021hybrid} incorporam dados de vegetação de alta resolução; \cite{saha2019machine} empregam otimização por enxame de partículas para seleção de hiperparâmetros. A contribuição diferencial deste trabalho reside na aplicação ao bioma Cerrado, com seu regime climático bimodal único, e na comparação sistemática entre modelos tabulares e redes recorrentes bidirecionais sob um mesmo protocolo experimental.
 
 \section{Limitações do Estudo}\label{sec:limitacoes}
 
@@ -189,7 +189,7 @@ Esse padrão heteroscedástico tem duas implicações metodológicas relevantes:
 
 \section{Implicações da Tendência de Crescimento das Interrupções}
 
-A tendência de crescimento de 65,3\% nas interrupções médias diárias ao longo de oito anos (2017--2025) constitui um achado com implicações significativas tanto para a modelagem preditiva quanto para a gestão da concessionária. Os dados disponíveis demonstram o crescimento, mas não permitem identificar suas causas. Três hipóteses podem ser investigadas em trabalhos futuros:
+A elevação da média do alvo total de 183,5 interrupções/dia em 2017 para 303,4 no período disponível de 2025 tem implicações para a modelagem, mas não pode ser interpretada isoladamente como deterioração da rede. Os dados não separam mudanças de registro, exposição, infraestrutura e clima. Três hipóteses podem ser investigadas em trabalhos futuros:
 
 \begin{enumerate}
     \item \textbf{Estado e envelhecimento da infraestrutura:} Dados sobre idade, inspeção, manutenção e substituição de isoladores, condutores e transformadores permitiriam avaliar se a condição dos ativos contribui para a tendência observada.
@@ -213,7 +213,7 @@ Embora o período do El Niño 2023 integre o conjunto de treinamento (anterior a
 
 \section{Reflexão sobre a Escolha Metodológica: Engenharia de Atributos e Modelagem Sequencial}
 
-Uma reflexão metodológica importante emerge da comparação entre o XGBoost e as redes recorrentes: \textbf{todos os modelos receberam as mesmas 41 variáveis por instante e compartilharam o corte temporal}. A diferença é que o XGBoost processa uma linha na origem, enquanto Bi-LSTM e Bi-GRU processam janelas sequenciais de 14 dias. A proximidade entre XGBoost e Bi-LSTM em $h=1$ mostra resultados semelhantes sob essas representações distintas, mas não demonstra que a rede substitua ou dispense a engenharia manual de atributos.
+Uma reflexão metodológica importante emerge da comparação entre o XGBoost e as redes recorrentes: \textbf{todos os modelos receberam o mesmo conjunto de variáveis disponíveis por instante e compartilharam o corte temporal}. A diferença é que o XGBoost processa uma linha na origem, enquanto Bi-LSTM e Bi-GRU processam janelas sequenciais de 14 dias. O resultado favorável ao XGBoost em $h=1$ não demonstra que a recorrência seja desnecessária em outros conjuntos, nem quantifica isoladamente o efeito da engenharia manual de atributos.
 
 O desempenho do XGBoost na avaliação \textit{one-step} é compatível com o uso de atributos de domínio em um conjunto de dados modesto (3.066 dias após a engenharia de atributos). Redes neurais profundas possuem potencial para extrair representações hierárquicas diretamente de dados menos processados \cite{goodfellow2016deep}; contudo, essa hipótese não foi testada neste trabalho, pois não se realizou uma comparação entre redes alimentadas por dados brutos e redes alimentadas pelas \textit{features} engenheiradas.
 

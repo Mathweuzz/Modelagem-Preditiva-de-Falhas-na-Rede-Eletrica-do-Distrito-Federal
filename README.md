@@ -28,22 +28,22 @@
 
 Este repositório contém o código-fonte, os dados processados e o texto integral em LaTeX do TCC em Ciência da Computação defendido na Universidade de Brasília (UnB).
 
-O trabalho desenvolve e avalia modelos preditivos para estimar o número diário de interrupções no fornecimento de energia elétrica no Distrito Federal, integrando dados de três fontes governamentais abertas ao longo de **3.073 dias consecutivos (2017–2025)**. O objetivo é fornecer à concessionária uma ferramenta de apoio à decisão para pré-posicionamento de equipes de manutenção antes de eventos climáticos adversos.
+O trabalho desenvolve e avalia modelos para estimar o número diário total de interrupções no Distrito Federal, integrando dados governamentais ao longo de **3.073 dias consecutivos (2017–2025)**. O alvo não foi filtrado por causa e contém **748.542 ocorrências deduplicadas**.
 
 ---
 
 ## Metodologia
 
-1. **Dados integrados**: INMET (meteorologia), ANEEL (interrupções) e SAMP/CCEE (consumo energético), totalizando 3.073 dias brutos e 3.066 dias após engenharia de atributos (lacunas temporais tratadas por interpolação linear).
+1. **Dados integrados**: INMET (meteorologia), ANEEL (interrupções) e SAMP/ANEEL (consumo energético exploratório), totalizando 3.073 dias brutos e 3.066 dias após engenharia de atributos.
 
-2. **Engenharia de atributos**: pipeline com 40 features derivadas — defasagens de 1 a 7 dias, médias móveis exponenciais (spans 3, 7 e 14 dias), desvio-padrão móvel e codificações harmônicas cíclicas de calendário.
+2. **Engenharia de atributos**: 40 variáveis de entrada, sete meteorológicas base e 33 derivadas — defasagens em 1, 2, 3 e 7 dias, EMAs, desvio-padrão móvel, calendário cíclico e direção do vento em seno/cosseno.
 
 3. **Modelos comparados** sob protocolo de separação temporal estrita (*Out-of-Sample*, últimos 365 dias):
    - **XGBoost** com Grid Search temporal (TimeSeriesSplit, 5 folds, 7 hiperparâmetros). Best: max_depth=4, η=0.03, n_estimators=300, subsample=0.7, colsample_bytree=0.8, min_child_weight=1
    - **Bi-LSTM** em PyTorch (2 camadas, hidden=64, Dropout=0.4, AdamW, 150 épocas, semente fixa)
    - **Bi-GRU** em PyTorch (mesma arquitetura da Bi-LSTM)
 
-4. **Avaliação multi-horizonte com previsão direta**: modelos independentes treinados para cada horizonte h ∈ {1, 3, 7, 14}, sem recursão — mesmas variáveis por instante, mesmo corte de origem e 352 datas-alvo idênticas por modelo e horizonte (14/06/2024 a 31/05/2025), com representação tabular no XGBoost e sequencial nas redes.
+4. **Avaliação multi-horizonte direta**: modelos independentes para h ∈ {1, 3, 7, 14}, sem recursão, com mesmo corte de origem e 352 datas-alvo idênticas por combinação.
 
 ---
 
@@ -53,23 +53,23 @@ O trabalho desenvolve e avalia modelos preditivos para estimar o número diário
 
 | Modelo | MAE | RMSE | R² | MAPE |
 |:---|:---:|:---:|:---:|:---:|
-| **XGBoost** | **61.09** | 99.72 | 0.409 | 20.64% |
-| **Bi-LSTM** | 62.71 | **98.80** | **0.420** | 20.94% |
-| Bi-GRU | 73.44 | 119.21 | 0.156 | 26.18% |
+| XGBoost | 63.81 | 101.77 | 0.385 | 21.34% |
+| **Bi-LSTM** | 61.55 | **98.70** | **0.421** | 19.68% |
+| **Bi-GRU** | **60.36** | 102.57 | 0.375 | **18.89%** |
 | Persistência | 68.59 | 105.61 | 0.337 | 22.37% |
 
 ### Avaliação multi-horizonte com previsão direta (MAE, 352 alvos por horizonte)
 
 | Horizonte | XGBoost | Bi-LSTM | Bi-GRU |
 |:---:|:---:|:---:|:---:|
-| h=1 dia | **62.46** | 64.19 | 75.10 |
-| h=3 dias | 78.77 | **74.01** | 77.67 |
-| h=7 dias | 83.83 | 79.49 | **73.61** |
-| h=14 dias | 71.34 | 67.69 | **64.31** |
+| h=1 dia | 65.27 | 62.92 | **61.67** |
+| h=3 dias | 77.22 | **65.56** | 66.52 |
+| h=7 dias | 77.64 | 71.86 | **71.24** |
+| h=14 dias | 70.41 | 71.21 | **68.19** |
 
 O baseline ingênuo de persistência obteve MAE de 69.83, 86.22, 84.56 e 88.00 nos horizontes de 1, 3, 7 e 14 dias, respectivamente.
 
-> **Achados principais**: (1) Em h=1, XGBoost e Bi-LSTM apresentam resultados próximos e MAE inferior ao da persistência; (2) Para h≥3, a Bi-LSTM registra o menor MAE em h=3 e a Bi-GRU em h=7 e h=14. O XGBoost registra R²=-0.027 em h=7 (desempenho inferior ao baseline da média).
+> **Achados principais**: a Bi-GRU tem o menor MAE agregado em h=1, h=7 e h=14; a Bi-LSTM lidera em h=3. A avaliação de severidade contém 73 dias Normais, 242 Moderados e 50 Severos, com aumento claro do erro nos maiores valores.
 
 ---
 
@@ -85,16 +85,20 @@ TCC/
 │
 ├── Fonte/                   # Código-fonte e dados
 │   ├── data/                # CSVs processados
+│   ├── run_pipeline.py      # reprodução integral em um comando
 │   ├── src/                 # Scripts Python
+│   │   ├── build_base_from_raw.py
 │   │   ├── 01_eda_sazonalidade.py
 │   │   ├── 02_correlacoes_nao_lineares.py
 │   │   ├── 03_feature_engineering.py
 │   │   ├── 04_eda_basica.py
+│   │   ├── 05_correlacoes_unificadas.py
 │   │   └── models/
 │   │       ├── baseline_xgboost.py
 │   │       ├── baseline_persistence.py
 │   │       ├── lstm_bidirecional.py
 │   │       ├── gru_avancada.py
+│   │       ├── evaluate_severity.py
 │   │       ├── previsao_multihorizonte.py   # avaliação multi-horizonte
 │   │       ├── plot_multihorizonte.py       # gráficos de desempenho por horizonte
 │   │       └── advanced_plots.py
@@ -125,18 +129,22 @@ para o guia completo.
 
 Consulte [`Fonte/README.md`](Fonte/README.md) para instruções detalhadas de instalação, reprodução e mapeamento de scripts.
 
-```bash
-cd Fonte/src/models
+A reprodução integral parte dos arquivos brutos, constrói o alvo total sem filtro por causa, treina os modelos, gera métricas/figuras e sincroniza as imagens da monografia:
 
-python baseline_xgboost.py          # XGBoost (~1 min CPU)
-python baseline_persistence.py      # baseline ingênuo (segundos)
-python lstm_bidirecional.py         # Bi-LSTM (~5-10 min CPU/GPU)
-python gru_avancada.py              # Bi-GRU  (~5-10 min CPU/GPU)
-python previsao_multihorizonte.py   # análise multi-horizonte
-python plot_multihorizonte_temporal.py # comparação temporal e mensal
+```bash
+python Fonte/run_pipeline.py \
+  --interruptions D:/dados/aneel/dados_completos_brasilia.csv \
+  --inmet-dir D:/dados/inmet
 ```
 
-**Reprodutibilidade**: XGBoost (`random_state=42`) é determinístico. PyTorch (seed=42, `cudnn.deterministic=True`) reproduz os resultados dentro da tolerância de ponto flutuante em hardware e versão idênticos; variações numéricas pequenas são esperadas em GPU/CPU ou versões diferentes.
+Arquivos esperados:
+
+- ANEEL: `dados_completos_brasilia.csv`, SHA-256 `9b68feaad48bdf50d7f8e645d576efc2ccdfecf4aa43672ece3dc771fab905be`.
+- INMET: nove CSVs anuais da estação A001, de 2017 a 2025; nomes e hashes estão em `Fonte/data/manifesto_dados_brutos.json`.
+
+Período efetivo: `2017-01-01` a `2025-05-31`. A definição do alvo e a ausência de filtro por causa ficam registradas em `Fonte/data/manifesto_dados_brutos.json`. As versões exatas das bibliotecas estão em `requirements.txt`.
+
+**Reprodutibilidade**: sementes e opções determinísticas são fixadas. Em hardware, drivers ou versões diferentes, bibliotecas numéricas e CUDA ainda podem produzir pequenas variações de ponto flutuante; por isso, o ambiente e os hashes precisam acompanhar os resultados.
 
 ---
 

@@ -20,32 +20,35 @@ Fonte/
 │   ├── base_diaria_interrupcoes_clima_mm.csv
 │   ├── base_mensal_interrupcoes_clima_consumo.csv
 │   ├── dataset_engenharia_features.csv     # ← saída do script 03
-│   ├── aggregados_*.csv                    # agregados semanais/mensais
-│   ├── correlacoes_*.csv
+│   ├── agregados_*_canonicos.csv           # agregados semanais/mensais finais
+│   ├── correlacoes_consolidadas.csv        # tabela canônica
+│   ├── manifesto_dados_brutos.json         # nomes, período e SHA-256
 │   ├── legado/                            # artefatos de versões anteriores (não usados pelos modelos finais)
 │   │   ├── metricas_dl_lstm_gru.csv
 │   │   ├── previsoes_dl_lstm_gru.csv
 │   │   └── previsoes_diarias_baselines.csv
 │   └── vento_diario_brasilia.csv
 │
+├── run_pipeline.py                         # execução reproduzível integral
 ├── src/                                    # Pipeline principal
+│   ├── build_base_from_raw.py              # bruto ANEEL/INMET → base diária
 │   ├── 01_eda_sazonalidade.py             # decomposição STL + ACF/PACF
 │   ├── 02_correlacoes_nao_lineares.py     # Spearman/Kendall + cross-corr
 │   ├── 03_feature_engineering.py          # gera dataset_engenharia_features.csv
 │   ├── 04_eda_basica.py                    # série completa, distribuição, etc.
+│   ├── 05_correlacoes_unificadas.py        # agregações/correlações canônicas
 │   └── models/
 │       ├── data_loader_dl.py              # janelamento + MinMax para PyTorch
 │       ├── baseline_xgboost.py            # XGBoost: treino + avaliação + gráficos
 │       ├── lstm_bidirecional.py           # Bi-LSTM: treino + avaliação + gráficos
 │       ├── gru_avancada.py                # Bi-GRU: treino + avaliação + gráficos
+│       ├── evaluate_severity.py            # avaliação por faixa, y_true único
 │       ├── advanced_plots.py              # gráficos comparativos (KDE, heteroscedasticidade)
 │       └── script_exploration_pipeline.py # EDA exploratória rápida (3 figuras)
 │
 ├── results/                                # Artefatos gerados pelos scripts
 │   ├── eda/                                # gráficos exploratórios
 │   └── ml/                                 # gráficos e métricas dos modelos
-│
-└── venv/                                   # ambiente Python (local — não distribuir)
 ```
 
 Scripts adicionais que produzem figuras temáticas estão em `../SegundoPedido/SegundoPedido/scripts/` e `../TerceiroPedido/scripts/`. O `ROTEIRO_PROFESSOR.md` lista cada um.
@@ -54,21 +57,25 @@ Scripts adicionais que produzem figuras temáticas estão em `../SegundoPedido/S
 
 ## Pipeline de dados (do bruto ao dataset final)
 
-A monografia descreve o fluxo completo no Capítulo 3 (Metodologia). De forma resumida, o processamento passou por três estágios:
+A reprodução usa os arquivos brutos oficiais já baixados pelo pesquisador:
 
-1. **Coleta** (não automatizada neste pacote — fontes oficiais):
-   - **INMET** — Instituto Nacional de Meteorologia: estação automática A001 (Brasília), com dados horários de temperatura, precipitação, vento médio, vento máximo e rajada máxima (2017-01-01 a 2025-05-31).
-   - **ANEEL** — Agência Nacional de Energia Elétrica: relatórios de continuidade do PRODIST, indicadores de interrupção da concessionária Neoenergia Brasília.
-   - **SAMP/CCEE** — consumo mensal de energia no DF.
-2. **Consolidação diária** (`SegundoPedido/SegundoPedido/scripts/t0_construir_clima_diario_brasilia.py` e correlatos): agregação horária → diária, alinhamento de calendário, imputação por interpolação temporal nos pontos faltantes, união com a contagem diária de interrupções.
-3. **Engenharia de atributos** (`Fonte/src/03_feature_engineering.py`): a partir de `base_diaria_interrupcoes_clima_vento.csv`, gera `dataset_engenharia_features.csv` adicionando:
+- **ANEEL**: `dados_completos_brasilia.csv`, SHA-256 `9b68feaad48bdf50d7f8e645d576efc2ccdfecf4aa43672ece3dc771fab905be`.
+- **INMET**: nove arquivos `INMET_CO_DF_A001_BRASILIA_*.CSV`, um por ano de 2017 a 2025. Os nomes e SHA-256 individuais estão em `data/manifesto_dados_brutos.json`.
+- **Período usado**: 2017-01-01 a 2025-05-31.
+- **SAMP/ANEEL**: consumo mensal já consolidado, usado apenas em correlações exploratórias e nunca como entrada dos modelos.
+
+Nenhum filtro por causa é aplicado aos registros da ANEEL. O alvo corresponde ao total diário de interrupções após a deduplicação por `NumOrdemInterrupcao`: 748.542 eventos únicos no período. Essa definição e `filtro_por_causa: false` ficam registrados em `data/manifesto_dados_brutos.json`.
+
+A engenharia de atributos (`src/03_feature_engineering.py`) gera:
+
    - Calendário: `mes`, `dia_semana`, `dia_ano`, `mes_sin`, `mes_cos`
    - Defasagens (lags): 1, 2, 3 e 7 dias para `interrupcoes`, `precipitacao_total_mm`, `temperatura_media`, `vento_rajada_max_ms`
    - Médias móveis exponenciais (EMA): spans 3, 7 e 14 dias para chuva, temperatura e rajada
    - Desvio-padrão móvel (rolling std) de 7 dias para chuva, temperatura e rajada
-   - Drop de NaNs iniciais e interpolação linear de lacunas temporais. Total final: **3.066 dias × 40 features + alvo**.
+    - Direção do vento representada circularmente por `vento_dir_sin` e `vento_dir_cos`
+    - Total final: **3.066 dias × 40 variáveis de entrada**, sete base e 33 derivadas, além do canal histórico do alvo disponível na origem.
 
-O script reproduz a estrutura e os valores do dataset; diferenças numéricas residuais de ponto flutuante são possíveis entre versões de bibliotecas.
+As agregações canônicas usam soma para interrupções e precipitação, média para temperatura/velocidade, máximo para rajada/máximas e componentes circulares para direção.
 
 ---
 
@@ -81,43 +88,39 @@ O script reproduz a estrutura e os valores do dataset; diferenças numéricas re
 
 ## Como executar
 
-A partir de `Fonte/`:
+A partir da raiz do repositório, com os dados brutos em diretórios separados:
 
 ```bash
-# 1. EDA — Exploração inicial
-cd src
-python 01_eda_sazonalidade.py            # decomposição + ACF/PACF
-python 02_correlacoes_nao_lineares.py    # Spearman/Kendall + cross-corr
-python 04_eda_basica.py                  # série completa, distribuição, etc.
-
-# 2. Engenharia de atributos (regenera o dataset; já vem pronto)
-python 03_feature_engineering.py
-
-# 3. Modelos preditivos
-cd models
-python script_exploration_pipeline.py    # 3 figuras EDA finais
-python baseline_xgboost.py               # XGBoost (~1 min CPU)
-python baseline_persistence.py           # baseline ingênuo (~1 s)
-python lstm_bidirecional.py              # Bi-LSTM (~5-10 min CPU)
-python gru_avancada.py                   # Bi-GRU  (~5-10 min CPU)
-python previsao_multihorizonte.py        # avaliação multi-horizonte (h=1,3,7,14)
-python plot_multihorizonte.py            # gráficos de desempenho por horizonte
-python plot_multihorizonte_temporal.py   # séries anuais e MAE mensal por horizonte
-python advanced_plots.py                 # gráficos comparativos (KDE, heteroscedasticidade)
+python Fonte/run_pipeline.py \
+  --interruptions D:/dados/aneel/dados_completos_brasilia.csv \
+  --inmet-dir D:/dados/inmet
 ```
+
+O comando:
+
+1. arquiva os resultados anteriores em `results/archive/`;
+2. reconstrói a base diária e os hashes;
+3. aplica a engenharia de atributos e as agregações canônicas;
+4. executa testes automatizados;
+5. treina XGBoost, Bi-LSTM e Bi-GRU;
+6. avalia severidade e horizontes 1, 3, 7 e 14;
+7. gera diagnósticos e sincroniza as figuras com `Monografia/img/`.
 
 ## Reprodutibilidade
 
-- **XGBoost**: `random_state=42`. Reprodução determinística.
-- **LSTM/GRU (PyTorch)**: pequenas variações são esperadas entre execuções por causa do non-determinism interno do cuDNN/CUDA. As métricas reportadas no Capítulo 4 da monografia foram obtidas com o ambiente especificado no Apêndice (Reprodutibilidade).
+- Versões exatas: `../requirements.txt`.
+- Integridade dos brutos: `data/manifesto_dados_brutos.json`.
+- Definição do alvo: `data/manifesto_dados_brutos.json` registra o total diário e a ausência de filtro por causa.
+- Testes: `python -m unittest discover -s Fonte/tests -p "test_*.py" -q`.
+- As sementes e opções determinísticas são fixadas. Hardware, driver, CUDA ou versões diferentes ainda podem produzir pequenas variações numéricas.
 
 ## Métricas de referência (test set, 365 dias, h=1 direto)
 
-Avaliação principal: todos os modelos preveem interrupcoes[t+1] usando features do dia t.
-Métricas atualizadas após re-execução com protocolo corrigido (ver commit mais recente).
+Todos os modelos preveem `interrupcoes[t+1]` com as mesmas datas-alvo e sem informação futura. O MAPE exclui apenas observações com `y_true=0`; no teste final não há zeros.
 
 | Modelo | MAE | RMSE | R² | MAPE |
 |---|---:|---:|---:|---:|
-| **XGBoost** | 61,09 | 99,72 | 0,409 | 20,64% |
-| **Bi-LSTM** | 62,71 | 98,80 | 0,420 | 20,94% |
-| **Bi-GRU**  | 73,44 | 119,21 | 0,156 | 26,18% |
+| XGBoost | 63,81 | 101,77 | 0,385 | 21,34% |
+| **Bi-LSTM** | 61,55 | **98,70** | **0,421** | 19,68% |
+| **Bi-GRU** | **60,36** | 102,57 | 0,375 | **18,89%** |
+| Persistência | 68,59 | 105,61 | 0,337 | 22,37% |

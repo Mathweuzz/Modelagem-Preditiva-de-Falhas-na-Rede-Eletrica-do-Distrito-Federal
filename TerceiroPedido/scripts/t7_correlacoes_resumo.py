@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pandas as pd
 
-ROOT = Path("/home/mateus/CLEAR DATA/TerceiroPedido/TerceiroPedido")
+ROOT = Path(__file__).resolve().parents[1]
 DADOS_DIR = ROOT / "dados"
 OUT_CSV = DADOS_DIR / "correlacoes_resumo.csv"
 

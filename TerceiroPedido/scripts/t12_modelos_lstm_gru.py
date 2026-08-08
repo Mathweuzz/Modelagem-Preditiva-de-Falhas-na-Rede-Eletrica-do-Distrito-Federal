@@ -14,7 +14,7 @@ except Exception as e:
     print("  pip install torch --index-url https://download.pytorch.org/whl/cpu")
     raise
 
-ROOT = Path("/home/mateus/CLEAR DATA/TerceiroPedido/TerceiroPedido")
+ROOT = Path(__file__).resolve().parents[1]
 DADOS_DIR = ROOT / "dados"
 GRAFICOS_DIR = ROOT / "graficos" / "T12_modelos_dl"
 GRAFICOS_DIR.mkdir(parents=True, exist_ok=True)

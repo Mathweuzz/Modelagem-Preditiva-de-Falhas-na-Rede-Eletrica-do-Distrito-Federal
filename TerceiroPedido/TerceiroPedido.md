@@ -111,55 +111,55 @@
 
 ### Destaques (maiores correlações em módulo)
 
-| nivel_temporal   | variavel_x        | variavel_y                |   pearson_r |
-|:-----------------|:------------------|:--------------------------|------------:|
-| mensal           | interrupcoes      | vento_direcao_media_gr    |    0.58791  |
-| mensal           | consumo_total_kwh | temperatura_media         |    0.555031 |
-| mensal           | interrupcoes      | precipitacao_total_mm     |    0.538558 |
-| semanal          | interrupcoes      | vento_direcao_media_gr    |    0.496223 |
-| semanal          | interrupcoes      | precipitacao_total_mm     |    0.476843 |
-| mensal           | interrupcoes      | consumo_total_kwh         |    0.476395 |
-| mensal           | interrupcoes      | temperatura_media         |    0.393729 |
-| mensal           | interrupcoes      | vento_rajada_max_ms       |    0.37889  |
-| diario           | interrupcoes      | vento_direcao_media_gr    |    0.366492 |
-| mensal           | interrupcoes      | vento_velocidade_media_ms |   -0.363507 |
-| diario           | interrupcoes      | precipitacao_total_mm     |    0.347405 |
-| semanal          | interrupcoes      | vento_rajada_max_ms       |    0.340133 |
+| nivel_temporal | variavel | pearson_r |
+| --- | --- | ---: |
+| mensal | vento_dir_cos | 0.569979 |
+| mensal | vento_dir_sin | -0.522178 |
+| mensal | precipitacao_total_mm | 0.538558 |
+| semanal | precipitacao_total_mm | 0.495241 |
+| semanal | vento_dir_sin | -0.436665 |
+| mensal | consumo_total_kwh | 0.476395 |
+| semanal | vento_dir_cos | 0.394814 |
+| diario | vento_dir_sin | -0.345359 |
+| semanal | vento_rajada_max_ms | 0.401391 |
+| diario | precipitacao_total_mm | 0.347621 |
+| mensal | vento_velocidade_media_ms | -0.310225 |
+| mensal | vento_rajada_max_ms | 0.448605 |
 
 ### Tabela completa
 
-| nivel_temporal   | variavel_x        | variavel_y                |   pearson_r |
-|:-----------------|:------------------|:--------------------------|------------:|
-| diario           | interrupcoes      | vento_direcao_media_gr    |   0.366492  |
-| diario           | interrupcoes      | precipitacao_total_mm     |   0.347405  |
-| diario           | interrupcoes      | vento_rajada_max_ms       |   0.253027  |
-| diario           | interrupcoes      | vento_velocidade_media_ms |  -0.193947  |
-| diario           | interrupcoes      | vento_direcao_moda_gr     |   0.181191  |
-| diario           | interrupcoes      | temperatura_media         |   0.101885  |
-| diario           | interrupcoes      | vento_velocidade_max_ms   |   0.0157279 |
-| mensal           | interrupcoes      | vento_direcao_media_gr    |   0.58791   |
-| mensal           | consumo_total_kwh | temperatura_media         |   0.555031  |
-| mensal           | interrupcoes      | precipitacao_total_mm     |   0.538558  |
-| mensal           | interrupcoes      | consumo_total_kwh         |   0.476395  |
-| mensal           | interrupcoes      | temperatura_media         |   0.393729  |
-| mensal           | interrupcoes      | vento_rajada_max_ms       |   0.37889   |
-| mensal           | interrupcoes      | vento_velocidade_media_ms |  -0.363507  |
-| mensal           | interrupcoes      | vento_direcao_moda_gr     |  -0.185887  |
-| mensal           | interrupcoes      | vento_velocidade_max_ms   |  -0.0835723 |
-| semanal          | interrupcoes      | vento_direcao_media_gr    |   0.496223  |
-| semanal          | interrupcoes      | precipitacao_total_mm     |   0.476843  |
-| semanal          | interrupcoes      | vento_rajada_max_ms       |   0.340133  |
-| semanal          | interrupcoes      | vento_velocidade_media_ms |  -0.313593  |
-| semanal          | interrupcoes      | vento_direcao_moda_gr     |  -0.0836208 |
-| semanal          | interrupcoes      | vento_velocidade_max_ms   |  -0.0692043 |
+| nivel_temporal | variavel | pearson_r |
+| --- | --- | ---: |
+| diario | temperatura_media | 0.101885 |
+| diario | precipitacao_total_mm | 0.347621 |
+| diario | vento_velocidade_media_ms | -0.149055 |
+| diario | vento_velocidade_max_ms | 0.033575 |
+| diario | vento_rajada_max_ms | 0.254401 |
+| diario | vento_dir_sin | -0.345359 |
+| diario | vento_dir_cos | 0.210274 |
+| semanal | temperatura_media | 0.250893 |
+| semanal | precipitacao_total_mm | 0.495241 |
+| semanal | vento_velocidade_media_ms | -0.249761 |
+| semanal | vento_velocidade_max_ms | 0.072363 |
+| semanal | vento_rajada_max_ms | 0.401391 |
+| semanal | vento_dir_sin | -0.436665 |
+| semanal | vento_dir_cos | 0.394814 |
+| mensal | temperatura_media | 0.393729 |
+| mensal | precipitacao_total_mm | 0.538558 |
+| mensal | vento_velocidade_media_ms | -0.310225 |
+| mensal | vento_velocidade_max_ms | 0.069546 |
+| mensal | vento_rajada_max_ms | 0.448605 |
+| mensal | vento_dir_sin | -0.522178 |
+| mensal | vento_dir_cos | 0.569979 |
+| mensal | consumo_total_kwh | 0.476395 |
 
 ## Interpretação resumida dos achados
 
-- **Agregação aumenta clareza do padrão**: a relação entre interrupções e variáveis meteorológicas tende a ficar mais forte em escalas **semanal/mensal** do que no diário.
-- **Precipitação**: correlação cresce de **diário (~0,35)** para **semanal (~0,48)** e **mensal (~0,54)**.
-- **Consumo e temperatura (mensal)**: correlação moderada/alta (**~0,56**), e interrupções também se correlacionam com consumo (**~0,48**).
-- **Vento**: após limpeza de valores inválidos do INMET, a **direção média do vento** apresenta correlação relevante com interrupções, especialmente em escala **mensal (~0,59)**; semanal também é significativa (**~0,50**).
-- **Observação metodológica**: direção do vento é uma variável circular (0–360°); a média simples é uma aproximação inicial e pode ser refinada com estatística circular, se necessário.
+- **Agregação canônica**: nem todas as associações aumentam monotonicamente entre escalas.
+- **Precipitação**: $r$ passa de 0,348 no diário para 0,495 no semanal e 0,539 no mensal.
+- **Consumo**: a associação mensal com o alvo é 0,476; o consumo não integra as entradas dos modelos.
+- **Direção do vento**: componentes seno/cosseno têm $r=-0,522$ e $r=0,570$ em escala mensal.
+- **Interpretação**: os coeficientes descrevem associação e não demonstram causalidade.
 
 
 ## Modelos de previsão (Deep Learning) — LSTM e GRU (PyTorch)

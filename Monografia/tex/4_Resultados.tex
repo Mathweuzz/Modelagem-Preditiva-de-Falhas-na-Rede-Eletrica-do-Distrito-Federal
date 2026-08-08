@@ -12,9 +12,9 @@ A Figura~\ref{fig:serie_completa} apresenta a série temporal completa de interr
     \label{fig:serie_completa}
 \end{figure}
 
-Observam-se dois padrões imediatos: (i) uma \textbf{tendência de crescimento} secular, com a SMA-30 ascendendo de $\sim$180 interrupções/dia em 2017 para $\sim$300 em 2024--2025; e (ii) uma \textbf{sazonalidade marcante}, com picos recorrentes entre outubro e março (estação chuvosa do Cerrado) e vales entre maio e agosto (estação seca). A amplitude sazonal também cresceu ao longo do tempo: os picos de verão de 2021--2024 excedem consistentemente 600 interrupções/dia, patamar raramente atingido em 2017--2018.
+Observam-se dois padrões imediatos no alvo total: (i) elevação do patamar da SMA-30, de cerca de 180--200 interrupções/dia nos primeiros anos para aproximadamente 280--300 em 2024--2025; e (ii) sazonalidade marcada, com picos recorrentes na estação chuvosa do Cerrado e vales na estação seca. Os maiores picos ultrapassam 1.000 eventos diários.
 
-A Figura~\ref{fig:evolucao_anual} ilustra a evolução anual das interrupções médias diárias com barras de desvio padrão, confirmando quantitativamente o crescimento de 65,3\% na média entre 2017 (183,5) e 2025 (303,4).
+A Figura~\ref{fig:evolucao_anual} ilustra a evolução anual das interrupções médias diárias com barras de desvio padrão. Para o alvo total, as médias correspondentes são 183,5 em 2017 e 303,4 no período disponível de 2025.
 
 \begin{figure}[H]
     \centering
@@ -26,7 +26,7 @@ A Figura~\ref{fig:evolucao_anual} ilustra a evolução anual das interrupções 
 
 \subsection{Decomposição STL da Série de Interrupções}
 
-Para descrever as componentes de tendência, sazonalidade e resíduo, aplicou-se a decomposição STL (\textit{Seasonal and Trend decomposition using Loess}) à série diária de interrupções \cite{hyndman2018forecasting} (Figura~\ref{fig:decomposicao}). A decomposição mostra: (i) tendência estimada ascendente a partir de 2020; (ii) componente sazonal anual com amplitude aproximada de 100 interrupções entre o vale e o pico; e (iii) resíduos com variância visualmente heterogênea, mais dispersos em parte dos anos recentes. A decomposição é descritiva e não atribui causas a essas componentes.
+Para descrever as componentes de tendência, sazonalidade e resíduo, aplicou-se a decomposição STL (\textit{Seasonal and Trend decomposition using Loess}) à série diária de interrupções \cite{hyndman2018forecasting} (Figura~\ref{fig:decomposicao}). A decomposição mostra: (i) tendência estimada ascendente a partir de 2020; (ii) componente sazonal anual visível; e (iii) resíduos com variância heterogênea, mais dispersos em parte dos anos recentes. A decomposição é descritiva e não atribui causas a essas componentes.
 
 \begin{figure}[H]
     \centering
@@ -38,7 +38,7 @@ Para descrever as componentes de tendência, sazonalidade e resíduo, aplicou-se
 
 \subsection{Distribuição Estatística das Interrupções}
 
-A Figura~\ref{fig:distribuicao} apresenta o histograma e a estimativa de densidade kernel (KDE) das interrupções diárias. A distribuição é nitidamente assimétrica positiva (cauda longa à direita), com média (243,6) superior à mediana (219), indicando que eventos extremos inflacionam a média. A moda situa-se em torno de 160--180 interrupções, representando o ``dia típico'' do sistema durante a estação seca.
+A Figura~\ref{fig:distribuicao} apresenta o histograma e a estimativa de densidade kernel (KDE) do total diário de interrupções. A distribuição é assimétrica positiva, com média de 243,6, mediana de 219 e máximo de 1.424 eventos. Não houve dias sem ocorrência, e a cauda direita concentra episódios raros de maior impacto.
 
 \begin{figure}[H]
     \centering
@@ -97,12 +97,13 @@ As correlações entre interrupções e variáveis climáticas foram calculadas 
 \toprule
 \textbf{Variável} & \textbf{Diário} & \textbf{Semanal} & \textbf{Mensal} \\
 \midrule
-Direção Média do Vento (°) & 0,366 & 0,496 & 0,588 \\
-Precipitação Total (mm) & 0,347 & 0,477 & 0,539 \\
-Consumo Total (kWh) & --- & --- & 0,476 \\
-Rajada Máxima (m/s) & 0,253 & 0,340 & 0,379 \\
-Temperatura Média (°C) & 0,102 & --- & 0,394 \\
-Vel. Média do Vento (m/s) & $-$0,194 & $-$0,314 & $-$0,364 \\
+Direção do Vento (cosseno) & 0,210 & 0,395 & 0,570 \\
+Direção do Vento (seno) & $-$0,345 & $-$0,437 & $-$0,522 \\
+Precipitação Total (mm) & 0,348 & 0,495 & 0,539 \\
+Consumo Total (GWh) & --- & --- & 0,476 \\
+Rajada Máxima (m/s) & 0,254 & 0,401 & 0,449 \\
+Temperatura Média (°C) & 0,102 & 0,251 & 0,394 \\
+Vel. Média do Vento (m/s) & $-$0,149 & $-$0,250 & $-$0,310 \\
 \bottomrule
 \end{tabular}
 \normalsize
@@ -113,21 +114,21 @@ Vel. Média do Vento (m/s) & $-$0,194 & $-$0,314 & $-$0,364 \\
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.90\textwidth]{img/correlacoes_escala_temporal.png}
-    \caption{Correlação de Pearson entre interrupções e variáveis climáticas em três escalas temporais. A agregação temporal amplifica consistentemente a força da correlação.}
+    \caption{Correlação de Pearson entre interrupções e variáveis climáticas em três escalas temporais, calculada pelo mesmo conjunto de regras usado na tabela.}
     \small{Fonte: Elaborado pelos autores (2026).}
     \label{fig:corr_escala}
 \end{figure}
 
 Três achados emergem da análise:
 \begin{enumerate}
-    \item \textbf{Associação em escalas agregadas:} As magnitudes observadas aumentam na transição do diário para o semanal e para o mensal. A precipitação passa de $r = 0{,}35$ (diário) para $r = 0{,}54$ (mensal). A agregação reduz variação diária e enfatiza tendências compartilhadas, mas não demonstra efeito acumulado causal.
-    \item \textbf{Direção média do vento:} A direção média do vento apresenta $r = 0{,}59$ mensal, o maior coeficiente da tabela. Como a direção é circular e foi resumida por média aritmética, esse valor pode incorporar sazonalidade e artefatos próximos à transição 360°/0°; por isso, não é interpretado como evidência de uma direção física dominante.
+    \item \textbf{Associação em escalas agregadas:} Muitas, mas não todas, as magnitudes aumentam com a agregação. A precipitação passa de $r = 0{,}348$ (diário) para $r = 0{,}539$ (mensal), enquanto a rajada passa de $r = 0{,}254$ diário para $0{,}449$ mensal. A agregação enfatiza tendências compartilhadas, mas não demonstra efeito causal acumulado.
+    \item \textbf{Direção do vento:} A variável circular foi representada separadamente por seno e cosseno. Em escala mensal, os coeficientes são $-0{,}522$ e $0{,}570$, respectivamente; eles descrevem associação com componentes direcionais, não uma relação linear válida com graus brutos nem uma direção física causal dominante.
     \item \textbf{Consumo e temperatura:} A correlação mensal entre consumo e temperatura ($r = 0{,}56$) é compatível com maior uso de climatização em meses quentes, mas as associações agregadas não isolam sobrecarga de transformadores nem outros mecanismos operacionais.
 \end{enumerate}
 
 \subsection{Relação Precipitação--Interrupções em Escala Semanal e Mensal}
 
-As Figuras~\ref{fig:precip_semanal} e~\ref{fig:precip_mensal} detalham a relação entre precipitação acumulada e total de interrupções nas escalas semanal e mensal, respectivamente. Observa-se que a relação é aproximadamente linear até volumes moderados de chuva, porém exibe saturação nos extremos: semanas com precipitação acima de 80 mm não necessariamente produzem mais interrupções do que semanas com 50--80 mm, sugerindo que fatores adicionais (intensidade horária das chuvas, presença simultânea de vento) modulam o efeito.
+As Figuras~\ref{fig:precip_semanal} e~\ref{fig:precip_mensal} apresentam séries temporais em dois eixos para precipitação acumulada e total de interrupções. Elas permitem verificar coocorrência temporal, mas não demonstram linearidade nem saturação; essas hipóteses exigiriam dispersão ou ajuste funcional explícito.
 
 \begin{figure}[H]
     \centering
@@ -147,12 +148,12 @@ As Figuras~\ref{fig:precip_semanal} e~\ref{fig:precip_mensal} detalham a relaç�
 
 \subsection{Relação Vento--Interrupções e Consumo--Interrupções}
 
-A Figura~\ref{fig:vento_diario} apresenta a relação diária entre rajada máxima de vento e interrupções. Foram observados 247 dias com rajada superior a 15 m/s: 125 tiveram mais de 300 interrupções e 122 tiveram até 300. A dispersão é compatível com maior carregamento aerodinâmico em parte dos eventos, mas mostra que esse limiar, isoladamente, não determina o volume de interrupções nem confirma uma relação quadrática entre vento e ocorrências.
+A Figura~\ref{fig:vento_diario} apresenta a relação diária entre rajada máxima de vento e interrupções. Foram observados 27 dias com rajada superior a 15 m/s; neles, a mediana do alvo foi 408 e o máximo, 916. A dispersão mostra que esse limiar isolado não determina o volume de interrupções nem confirma uma relação quadrática entre vento e ocorrências.
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.85\textwidth]{img/diario_interrupcoes_vs_rajada_max.png}
-    \caption{Interrupções diárias vs. rajada máxima de vento (m/s). Dias com rajadas $>15$ m/s concentram os maiores volumes de falhas.}
+    \caption{Interrupções diárias vs. rajada máxima de vento (m/s), com destaque visual para dias de rajada mais intensa.}
     \small{Fonte: Elaborado pelos autores (2026).}
     \label{fig:vento_diario}
 \end{figure}
@@ -162,7 +163,7 @@ A Figura~\ref{fig:scatter_consumo} revela a associação mensal entre consumo de
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.85\textwidth]{img/scatter_consumo_vs_interrupcoes_por_ano.png}
-    \caption{Dispersão mensal: consumo de energia (kWh) vs. interrupções, colorido por ano. A tendência positiva reflete o estresse térmico-elétrico combinado.}
+    \caption{Dispersão mensal: consumo de energia (GWh) vs. interrupções, colorido por ano. Observa-se associação positiva, sem inferência causal.}
     \small{Fonte: Elaborado pelos autores (2026).}
     \label{fig:scatter_consumo}
 \end{figure}
@@ -179,7 +180,7 @@ A correlação de Pearson captura exclusivamente associações lineares. Para ve
     \label{fig:spearman}
 \end{figure}
 
-Em valor absoluto, os coeficientes de Spearman superam os de Pearson em 10 dos 15 pares da matriz. Essa diferença sugere que algumas associações monotônicas não são bem resumidas por uma reta, mas não identifica a forma funcional nem demonstra, isoladamente, superioridade de XGBoost, LSTM ou GRU sobre modelos lineares.
+Em valor absoluto, os coeficientes de Spearman superam os de Pearson em 8 dos 15 pares da matriz. Essa diferença sugere que algumas associações monotônicas não são bem resumidas por uma reta, mas não identifica a forma funcional nem demonstra, isoladamente, superioridade de XGBoost, LSTM ou GRU sobre modelos lineares.
 
 \subsection{Relação Temperatura--Consumo}
 
@@ -188,7 +189,7 @@ A Figura~\ref{fig:temp_consumo} evidencia a associação mensal entre temperatur
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.85\textwidth]{img/scatter_temperatura_vs_consumo_por_ano.png}
-    \caption{Dispersão mensal: temperatura média (°C) vs. consumo total de energia (kWh), colorido por ano. A tendência positiva representa associação, não um teste de sobrecarga térmica.}
+    \caption{Dispersão mensal: temperatura média (°C) vs. consumo total de energia (GWh), colorido por ano. A tendência positiva representa associação, não um teste de sobrecarga térmica.}
     \small{Fonte: Elaborado pelos autores (2026).}
     \label{fig:temp_consumo}
 \end{figure}
@@ -202,7 +203,7 @@ A Figura~\ref{fig:rajada_mensal} apresenta a relação entre a rajada máxima me
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.85\textwidth]{img/mensal_interrupcoes_vs_rajada_max.png}
-    \caption{Interrupções mensais vs. rajada máxima mensal de vento (m/s). A correlação mensal observada é $r = 0{,}38$.}
+    \caption{Interrupções mensais vs. rajada máxima mensal de vento (m/s). A correlação mensal observada é $r = 0{,}45$.}
     \small{Fonte: Elaborado pelos autores (2026).}
     \label{fig:rajada_mensal}
 \end{figure}
@@ -240,7 +241,7 @@ A Figura~\ref{fig:eda_scatter} apresenta conjuntamente a velocidade do vento, as
     \label{fig:eda_scatter}
 \end{figure}
 
-A Figura~\ref{fig:eda_violin} apresenta a distribuição da temperatura média diária agrupada por tercis de severidade das interrupções (baixa, média e severa). As medianas térmicas das três faixas situam-se em torno de 21--22\,°C e as larguras dos violinos são comparáveis, indicando que, em escala diária, a temperatura por si só não distingue de forma robusta dias de baixa e alta carga de falhas. Esse resultado refina a leitura do mecanismo termodinâmico discutido na Seção~\ref{sec:fisica_atmosferica}: a dilatação térmica dos condutores opera predominantemente de forma indireta --- via amplificação do consumo (correlação $r = 0{,}56$ temperatura--consumo) e em interação com vento e chuva --- e não como gatilho isolado em escala diária.
+A Figura~\ref{fig:eda_violin} apresenta a distribuição da temperatura média diária agrupada por tercis de severidade das interrupções. A sobreposição das distribuições indica que a temperatura isolada não distingue de forma robusta os tercis do alvo. Mecanismos como dilatação térmica, carregamento e interação com chuva ou vento permanecem hipóteses que exigem dados de ativos, carga e causas em maior resolução.
 
 \begin{figure}[H]
     \centering
@@ -266,9 +267,9 @@ Os modelos foram avaliados sob um protocolo unificado de \textbf{previsão diret
 \toprule
 \textbf{Modelo} & \textbf{MAE} & \textbf{RMSE} & \textbf{$R^2$} & \textbf{MAPE (\%)} \\
 \midrule
-XGBoost & 61,09 & 99,72 & 0,409 & 20,64 \% \\
-Bi-LSTM & 62,71 & 98,80 & 0,420 & 20,94 \% \\
-Bi-GRU  & 73,44 & 119,21 & 0,156 & 26,18 \% \\
+XGBoost & 63,81 & 101,77 & 0,385 & 21,34 \% \\
+Bi-LSTM & 61,55 & 98,70 & 0,421 & 19,68 \% \\
+Bi-GRU  & 60,36 & 102,57 & 0,375 & 18,89 \% \\
 Persistência & 68,59 & 105,61 & 0,337 & 22,37 \% \\
 \bottomrule
 \end{tabular}
@@ -276,9 +277,9 @@ Persistência & 68,59 & 105,61 & 0,337 & 22,37 \% \\
 \small{Fonte: Elaborado pelos autores (2026). Persistência: $\hat{y}_{t+1}=y_t$.}
 \end{table}
 
-A análise da Tabela~\ref{tab:metricas_modelos} revela que o \textbf{XGBoost} (MAE $= 61{,}09$, $R^2 = 0{,}409$) e a \textbf{Bi-LSTM} (MAE $= 62{,}71$, $R^2 = 0{,}420$) apresentam desempenhos descritivamente próximos --- diferença de 1,62 interrupções por dia em MAE (2,7\%) e de 0,011 em $R^2$. A Bi-LSTM apresenta RMSE numericamente menor (98,80 vs.\ 99,72), sem que essa diferença isolada demonstre melhor tratamento dos eventos extremos. Ambos registram MAE menor que a persistência (68,59) e $R^2$ maior que 0,337, indicando ganho preditivo observado além da simples repetição do último valor. Como as representações de entrada diferem, os resultados comparam as arquiteturas no protocolo implementado, mas não constituem um teste de equivalência entre memória sequencial e engenharia de atributos.
+A Tabela~\ref{tab:metricas_modelos} mostra o menor MAE na Bi-GRU (60,36), enquanto a Bi-LSTM apresenta o menor RMSE (98,70) e o maior $R^2$ (0,421). A Bi-GRU também obtém o menor MAPE (18,89\%). Os três modelos treinados superam a persistência em MAE, RMSE, $R^2$ e MAPE. Como as representações de entrada diferem, os resultados comparam as arquiteturas no protocolo implementado, mas não constituem um teste de equivalência entre memória sequencial e engenharia de atributos.
 
-Observa-se que a Bi-GRU, arquiteturalmente mais leve (dois portões em vez de três, conforme Tabela~\ref{tab:lstm_vs_gru}), apresentou erros numericamente maiores (MAE $= 73{,}44$, MAPE $= 26{,}18\%$) e não superou a persistência em $h=1$. Sem um experimento de ablação dos portões ou um teste inferencial previamente definido, essa diferença não pode ser atribuída especificamente à ausência do \textit{Cell State} ou do \textit{Forget Gate}. Como discutido na Seção~\ref{sec:multihorizonte}, a mesma arquitetura apresenta comportamento distinto em horizontes mais longos.
+A Bi-GRU, arquiteturalmente mais leve, obteve o menor MAPE (18,89\%) e o menor MAE (60,36) em $h=1$. Sem ablação dos portões ou teste inferencial previamente definido, sua diferença em relação às demais arquiteturas não pode ser atribuída especificamente à ausência do \textit{Cell State} ou do \textit{Forget Gate}.
 
 \subsection{Séries Temporais Preditas vs. Reais}
 
@@ -303,7 +304,7 @@ Para avaliar visualmente a aderência das previsões ao comportamento real da s�
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.95\textwidth]{img/ts_pred_gru_bi.png}
-    \caption{Série temporal de predição da Bi-GRU (vermelho) vs. valores reais (azul) no conjunto de teste. Observa-se maior erro agregado que no XGBoost e na Bi-LSTM em $h=1$.}
+    \caption{Série temporal de predição da Bi-GRU (vermelho) vs. valores reais (azul) no conjunto de teste. A rede obteve o menor MAE em $h=1$.}
     \small{Fonte: Elaborado pelos autores (2026).}
     \label{fig:ts_gru}
 \end{figure}
@@ -333,12 +334,12 @@ Os diagramas de dispersão das Figuras~\ref{fig:scatter_xgb},~\ref{fig:scatter_l
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.65\textwidth]{img/scatter_pred_gru_bi.png}
-    \caption{Dispersão Predito vs. Real --- Bi-GRU. Padrão similar à Bi-LSTM, porém com maior concentração na faixa intermediária (150--350 interrupções).}
+    \caption{Dispersão Predito vs. Real --- Bi-GRU. A dispersão cresce nos maiores valores do alvo total.}
     \small{Fonte: Elaborado pelos autores (2026).}
     \label{fig:scatter_gru_pred}
 \end{figure}
 
-Os três modelos exibem um padrão comum de \textbf{compressão para a média}: para valores reais muito altos ($>600$ interrupções), as previsões tendem a ser substancialmente inferiores ao real, indicando que os modelos são conservadores em cenários extremos. Esse comportamento é esperado, uma vez que eventos extremos são raros no conjunto de treinamento e a função de perda MSE naturalmente favorece previsões próximas à média \cite{goodfellow2016deep}.
+Os três modelos exibem \textbf{compressão para a média} nos maiores valores do alvo ($>400$ interrupções). Eventos dessa magnitude são menos frequentes, e as perdas quadráticas favorecem o compromisso global entre dias comuns e picos \cite{goodfellow2016deep}; a análise segmentada quantifica esse efeito sem atribuí-lo a um mecanismo único.
 
 \subsection{Segmentação do Erro por Faixa de Severidade}
 
@@ -353,9 +354,9 @@ Para quantificar a dependência do erro em relação à magnitude das interrupç
 \toprule
 \textbf{Faixa} & \textbf{Dias (\%)} & \textbf{XGBoost} & \textbf{Bi-LSTM} & \textbf{Bi-GRU} \\
 \midrule
-Normal ($< 200$) & 20,3\% & 44,6 & 47,9 & 66,9 \\
-Moderada (200--400) & 66,0\% & 50,6 & 49,8 & 61,7 \\
-Severa ($> 400$) & 13,7\% & 136,0 & 146,8 & 140,1 \\
+Normal ($< 200$) & 73 (20,0\%) & 44,1 & 41,7 & 36,5 \\
+Moderada (200--400) & 242 (66,3\%) & 53,4 & 47,3 & 48,2 \\
+Severa ($> 400$) & 50 (13,7\%) & 143,0 & 159,5 & 154,1 \\
 \bottomrule
 \end{tabular}
 \normalsize
@@ -363,7 +364,7 @@ Severa ($> 400$) & 13,7\% & 136,0 & 146,8 & 140,1 \\
 \small{Fonte: Elaborado pelos autores (2026).}
 \end{table}
 
-Os resultados mostram que o erro de todos os modelos aumenta substancialmente nos dias de operação severa ($>400$ interrupções), nos quais o MAE do XGBoost é cerca de 3 vezes o observado na faixa normal (136,0 vs. 44,6). O XGBoost apresenta o menor MAE observado na faixa normal. Na faixa moderada (200--400 interrupções), que representa a maioria dos dias de teste (66,0\%), a Bi-LSTM é ligeiramente melhor do que os dois modelos: alcança MAE de 49,8 contra 66,0 do XGBoost e 61,7 da Bi-GRU. A concentração de 66,0\% dos dias na faixa moderada reflete o período de teste (junho/2024 a maio/2025), que abrange tanto a estação seca quanto a chuvosa do Cerrado.
+As máscaras foram criadas uma única vez sobre o alvo canônico inteiro e reutilizadas por todos os modelos. O teste contém 73 dias na faixa normal, 242 na moderada e 50 na severa. A Bi-GRU apresenta o menor MAE na faixa normal, a Bi-LSTM na moderada e o XGBoost na severa. O aumento dos erros na faixa severa evidencia a dificuldade comum de representar os maiores picos.
 
 \section{Análise da Distribuição Residual (KDE)}\label{sec:residuais}
 A fim de ratificar matematicamente as variações probabilísticas de cada arquitetura, abstraiu-se a Função de Densidade de Probabilidade (PDF) do Erro Residual ($e_t = y_t - \hat{y}_t$) de toda a partição do Bloco de Testes. A estimativa não-paramétrica \textit{Kernel Density Estimation} (KDE) foi computada com \textit{kernel} Gaussiano, conforme apresentado na Figura~\ref{fig:kde_residuos}.
@@ -376,9 +377,9 @@ A fim de ratificar matematicamente as variações probabilísticas de cada arqui
     \label{fig:kde_residuos}
 \end{figure}
 
-Observa-se que as redes recorrentes (Bi-LSTM e Bi-GRU) apresentam distribuições KDE com maior densidade próxima de zero, enquanto o XGBoost apresenta pico mais achatado e caudas mais controladas. A forma da densidade descreve a distribuição global dos resíduos, mas não demonstra menor MAE das redes nos dias normais. Ao contrário, a segmentação por severidade da Tabela~\ref{tab:erro_faixa} mostra que o XGBoost possui o menor MAE nas três faixas, inclusive na normal (30,1 contra 47,4 da Bi-LSTM e 66,4 da Bi-GRU).
+As curvas KDE descrevem a forma global dos resíduos, mas sua altura próxima de zero não substitui as métricas de erro. Na faixa normal, a Bi-GRU obteve MAE 36,5, contra 41,7 da Bi-LSTM e 44,1 do XGBoost. Na faixa moderada, a Bi-LSTM teve MAE 47,3; na severa, o XGBoost obteve 143,0, ainda com erros substancialmente maiores que nas demais faixas.
 
-Para averiguar a premissa linear clássica da homocedasticidade (variância constante do erro), compilou-se o Diagrama de Dispersão Residual do modelo vencedor neural (Bi-LSTM) (Figura~\ref{fig:scatter_hetero}). É nítida a característica heterocedástica imposta pela natureza intermitente da rede elétrica: quanto maior a escala de interrupções reais num dado temporal agressivo, maior dilata-se o cone de dispersão preditiva.
+Para examinar a variância do erro em função da magnitude, compilou-se o diagrama de dispersão residual da Bi-LSTM (Figura~\ref{fig:scatter_hetero}). A dispersão tende a crescer com a contagem real, padrão descritivo compatível com heterocedasticidade.
 
 \begin{figure}[H]
     \centering
@@ -484,9 +485,9 @@ Para avaliar o comportamento dos modelos em cenários de uso operacional, os tr�
 \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}
 \textbf{Modelo} & MAE & RMSE & MAE & RMSE & MAE & RMSE & MAE & RMSE \\
 \midrule
-XGBoost & \textbf{62,46} & 101,41 & 78,77 & 120,02 & 83,83 & 132,10 & 71,34 & 115,23 \\
-Bi-LSTM & 64,19 & \textbf{100,44} & \textbf{74,01} & \textbf{119,47} & 79,49 & 128,40 & 67,69 & 110,24 \\
-Bi-GRU  & 75,10 & 121,18 & 77,67 & 121,77 & \textbf{73,61} & \textbf{119,92} & \textbf{64,31} & \textbf{106,27} \\
+XGBoost & 65,27 & 103,48 & 77,22 & 120,85 & 77,64 & 122,70 & 70,41 & 115,47 \\
+Bi-LSTM & 62,92 & \textbf{100,34} & \textbf{65,56} & \textbf{106,94} & 71,86 & \textbf{118,11} & 71,21 & 120,58 \\
+Bi-GRU  & \textbf{61,67} & 104,26 & 66,52 & 108,03 & \textbf{71,24} & 119,52 & \textbf{68,19} & \textbf{111,40} \\
 Persistência & 69,83 & 107,22 & 86,22 & 139,70 & 84,56 & 143,65 & 88,00 & 153,87 \\
 \bottomrule
 \end{tabular}
@@ -500,22 +501,22 @@ A Figura~\ref{fig:multihorizonte_degradacao} apresenta as curvas de desempenho p
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.90\textwidth]{img/previsao_multihorizonte_degradacao.png}
-    \caption{MAE dos três modelos treinados por horizonte de previsão direta. A Bi-GRU apresenta o menor MAE observado em $h=7$ e $h=14$.}
+    \caption{MAE dos três modelos treinados por horizonte de previsão direta. A Bi-GRU apresenta o menor MAE em $h=1$, $h=7$ e $h=14$; a Bi-LSTM, em $h=3$.}
     \small{Fonte: Elaborado pelos autores (2026).}
     \label{fig:multihorizonte_degradacao}
 \end{figure}
 
-O protocolo de \textbf{previsão direta} (\textit{Direct Multi-Step Forecasting}) mantém, para cada horizonte $h$, as mesmas 41 variáveis por instante, a mesma data-limite de origem e as mesmas datas-alvo. O XGBoost recebe uma linha tabular na origem $t$, enquanto Bi-LSTM e Bi-GRU recebem 14 linhas terminando em $t$; portanto, compartilham variáveis e corte causal, mas não uma representação idêntica. Todos preveem diretamente $\text{interrupcoes}[t+h]$, sem estimativas intermediárias. As 352 datas-alvo são comuns (14/06/2024 a 31/05/2025), e a divisão treino/teste é feita pela data-alvo. Como a primeira origem em $h=14$ é 31/05/2024, nenhum alvo de treinamento nem observação usada pelo normalizador é posterior à origem da primeira previsão.
+O protocolo de \textbf{previsão direta} (\textit{Direct Multi-Step Forecasting}) mantém, para cada horizonte $h$, as mesmas 40 variáveis de entrada por instante, a mesma data-limite de origem e as mesmas datas-alvo. O XGBoost recebe uma linha tabular na origem $t$, enquanto Bi-LSTM e Bi-GRU recebem 14 linhas terminando em $t$; portanto, compartilham variáveis e corte causal, mas não uma representação idêntica. Todos preveem diretamente $\text{interrupcoes}[t+h]$, sem estimativas intermediárias. As 352 datas-alvo são comuns (14/06/2024 a 31/05/2025), e a divisão treino/teste é feita pela data-alvo. Como a primeira origem em $h=14$ é 31/05/2024, nenhum alvo de treinamento nem observação usada pelo normalizador é posterior à origem da primeira previsão.
 
-Para $h=1$, XGBoost (MAE$=62{,}46$) e Bi-LSTM (MAE$=64{,}19$) apresentam resultados descritivamente próximos e menores que a persistência (69,83); a Bi-GRU registra 75,10. Para $h=3$, a Bi-LSTM apresenta o menor MAE observado entre os modelos treinados (74,01), seguida pela Bi-GRU (77,67) e pelo XGBoost (78,77), todos abaixo da persistência (86,22). Em $h=7$ e $h=14$, a Bi-GRU apresenta os menores MAEs observados: 73,61 e 64,31, respectivamente. Os três modelos treinados registram MAE menor que a persistência nos horizontes de 3, 7 e 14 dias; em $h=1$, apenas XGBoost e Bi-LSTM o fazem. O XGBoost apresenta $R^2 = -0{,}027$ em $h=7$, indicando desempenho inferior ao \textit{baseline} da média nesse horizonte.
+A Bi-GRU apresenta o menor MAE em $h=1$ (61,67), $h=7$ (71,24) e $h=14$ (68,19), enquanto a Bi-LSTM registra o menor valor em $h=3$ (65,56). Todos os modelos treinados superam a persistência em MAE nos quatro horizontes. A variação não monotônica entre horizontes indica que a dificuldade empírica depende também da distribuição das datas-alvo e do ajuste de cada modelo, não apenas da antecedência.
 
 \subsection{Comparação ao Longo dos Meses do Período de Teste}\label{sec:multihorizonte_mensal}
 
 As Figuras~\ref{fig:multihorizonte_temporal_xgb}, \ref{fig:multihorizonte_temporal_lstm} e~\ref{fig:multihorizonte_temporal_gru} confrontam Real $\times$ Previsto nos quatro horizontes entre 14 de junho de 2024 e 31 de maio de 2025. O período abrange 12 meses civis e 352 datas-alvo: cada ponto tem antecedência fixa de 1, 3, 7 ou 14 dias e não constitui uma única previsão feita um ano antes.
 
-Os painéis evidenciam dois comportamentos comuns. Primeiro, os modelos acompanham a mudança do patamar médio entre a estação seca e a chuvosa, mas comprimem os picos extremos observados em outubro de 2024, janeiro e março de 2025. Segundo, ampliar o horizonte não produz degradação monotônica em todos os modelos: em particular, a Bi-GRU apresenta séries mais aderentes ao nível central em $h=7$ e $h=14$ do que em $h=1$, em concordância com as métricas agregadas. Esse resultado não significa que prever mais longe seja intrinsecamente mais fácil; indica que o erro depende conjuntamente do horizonte, da arquitetura e da distribuição das datas-alvo.
+Os painéis evidenciam dois comportamentos comuns. Primeiro, os modelos acompanham a mudança do patamar médio entre a estação seca e a chuvosa, mas comprimem os picos observados em outubro de 2024 e janeiro de 2025. Segundo, ampliar o horizonte não produz degradação monotônica em todos os modelos. Esse resultado não significa que prever mais longe seja intrinsecamente mais fácil; indica que o erro depende conjuntamente do horizonte, da arquitetura e da distribuição das datas-alvo.
 
-A Figura~\ref{fig:multihorizonte_mae_mensal} decompõe o MAE por mês civil. A transição para a estação chuvosa concentra os maiores erros: setembro e outubro de 2024 formam a região mais crítica para o XGBoost, enquanto outubro também apresenta o maior MAE da Bi-LSTM na maioria dos horizontes. Nos meses secos de junho e julho, os erros ficam, em geral, entre aproximadamente 21 e 43 interrupções, muito abaixo das médias anuais.
+A Figura~\ref{fig:multihorizonte_mae_mensal} decompõe o MAE por mês civil. Os maiores erros concentram-se entre outubro de 2024 e janeiro de 2025, com máximos mensais próximos de 143 interrupções. Entre junho e agosto, os menores MAEs mensais por horizonte variam aproximadamente entre 21 e 45 interrupções.
 
 \begin{figure}[H]
     \centering
@@ -549,7 +550,7 @@ A Figura~\ref{fig:multihorizonte_mae_mensal} decompõe o MAE por mês civil. A t
     \small{Fonte: Elaborado pelos autores (2026).}
 \end{figure}
 
-A Tabela~\ref{tab:melhor_modelo_mes_horizonte} sintetiza o modelo de menor MAE em cada mês e horizonte. Em $h=1$, o XGBoost registra o menor MAE em 9 dos 12 meses, enquanto a Bi-LSTM o faz em setembro e outubro e a Bi-GRU em abril. Em $h=3$, o XGBoost fica em primeiro em 7 meses, embora a Bi-LSTM apresente o menor MAE no agregado; essa diferença mostra que a contagem mensal não incorpora a magnitude dos erros nem o número distinto de dias de cada mês. Em $h=7$, a primeira posição é distribuída entre Bi-GRU (5 meses), XGBoost (4) e Bi-LSTM (3), e a Bi-GRU também obtém o menor MAE agregado. Em $h=14$, a Bi-GRU registra o menor MAE em 7 meses, coerentemente com sua primeira posição no resultado agregado.
+A Tabela~\ref{tab:melhor_modelo_mes_horizonte} sintetiza o modelo de menor MAE em cada mês e horizonte. O XGBoost vence em 6 dos 12 meses em $h=1$ e 3 meses em $h=3$; em $h=7$ e $h=14$, cada arquitetura vence quatro meses. A contagem mensal não incorpora a magnitude dos erros nem o número distinto de dias de cada mês; por isso, ela é apresentada apenas como diagnóstico complementar aos resultados agregados.
 
 \begin{table}[H]
 \caption{Modelo com menor MAE em cada mês e horizonte}
@@ -560,18 +561,18 @@ A Tabela~\ref{tab:melhor_modelo_mes_horizonte} sintetiza o modelo de menor MAE e
 \toprule
 \textbf{Mês-alvo} & \textbf{$h=1$} & \textbf{$h=3$} & \textbf{$h=7$} & \textbf{$h=14$} \\
 \midrule
-Jun/24$^{*}$ & XGBoost (22,9) & Bi-LSTM (21,9) & Bi-GRU (28,3) & Bi-GRU (22,1) \\
-Jul/24 & XGBoost (22,3) & XGBoost (23,6) & XGBoost (21,8) & Bi-GRU (22,0) \\
-Ago/24 & XGBoost (46,8) & Bi-GRU (38,9) & Bi-GRU (44,5) & Bi-LSTM (36,6) \\
-Set/24 & Bi-LSTM (55,6) & Bi-LSTM (56,4) & Bi-LSTM (70,1) & Bi-LSTM (56,1) \\
-Out/24 & Bi-LSTM (118,8) & XGBoost (150,6) & Bi-GRU (141,4) & Bi-GRU (135,7) \\
-Nov/24 & XGBoost (73,2) & XGBoost (71,5) & XGBoost (76,2) & XGBoost (64,0) \\
-Dez/24 & XGBoost (74,0) & XGBoost (71,0) & Bi-GRU (79,3) & Bi-GRU (82,0) \\
-Jan/25 & XGBoost (82,0) & XGBoost (98,3) & Bi-LSTM (80,4) & Bi-GRU (81,0) \\
-Fev/25 & XGBoost (40,9) & Bi-GRU (45,7) & XGBoost (51,5) & Bi-LSTM (42,8) \\
-Mar/25 & XGBoost (54,0) & XGBoost (79,0) & XGBoost (82,2) & Bi-GRU (77,2) \\
-Abr/25 & Bi-GRU (40,6) & Bi-LSTM (58,0) & Bi-GRU (56,8) & Bi-GRU (56,0) \\
-Mai/25 & XGBoost (33,5) & XGBoost (32,4) & Bi-LSTM (33,6) & Bi-LSTM (29,5) \\
+Jun/24$^{*}$ & XGBoost (22,1) & Bi-LSTM (22,6) & Bi-LSTM (25,3) & XGBoost (26,1) \\
+Jul/24 & XGBoost (21,5) & XGBoost (22,6) & XGBoost (21,8) & Bi-LSTM (25,9) \\
+Ago/24 & Bi-GRU (33,6) & Bi-GRU (44,5) & Bi-GRU (39,8) & Bi-GRU (39,8) \\
+Set/24 & Bi-GRU (41,0) & Bi-GRU (50,1) & Bi-GRU (56,1) & Bi-LSTM (83,5) \\
+Out/24 & Bi-LSTM (114,8) & Bi-LSTM (133,4) & XGBoost (142,8) & XGBoost (139,8) \\
+Nov/24 & XGBoost (76,4) & Bi-LSTM (70,4) & XGBoost (79,9) & Bi-LSTM (64,3) \\
+Dez/24 & XGBoost (76,9) & XGBoost (69,1) & Bi-LSTM (66,8) & XGBoost (81,2) \\
+Jan/25 & Bi-LSTM (76,8) & Bi-LSTM (87,3) & XGBoost (89,5) & Bi-GRU (91,3) \\
+Fev/25 & XGBoost (43,3) & Bi-LSTM (44,8) & Bi-GRU (50,1) & Bi-LSTM (40,9) \\
+Mar/25 & XGBoost (61,5) & Bi-GRU (75,3) & Bi-LSTM (75,7) & Bi-GRU (70,6) \\
+Abr/25 & Bi-GRU (40,7) & Bi-GRU (57,3) & Bi-LSTM (57,1) & Bi-GRU (52,6) \\
+Mai/25 & Bi-LSTM (31,8) & XGBoost (30,8) & Bi-GRU (30,5) & XGBoost (30,0) \\
 \bottomrule
 \end{tabular}
 \normalsize
@@ -592,15 +593,15 @@ A Tabela~\ref{tab:sintese} consolida os principais achados empíricos deste cap�
 \toprule
 \textbf{Dimensão} & \textbf{Achado Principal} \\
 \midrule
-Tendência Temporal & Crescimento de 65,3\% na média diária de interrupções entre 2017 (183,5) e 2025 (303,4) \\
-Sazonalidade & Picos entre outubro e março (chuvosa: 292,0) vs. vales entre maio e agosto (seca: 182,3) \\
+Tendência Temporal & Aumento da média do alvo total de 183,5 em 2017 para 303,4 no período disponível de 2025 \\
+Sazonalidade & Picos concentrados na estação chuvosa e vales na estação seca \\
 Autocorrelação & Dependência temporal significativa até $k=14$ dias, fundamentando o \textit{Lookback Window} \\
-Correlação Climática & Direção do vento ($r=0{,}59$ mensal) e precipitação ($r=0{,}54$ mensal) como preditores dominantes \\
-Resultados em $h=1$ & XGBoost e Bi-LSTM descritivamente próximos (MAE$\approx$61--63) e melhores que a persistência (MAE$=68{,}6$); Bi-GRU com MAE$=73{,}4$ \\
-Distribuição Residual & Redes recorrentes mais concentradas em zero (leptocúrticas); XGBoost mais disperso nos extremos \\
-Eventos Extremos & XGBoost conservador (saturação arbórea); Bi-LSTM superestima picos inéditos \\
+Correlação Climática & Componentes circulares da direção ($r=-0{,}522$ e $0{,}570$ mensal) e precipitação ($r=0{,}539$ mensal) apresentam as maiores magnitudes \\
+Resultados em $h=1$ & Bi-GRU tem o menor MAE (60,36) e MAPE (18,89\%); Bi-LSTM apresenta o menor RMSE (98,70) e maior $R^2$ (0,421) \\
+Distribuição Residual & Resíduos centrados próximos de zero, com caudas associadas aos maiores valores do alvo \\
+Eventos Extremos & 73 dias normais, 242 moderados e 50 severos; os erros crescem nos maiores valores \\
 Importância & Lags da própria série dominam; variáveis climáticas defasadas validam inércia temporal \\
-Multi-Horizonte & Bi-LSTM tem o menor MAE observado em $h=3$; Bi-GRU em $h=7$ e $h=14$; a ordenação mensal varia com a sazonalidade \\
+Multi-Horizonte & Bi-GRU tem o menor MAE em $h=1$, $h=7$ e $h=14$; Bi-LSTM em $h=3$ \\
 \bottomrule
 \end{tabular}
 \normalsize

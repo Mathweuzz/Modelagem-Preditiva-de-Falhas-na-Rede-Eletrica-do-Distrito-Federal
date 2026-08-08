@@ -75,7 +75,9 @@ EXPECTED_TEST_DAYS = (TEST_END - TEST_START).days + 1
 
 def mape(y_true, y_pred):
     y_true, y_pred = np.array(y_true), np.array(y_pred)
-    return np.mean(np.abs((y_true - y_pred) / (y_true + 1e-8))) * 100
+    nonzero = y_true != 0
+    return np.mean(np.abs((y_true[nonzero] - y_pred[nonzero]) / y_true[nonzero])) * 100 \
+        if nonzero.any() else np.nan
 
 
 def calcular_metricas(y_true, y_pred):

@@ -4,7 +4,7 @@ from pathlib import Path
 import pandas as pd
 import matplotlib.pyplot as plt
 
-ROOT = Path("/home/mateus/CLEAR DATA/TerceiroPedido/TerceiroPedido")
+ROOT = Path(__file__).resolve().parents[1]
 DADOS = ROOT / "dados"
 GRAF = ROOT / "graficos" / "T13_comparacao"
 GRAF.mkdir(parents=True, exist_ok=True)

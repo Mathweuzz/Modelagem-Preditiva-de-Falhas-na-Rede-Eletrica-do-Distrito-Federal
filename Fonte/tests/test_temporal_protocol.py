@@ -114,20 +114,35 @@ class TemporalProtocolTests(unittest.TestCase):
         self.assertEqual(rows[0]["data_alvo"], pd.Timestamp("2024-06-14"))
         self.assertEqual(rows[0]["y_pred"], 13.0)
 
-    def test_persistence_metrics_match_documented_values(self) -> None:
+    def test_persistence_metrics_match_canonical_target_slices(self) -> None:
         metrics = baseline_persistence.build_metrics(self.df)
         direct = metrics.loc[metrics["Escopo"] == "principal_365"].iloc[0]
         self.assertEqual(direct["n"], 365)
-        self.assertAlmostEqual(direct["MAE"], 68.58630136986301)
-        self.assertAlmostEqual(direct["RMSE"], 105.60987915598837)
-        self.assertAlmostEqual(direct["R2"], 0.3372233626003407)
+        direct_targets = pd.date_range("2024-06-01", "2025-05-31", freq="D")
+        direct_true = self.df.loc[direct_targets, "interrupcoes"].to_numpy(dtype=float)
+        direct_pred = self.df.loc[
+            direct_targets - pd.Timedelta(days=1), "interrupcoes"
+        ].to_numpy(dtype=float)
+        direct_mae = np.mean(np.abs(direct_true - direct_pred))
+        direct_rmse = np.sqrt(np.mean((direct_true - direct_pred) ** 2))
+        direct_r2 = 1 - np.sum((direct_true - direct_pred) ** 2) / np.sum(
+            (direct_true - direct_true.mean()) ** 2
+        )
+        self.assertAlmostEqual(direct["MAE"], direct_mae)
+        self.assertAlmostEqual(direct["RMSE"], direct_rmse)
+        self.assertAlmostEqual(direct["R2"], direct_r2)
 
         multi = metrics.loc[metrics["Escopo"] == "multihorizonte_352"]
         self.assertEqual(multi["n"].tolist(), [352, 352, 352, 352])
-        np.testing.assert_allclose(
-            multi["MAE"].to_numpy(),
-            [69.82670454545455, 86.2215909090909, 84.5596590909091, 88.0028409090909],
-        )
+        multi_targets = pd.date_range("2024-06-14", "2025-05-31", freq="D")
+        expected_mae = []
+        for horizon in (1, 3, 7, 14):
+            true = self.df.loc[multi_targets, "interrupcoes"].to_numpy(dtype=float)
+            pred = self.df.loc[
+                multi_targets - pd.Timedelta(days=horizon), "interrupcoes"
+            ].to_numpy(dtype=float)
+            expected_mae.append(np.mean(np.abs(true - pred)))
+        np.testing.assert_allclose(multi["MAE"].to_numpy(), expected_mae)
 
 
 if __name__ == "__main__":

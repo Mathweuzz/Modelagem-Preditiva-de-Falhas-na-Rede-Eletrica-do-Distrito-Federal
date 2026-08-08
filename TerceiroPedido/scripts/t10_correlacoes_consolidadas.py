@@ -2,7 +2,7 @@ import sys
 from pathlib import Path
 import pandas as pd
 
-ROOT = Path("/home/mateus/CLEAR DATA/TerceiroPedido/TerceiroPedido")
+ROOT = Path(__file__).resolve().parents[1]
 DADOS = ROOT / "dados"
 
 CORR_BASE = DADOS / "correlacoes_resumo.csv"
@@ -37,8 +37,8 @@ def main():
         "vento_velocidade_media_ms",
         "vento_velocidade_max_ms",
         "vento_rajada_max_ms",
-        "vento_direcao_media_gr",
-        "vento_direcao_moda_gr",
+        "vento_dir_sin",
+        "vento_dir_cos",
     ]
     for v in vars_vento:
         rows.append({

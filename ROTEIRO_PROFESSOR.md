@@ -104,25 +104,28 @@ Diagramas de fluxo (pipeline de dados, arquitetura experimental) — todos **Tik
 | `base_diaria_interrupcoes_clima.csv` | Diária: data, interrupcoes, temperatura, precipitação | 2017-01-01 a 2025-05-31 |
 | `base_diaria_interrupcoes_clima_vento.csv` | Diária + variáveis de vento (média/máx/rajada/direção) | idem |
 | `base_diaria_interrupcoes_clima_mm.csv` | Diária + médias móveis 7d/14d (interrupções/temp/chuva) | idem |
-| `base_mensal_interrupcoes_clima_consumo.csv` | Mensal: + consumo total kWh (SAMP) | idem |
+| `base_mensal_interrupcoes_clima_consumo.csv` | Mensal: + consumo total kWh (SAMP/ANEEL) | idem |
 | `dataset_engenharia_features.csv` | **Dataset final dos modelos**: 40 features + alvo | 2017-01-08 a 2025-05-31 (3.066 dias) |
 | `previsoes_diarias_baselines.csv` | Previsões dos baselines — **legado** (ver `Fonte/data/legado/`) | — |
 | `previsoes_dl_lstm_gru.csv` | Previsões LSTM/GRU de modelos antigos — **legado** (ver `Fonte/data/legado/`) | — |
 | `vento_diario_brasilia.csv` | Estatísticas diárias de vento (INMET A001) | 2017-2025 |
-| `aggregados_*.csv` / `correlacoes_*.csv` | Agregações temporais e tabelas auxiliares | — |
+| `agregados_*_canonicos.csv` / `correlacoes_consolidadas.csv` | Agregações e correlações canônicas | — |
+| `manifesto_dados_brutos.json` | Definição do alvo total sem filtro por causa, nomes e SHA-256 | — |
 
 ### Origem dos dados brutos (não incluídos)
 
 - **INMET** — https://portal.inmet.gov.br/dadoshistoricos (estação automática A001 / Brasília)
 - **ANEEL** — Relatórios PRODIST, indicadores de continuidade da Neoenergia Brasília
-- **CCEE/SAMP** — consumo mensal por classe consumidora no DF
+- **SAMP/ANEEL** — consumo mensal por classe consumidora no DF
 
 ---
 
 ## 5. Reprodutibilidade
 
-- **XGBoost**: `random_state=42`. Resultado **determinístico**. Protocolo h=1 direto (separação pela data-alvo): MAE=61.09 / RMSE=99.72 / R²=0.409 / MAPE=20.64% — conforme reportado no Cap. 4.
-- **PyTorch (LSTM/GRU)**: pequenas variações entre execuções são esperadas (non-determinism do CUDA/cuDNN, ordem dos batches no DataLoader). As métricas reportadas no Cap. 4 foram obtidas no ambiente descrito no Apêndice (Reprodutibilidade) — versão dos pacotes em `Apendices`.
+- **Pipeline integral**: `python Fonte/run_pipeline.py --interruptions <arquivo.csv> --inmet-dir <diretório>`.
+- **Integridade**: arquivo ANEEL com SHA-256 `9b68feaad48bdf50d7f8e645d576efc2ccdfecf4aa43672ece3dc771fab905be`; hashes INMET no manifesto.
+- **Métricas h=1**: XGBoost MAE=63,81; Bi-LSTM RMSE=98,70 e R²=0,421; Bi-GRU MAE=60,36 e MAPE=18,89%.
+- **Determinismo**: sementes e opções determinísticas são fixadas; hardware, drivers e versões diferentes ainda podem introduzir pequenas variações numéricas.
 
 ## 6. Limitações e ressalvas
 

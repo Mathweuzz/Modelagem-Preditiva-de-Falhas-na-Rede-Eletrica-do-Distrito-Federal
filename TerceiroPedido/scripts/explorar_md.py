@@ -2,13 +2,14 @@ import sys
 from pathlib import Path
 import pandas as pd
 
-ROOT = Path("/home/mateus/CLEAR DATA/TerceiroPedido/TerceiroPedido")
+ROOT = Path(__file__).resolve().parents[1]
 DADOS = ROOT / "dados"
 GRAF = ROOT / "graficos"
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
 OUT_MD = ROOT / "TerceiroPedido.md"
 
-CORR_CONSOL = DADOS / "correlacoes_consolidadas.csv"
+CORR_CONSOL = PROJECT_ROOT / "Fonte" / "data" / "correlacoes_consolidadas.csv"
 CORR_VENTO = DADOS / "correlacoes_vento.csv"
 
 BASE_MM = DADOS / "base_diaria_interrupcoes_clima_mm.csv"
@@ -26,10 +27,17 @@ AGG_M_VENTO = DADOS / "aggregados_mensal_interrupcoes_vento.csv"
 
 
 def md_table(df: pd.DataFrame, max_rows: int = 30) -> str:
-    df2 = df.copy()
-    if len(df2) > max_rows:
-        df2 = df2.head(max_rows)
-    return df2.to_markdown(index=False)
+    """Formata tabela sem depender do pacote opcional tabulate."""
+    df2 = df.head(max_rows).copy()
+    headers = [str(column) for column in df2.columns]
+    rows = [
+        ["" if pd.isna(value) else str(value) for value in row]
+        for row in df2.itertuples(index=False, name=None)
+    ]
+    header = "| " + " | ".join(headers) + " |"
+    separator = "| " + " | ".join("---" for _ in headers) + " |"
+    body = ["| " + " | ".join(row) + " |" for row in rows]
+    return "\n".join([header, separator, *body])
 
 
 def file_list_md(folder: Path) -> str:
@@ -157,11 +165,11 @@ def main():
     # Interpretação curta (para e-mail / relatório)
     # =====================================================
     lines.append("## Interpretação resumida dos achados\n")
-    lines.append("- **Agregação aumenta clareza do padrão**: a relação entre interrupções e variáveis meteorológicas tende a ficar mais forte em escalas **semanal/mensal** do que no diário.\n"
-                 "- **Precipitação**: correlação cresce de **diário (~0,35)** para **semanal (~0,48)** e **mensal (~0,54)**.\n"
-                 "- **Consumo e temperatura (mensal)**: correlação moderada/alta (**~0,56**), e interrupções também se correlacionam com consumo (**~0,48**).\n"
-                 "- **Vento**: após limpeza de valores inválidos do INMET, a **direção média do vento** apresenta correlação relevante com interrupções, especialmente em escala **mensal (~0,59)**; semanal também é significativa (**~0,50**).\n"
-                 "- **Observação metodológica**: direção do vento é uma variável circular (0–360°); a média simples é uma aproximação inicial e pode ser refinada com estatística circular, se necessário.\n")
+    lines.append("- **Agregação canônica**: nem todas as associações aumentam monotonicamente entre as escalas diária, semanal e mensal.\n"
+                 "- **Precipitação**: $r$ passa de 0,348 no diário para 0,495 no semanal e 0,539 no mensal.\n"
+                 "- **Consumo**: a associação mensal com o alvo é 0,476; o consumo não integra as entradas dos modelos.\n"
+                 "- **Direção do vento**: é representada pelas componentes seno e cosseno; em escala mensal, $r=-0,522$ e $r=0,570$, sem correlação linear com graus brutos.\n"
+                 "- **Interpretação**: os coeficientes descrevem associação e não demonstram causalidade.\n")
 
     # =====================================================
     # Próximos passos (o que o prof sugeriu)

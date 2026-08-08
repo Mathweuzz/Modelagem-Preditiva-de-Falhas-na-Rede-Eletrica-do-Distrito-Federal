@@ -40,8 +40,9 @@ plt.rcParams.update({'figure.dpi': 300, 'font.size': 12})
 
 def mean_absolute_percentage_error(y_true, y_pred):
     y_true, y_pred = np.array(y_true), np.array(y_pred)
-    # epsilon evita divisão por zero quando y_true == 0
-    return np.mean(np.abs((y_true - y_pred) / (y_true + 1e-8))) * 100
+    nonzero = y_true != 0
+    return np.mean(np.abs((y_true[nonzero] - y_pred[nonzero]) / y_true[nonzero])) * 100 \
+        if nonzero.any() else np.nan
 
 
 TEST_START = pd.Timestamp('2024-06-01')

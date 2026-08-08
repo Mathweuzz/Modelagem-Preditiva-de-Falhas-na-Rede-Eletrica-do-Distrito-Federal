@@ -45,8 +45,8 @@ STD_COLUMNS = ['precipitacao_total_mm', 'temperatura_media', 'vento_rajada_max_m
 # interrupcoes NAO e interpolada: NaN de contagem nao tem valor fisico interpolavel.
 METEO_COLUMNS = ['temperatura_media', 'precipitacao_total_mm',
                  'vento_velocidade_media_ms', 'vento_velocidade_max_ms',
-                 'vento_rajada_max_ms', 'vento_direcao_media_gr',
-                 'vento_direcao_moda_gr']
+                 'vento_rajada_max_ms', 'vento_dir_sin',
+                 'vento_dir_cos']
 
 
 def load_base(filepath):
