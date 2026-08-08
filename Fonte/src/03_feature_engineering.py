@@ -45,8 +45,27 @@ STD_COLUMNS = ['precipitacao_total_mm', 'temperatura_media', 'vento_rajada_max_m
 # interrupcoes NAO e interpolada: NaN de contagem nao tem valor fisico interpolavel.
 METEO_COLUMNS = ['temperatura_media', 'precipitacao_total_mm',
                  'vento_velocidade_media_ms', 'vento_velocidade_max_ms',
-                 'vento_rajada_max_ms', 'vento_direcao_media_gr',
-                 'vento_direcao_moda_gr']
+                 'vento_rajada_max_ms', 'vento_dir_sin',
+                 'vento_dir_cos']
+
+
+def normalize_wind_direction_components(df):
+    """Restaura vetores unitários após interpolar seno e cosseno."""
+    columns = ['vento_dir_sin', 'vento_dir_cos']
+    if not set(columns).issubset(df.columns):
+        return df
+
+    norm = np.hypot(df['vento_dir_sin'], df['vento_dir_cos'])
+    invalid = norm < 1e-12
+    if invalid.any():
+        dates = [str(value.date()) for value in df.index[invalid][:5]]
+        raise ValueError(
+            'Direção do vento indefinida após interpolação; '
+            f'exemplos de datas: {dates}'
+        )
+    df['vento_dir_sin'] = df['vento_dir_sin'] / norm
+    df['vento_dir_cos'] = df['vento_dir_cos'] / norm
+    return df
 
 
 def load_base(filepath):
@@ -78,6 +97,7 @@ def fix_continuity(df):
     n_before = df[meteo_present].isnull().sum().sum()
     df[meteo_present] = df[meteo_present].interpolate(method='linear',
                                                       limit_direction='both')
+    df = normalize_wind_direction_components(df)
     n_after = df[meteo_present].isnull().sum().sum()
     print(f"Interpolacao meteorologica: {n_before} NaN -> {n_after} NaN")
 
