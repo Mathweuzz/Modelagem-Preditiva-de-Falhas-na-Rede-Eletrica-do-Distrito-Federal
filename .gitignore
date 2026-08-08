@@ -22,6 +22,10 @@
 *.glsdefs
 *.upa
 *.upb
+*.brf
+*.nav
+*.snm
+*.vrb
 
 # Python Files
 __pycache__/
@@ -42,3 +46,5 @@ Thumbs.db
 TCC_codigo_fonte_dados.zip
 Monografia/monografia_novo_pc.pdf
 Fonte/results/interface/
+Fonte/results/archive/
+/.pipeline-*/

@@ -14,6 +14,7 @@ Este pacote contém o código-fonte e os dados processados utilizados na monogra
 
 ```
 Fonte/
+├── run_pipeline.py                         # execução integral em área temporária
 ├── data/                                  # Dados processados (CSV)
 │   ├── base_diaria_interrupcoes_clima.csv
 │   ├── base_diaria_interrupcoes_clima_vento.csv
@@ -93,6 +94,25 @@ O script reproduz a estrutura e os valores do dataset; diferenças numéricas re
 ## Como executar
 
 A reconstrução exige o CSV consolidado da ANEEL e um diretório com os nove arquivos anuais padronizados da estação A001. A partir da raiz do repositório:
+
+Para executar todo o fluxo principal de forma segura, use:
+
+```bash
+Fonte/venv/bin/python Fonte/run_pipeline.py \
+  --interruptions /caminho/dados_completos_brasilia.csv \
+  --inmet-dir /caminho/dados_clima-inmet_limpos
+```
+
+O executor exige a árvore Git limpa, produz bases, testes, métricas e figuras em
+uma área temporária e valida todos os artefatos obrigatórios antes de substituir
+os resultados oficiais. A promoção dos diretórios é transacional: se qualquer
+etapa falhar, as versões oficiais anteriores são restauradas e a área temporária
+é preservada para diagnóstico. O escopo cobre o pipeline mantido em `Fonte/src`;
+os scripts históricos de `SegundoPedido` e `TerceiroPedido` continuam sendo
+executados separadamente quando alguma figura temática precisar ser refeita.
+
+As etapas também podem ser executadas individualmente para desenvolvimento e
+diagnóstico:
 
 ```bash
 # 1. Base diária reproduzível

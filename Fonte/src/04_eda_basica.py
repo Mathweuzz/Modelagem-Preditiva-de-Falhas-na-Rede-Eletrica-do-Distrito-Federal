@@ -7,7 +7,6 @@ Gera os gráficos descritivos de alto nível usados no Cap. 4 da monografia:
   - serie_temporal_completa.png        (série diária + SMA-30 + corte treino/teste)
   - distribuicao_interrupcoes.png      (histograma + KDE com média e mediana)
   - evolucao_anual_interrupcoes.png    (média ± desvio-padrão por ano)
-  - correlacoes_escala_temporal.png    (Pearson em 3 escalas: diária / semanal / mensal)
   - eda_violin_anomalias.png           (temperatura vs faixas descritivas do alvo)
 
 Fonte de dados:
@@ -20,7 +19,6 @@ Execução:
   cd Fonte/src && python 04_eda_basica.py
 """
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import os
@@ -132,84 +130,6 @@ def plot_evolucao_anual(df, save_path):
     print(f"  -> {save_path}")
 
 
-def plot_correlacoes_escala_temporal(df, save_path,
-                                     mensal_consumo_path='../data/base_mensal_interrupcoes_clima_consumo.csv'):
-    """Pearson com interrupções em 3 escalas: diária, semanal, mensal.
-       Inclui consumo (apenas mensal) — vem da base SAMP."""
-    print("Gerando correlações multi-escala (todas as variáveis)...")
-    feat_cols = ['temperatura_media', 'precipitacao_total_mm',
-                 'vento_velocidade_media_ms', 'vento_velocidade_max_ms',
-                 'vento_rajada_max_ms',
-                 'vento_direcao_media_gr', 'vento_direcao_moda_gr']
-    nice_map = {
-        'temperatura_media': 'Temperatura Media',
-        'precipitacao_total_mm': 'Precipitacao Total Mm',
-        'vento_velocidade_media_ms': 'Vento Velocidade Media Ms',
-        'vento_velocidade_max_ms': 'Vento Velocidade Max Ms',
-        'vento_rajada_max_ms': 'Vento Rajada Max Ms',
-        'vento_direcao_media_gr': 'Vento Direcao Media Gr',
-        'vento_direcao_moda_gr': 'Vento Direcao Moda Gr',
-        'consumo_total_kwh': 'Consumo Total Kwh',
-    }
-    target = 'interrupcoes'
-
-    daily = df[[target] + feat_cols].corr(method='pearson').loc[target].drop(target)
-    weekly = df[[target] + feat_cols].resample('W').mean().corr(method='pearson').loc[target].drop(target)
-    monthly = df[[target] + feat_cols].resample('ME').mean().corr(method='pearson').loc[target].drop(target)
-
-    # Consumo só existe no agregado mensal SAMP
-    if os.path.exists(mensal_consumo_path):
-        df_mes = pd.read_csv(mensal_consumo_path)
-        df_mes['data_referencia'] = pd.to_datetime(df_mes['data_referencia'])
-        df_mes.set_index('data_referencia', inplace=True)
-        if 'consumo_total_kwh' in df_mes.columns:
-            corr_consumo = df_mes[[target, 'consumo_total_kwh']].corr().loc[target, 'consumo_total_kwh']
-            monthly['consumo_total_kwh'] = corr_consumo
-            daily['consumo_total_kwh'] = np.nan
-            weekly['consumo_total_kwh'] = np.nan
-
-    # Ordenação: por valor mensal decrescente (igual ao TCC)
-    order = monthly.sort_values(ascending=False).index.tolist()
-    daily = daily.reindex(order)
-    weekly = weekly.reindex(order)
-    monthly = monthly.reindex(order)
-    nice = [nice_map[c] for c in order]
-
-    y = np.arange(len(order))
-    height = 0.27
-
-    plt.figure(figsize=(12, 7))
-    plt.barh(y - height, daily.values, height, label='Diário',
-             color='#4f9bd9', edgecolor='black')
-    plt.barh(y, weekly.values, height, label='Semanal',
-             color='#f4a236', edgecolor='black')
-    plt.barh(y + height, monthly.values, height, label='Mensal',
-             color='#e0533a', edgecolor='black')
-
-    # Labels com valor de cada barra
-    def _label_bars(values, y_offset):
-        for yi, v in zip(y, values):
-            if pd.isna(v):
-                continue
-            plt.text(v + (0.01 if v >= 0 else -0.01), yi + y_offset,
-                     f'{v:.2f}', va='center',
-                     ha='left' if v >= 0 else 'right', fontsize=9)
-    _label_bars(daily.values, -height)
-    _label_bars(weekly.values, 0)
-    _label_bars(monthly.values, height)
-
-    plt.axvline(0, color='black', linewidth=0.6)
-    plt.yticks(y, nice)
-    plt.gca().invert_yaxis()
-    plt.xlabel('Correlação de Pearson (r)')
-    plt.title('Correlação com Interrupções por Escala Temporal')
-    plt.legend(loc='upper left')
-    plt.tight_layout()
-    plt.savefig(save_path, dpi=300, bbox_inches='tight')
-    plt.close()
-    print(f"  -> {save_path}")
-
-
 def plot_violin_anomalias(df, save_path):
     """Distribuição da temperatura pelas faixas descritivas do alvo."""
     print("Gerando violin de temperatura vs volume de interrupções...")
@@ -238,7 +158,7 @@ if __name__ == "__main__":
     plot_serie_temporal_completa(df, '../results/eda/serie_temporal_completa.png')
     plot_distribuicao_interrupcoes(df, '../results/eda/distribuicao_interrupcoes.png')
     plot_evolucao_anual(df, '../results/eda/evolucao_anual_interrupcoes.png')
-    plot_correlacoes_escala_temporal(df, '../results/eda/correlacoes_escala_temporal.png')
+    # A correlação multi-escala é gerada somente por 05_correlacoes_unificadas.py.
     plot_violin_anomalias(df, '../results/eda/eda_violin_anomalias.png')
 
     print("\n[OK] EDA básica concluída.")
