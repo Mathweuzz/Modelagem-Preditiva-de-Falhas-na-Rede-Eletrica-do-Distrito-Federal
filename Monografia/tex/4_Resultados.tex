@@ -100,7 +100,7 @@ As correlações entre interrupções e variáveis climáticas foram calculadas 
 Direção do Vento (cosseno) & 0,210 & 0,395 & 0,570 \\
 Direção do Vento (seno) & $-$0,345 & $-$0,437 & $-$0,522 \\
 Precipitação Total (mm) & 0,348 & 0,495 & 0,539 \\
-Consumo Total (kWh) & --- & --- & 0,476 \\
+Consumo Total (kWh) & N/A & N/A & 0,476 \\
 Rajada Máxima (m/s) & 0,254 & 0,401 & 0,449 \\
 Temperatura Média (°C) & 0,102 & 0,251 & 0,394 \\
 Vel. Média do Vento (m/s) & $-$0,149 & $-$0,250 & $-$0,310 \\
@@ -319,7 +319,7 @@ Os diagramas de dispersão das Figuras~\ref{fig:scatter_xgb},~\ref{fig:scatter_l
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.65\textwidth]{img/scatter_pred_xgboost.png}
-    \caption{Dispersão Predito vs. Real --- XGBoost. A concentração próxima à diagonal indica boa calibração geral, com dispersão crescente nos extremos.}
+    \caption{Dispersão Predito vs. Real: XGBoost. A concentração próxima à diagonal indica boa calibração geral, com dispersão crescente nos extremos.}
     \small{Fonte: Elaborado pelos autores (2026).}
     \label{fig:scatter_xgb}
 \end{figure}
@@ -327,7 +327,7 @@ Os diagramas de dispersão das Figuras~\ref{fig:scatter_xgb},~\ref{fig:scatter_l
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.65\textwidth]{img/scatter_pred_lstm_bi.png}
-    \caption{Dispersão Predito vs. Real --- Bi-LSTM. A nuvem apresenta maior dispersão vertical nos valores altos, refletindo a dificuldade da rede em prever eventos extremos com precisão.}
+    \caption{Dispersão Predito vs. Real: Bi-LSTM. A nuvem apresenta maior dispersão vertical nos valores altos, refletindo a dificuldade da rede em prever eventos extremos com precisão.}
     \small{Fonte: Elaborado pelos autores (2026).}
     \label{fig:scatter_lstm_pred}
 \end{figure}
@@ -335,7 +335,7 @@ Os diagramas de dispersão das Figuras~\ref{fig:scatter_xgb},~\ref{fig:scatter_l
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.65\textwidth]{img/scatter_pred_gru_bi.png}
-    \caption{Dispersão Predito vs. Real --- Bi-GRU. Padrão similar à Bi-LSTM, porém com maior concentração na faixa intermediária (150--350 interrupções).}
+    \caption{Dispersão Predito vs. Real: Bi-GRU. Padrão similar à Bi-LSTM, porém com maior concentração na faixa intermediária (150--350 interrupções).}
     \small{Fonte: Elaborado pelos autores (2026).}
     \label{fig:scatter_gru_pred}
 \end{figure}
@@ -403,7 +403,7 @@ As curvas da Figura~\ref{fig:learning_curves} apresentam a evolução da perda d
 
 Para a \textbf{Bi-LSTM} (Figura~\ref{fig:learning_curves}, esquerda), observa-se que a perda de treinamento decresce de forma consistente e estabiliza-se nas épocas finais, sem oscilações abruptas. As curvas mostram apenas a convergência da função de perda no conjunto de treino; sem uma curva de validação independente, não é possível diagnosticar ou excluir sobreajuste com base apenas nessas figuras.
 
-Para a \textbf{Bi-GRU} (Figura~\ref{fig:learning_curves}, direita), o comportamento é similar, porém com convergência ligeiramente mais rápida --- consistente com o menor número de parâmetros da arquitetura GRU. Ambas as curvas exibem redução monotônica da perda sem sinais de instabilidade numérica.
+Para a \textbf{Bi-GRU} (Figura~\ref{fig:learning_curves}, direita), o comportamento é similar, porém com convergência ligeiramente mais rápida, o que é consistente com o menor número de parâmetros da arquitetura GRU. Ambas as curvas exibem redução monotônica da perda sem sinais de instabilidade numérica.
 
 \section{Importância das Variáveis no XGBoost}\label{sec:feature_importance}
 
@@ -428,12 +428,12 @@ A interpretabilidade intrínseca do XGBoost permite identificar quais variáveis
 
 A Figura~\ref{fig:importancia} apresenta o ranking de importância por ganho médio (\textit{gain}) do XGBoost. A variável de maior ganho é o número de interrupções observado no próprio dia de origem (\texttt{interrup\-coes}[$t$]), seguida pela sua defasagem de um dia (\texttt{interrup\-coes\_\-lag\_1}) e pela codificação sazonal \texttt{mes\_cos}. Também figuram entre as primeiras posições \texttt{interrup\-coes\_\-lag\_2}, a média móvel exponencial de sete dias da precipitação (\texttt{precipi\-tacao\_\-total\_\-mm\_\-ema\_7}), \texttt{mes\_sin} e a precipitação defasada em um dia (\texttt{precipi\-tacao\_\-total\_\-mm\_\-lag\_1}).
 
-O ranking indica a contribuição de cada variável para as predições do modelo --- não um efeito causal das variáveis sobre as interrupções. A presença de \texttt{interrupcoes}[$t$] no topo reflete o protocolo de previsão direta $h=1$: o total de interrupções do dia de origem é a informação histórica mais recente disponível e captura estado imediato da rede. As defasagens adicionais e as EMAs climáticas complementam essa informação com a inércia de curto e médio prazo das condições operacionais e meteorológicas. As codificações harmônicas (\texttt{mes\_sin}, \texttt{mes\_cos}) evidenciam que o modelo incorpora a sazonalidade do Cerrado para modular suas previsões.
+O ranking indica a contribuição de cada variável para as predições do modelo, mas não representa um efeito causal das variáveis sobre as interrupções. A presença de \texttt{interrupcoes}[$t$] no topo reflete o protocolo de previsão direta $h=1$: o total de interrupções do dia de origem é a informação histórica mais recente disponível e captura estado imediato da rede. As defasagens adicionais e as EMAs climáticas complementam essa informação com a inércia de curto e médio prazo das condições operacionais e meteorológicas. As codificações harmônicas (\texttt{mes\_sin}, \texttt{mes\_cos}) evidenciam que o modelo incorpora a sazonalidade do Cerrado para modular suas previsões.
 
 
 \section{Análise Sazonal Detalhada}\label{sec:sazonalidade_detalhada}
 
-Para aprofundar a compreensão dos padrões sazonais, as Figuras~\ref{fig:mm_2021} e~\ref{fig:mm_2023} apresentam as médias móveis diárias de interrupções para os anos de 2021 e 2023, respectivamente --- dois anos com comportamentos climáticos contrastantes.
+Para aprofundar a compreensão dos padrões sazonais, as Figuras~\ref{fig:mm_2021} e~\ref{fig:mm_2023} apresentam as médias móveis diárias de interrupções para os anos de 2021 e 2023, respectivamente. Esses dois anos apresentam comportamentos climáticos contrastantes.
 
 \begin{figure}[H]
     \centering

@@ -20,7 +20,7 @@ Para o XGBoost, isso resulta em 2.700 origens de treinamento e 365 de teste. Par
 XGBoost & 2.700 linhas & 365 linhas & $\mathbf{x}_t\rightarrow y_{t+1}$ \\
 Bi-LSTM & 2.687 sequências & 365 sequências & $[\mathbf{x}_{t-13},\ldots,\mathbf{x}_t]\rightarrow y_{t+1}$ \\
 Bi-GRU & 2.687 sequências & 365 sequências & Mesma construção da Bi-LSTM \\
-Persistência & --- & 365 pares & $\widehat y_{t+1}=y_t$ \\
+Persistência & N/A & 365 pares & $\widehat y_{t+1}=y_t$ \\
 \bottomrule
 \end{tabularx}
 \small{Fonte: Elaborado pelos autores a partir do protocolo implementado (2026).}
@@ -65,7 +65,7 @@ O critério do \texttt{GridSearchCV} é o MAE negativo, convenção pela qual va
 \texttt{min\_child\_weight} & 1; 3 & 2 \\
 \texttt{gamma} & 0; 0,1 & 2 \\
 \midrule
-Produto cartesiano & --- & 288 \\
+Produto cartesiano & N/A & 288 \\
 \bottomrule
 \end{tabularx}
 \small{Fonte: Elaborado pelos autores (2026).}
@@ -301,7 +301,7 @@ A suíte automatizada não busca apenas defeitos de programação; ela codifica 
 \textbf{Grupo} & \textbf{Comportamentos verificados} \\
 \midrule
 \endfirsthead
-\multicolumn{2}{c}{\tablename\ \thetable{} -- Continuação}\\
+\multicolumn{2}{c}{\tablename\ \thetable{}: Continuação}\\
 \toprule
 \textbf{Grupo} & \textbf{Comportamentos verificados} \\
 \midrule

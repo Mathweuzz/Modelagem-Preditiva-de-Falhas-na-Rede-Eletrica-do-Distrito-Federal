@@ -11,13 +11,13 @@ O segmento de distribuição, objeto deste trabalho, representa o elo final entr
 A qualidade do fornecimento de energia é mensurada oficialmente pelo PRODIST (Procedimentos de Distribuição) através de dois indicadores de continuidade coletivos \cite{aneel2023prodist}:
 
 \begin{itemize}
-    \item \textbf{DEC --- Duração Equivalente de Interrupção por Unidade Consumidora:} expressa o tempo médio (em horas) que cada consumidor ficou sem energia durante um período de apuração. Formalmente:
+    \item \textbf{DEC: Duração Equivalente de Interrupção por Unidade Consumidora.} Expressa o tempo médio (em horas) que cada consumidor ficou sem energia durante um período de apuração. Formalmente:
     \begin{equation}
         DEC = \frac{\sum_{i=1}^{n} Ca(i) \cdot t(i)}{Cs}
     \end{equation}
     onde $Ca(i)$ é o número de consumidores atingidos pela interrupção $i$, $t(i)$ é a duração da interrupção $i$ em horas, e $Cs$ é o número total de consumidores do conjunto.
 
-    \item \textbf{FEC --- Frequência Equivalente de Interrupção por Unidade Consumidora:} expressa o número médio de interrupções sofridas por cada consumidor durante o período de apuração:
+    \item \textbf{FEC: Frequência Equivalente de Interrupção por Unidade Consumidora.} Expressa o número médio de interrupções sofridas por cada consumidor durante o período de apuração:
     \begin{equation}
         FEC = \frac{\sum_{i=1}^{n} Ca(i)}{Cs}
     \end{equation}
@@ -83,7 +83,7 @@ Onde $x_t$ é o valor atmosférico basal (ex: total de precipitação em milíme
 Para que algoritmos incorporem memória temporal de curto prazo, a expansão dos dados com defasagens (\textit{lags}) de dimensão $\textbf{X}_{t-1}, \textbf{X}_{t-2}, \dots, \textbf{X}_{t-n}$ permite ao modelo aprender empiricamente que perturbações em dias anteriores influenciam as interrupções no dia corrente \cite{saha2019machine}.
 
 \section{Gradient Boosting e XGBoost}
-O \textit{eXtreme Gradient Boosting} (XGBoost), proposto por \cite{chen2016xgboost}, é um dos algoritmos de aprendizado de máquina mais utilizados para dados tabulares. Baseando-se no paradigma de \textit{Gradient Boosting Machines} (GBM) \cite{friedman2001greedy}, o XGBoost otimiza um \textit{ensemble} de árvores de decisão (CART --- \textit{Classification and Regression Trees}).
+O \textit{eXtreme Gradient Boosting} (XGBoost), proposto por \cite{chen2016xgboost}, é um dos algoritmos de aprendizado de máquina mais utilizados para dados tabulares. Baseando-se no paradigma de \textit{Gradient Boosting Machines} (GBM) \cite{friedman2001greedy}, o XGBoost otimiza um \textit{ensemble} de árvores de decisão (CART, \textit{Classification and Regression Trees}).
 
 Dado um conjunto de dados $\mathcal{D} = \{(\textbf{x}_i, y_i)\}$ com $n$ observações e $m$ variáveis preditoras, a predição do XGBoost é definida pelo somatório aditivo das saídas de $K$ árvores de regressão:
 \begin{equation}
@@ -127,7 +127,7 @@ A partir das divisões realizadas ao longo de todas as $K$ árvores, a importân
 Essa interpretabilidade nativa constitui uma vantagem prática do XGBoost sobre as redes neurais profundas, permitindo que operadores da concessionária identifiquem quais variáveis mais contribuíram para as predições do modelo em cada período.
 
 \section{Redes Neurais Artificiais (ANN)}
-As Redes Neurais Artificiais buscam mapear entradas não lineares $x \in \mathbb{R}^d$ diretamente nos vetores alvo $y$ \cite{goodfellow2016deep}. Um \textit{Perceptron} Multicamadas (MLP --- \textit{Multi-Layer Perceptron}) modela funções através da passagem sequencial de matrizes multiplicadas por pesos parametrizáveis $W$ acrescidos de vieses $b$, intercalados por unidades de ativação que quebram a linearidade matemática da álgebra de matrizes.
+As Redes Neurais Artificiais buscam mapear entradas não lineares $x \in \mathbb{R}^d$ diretamente nos vetores alvo $y$ \cite{goodfellow2016deep}. Um \textit{Perceptron} Multicamadas (MLP, \textit{Multi-Layer Perceptron}) modela funções através da passagem sequencial de matrizes multiplicadas por pesos parametrizáveis $W$ acrescidos de vieses $b$, intercalados por unidades de ativação que quebram a linearidade matemática da álgebra de matrizes.
 
 De acordo com \cite{lecun2015deep}, a saída intermediária $h^{(l)}$ numa camada $l$ é estabelecida por:
 \begin{equation}
@@ -162,7 +162,7 @@ Diferentemente dos Perceptrons multicamadas tradicionais, que processam cada ent
     \textbf{h}_t = \tanh(\textbf{W}_{hx} \textbf{x}_t + \textbf{W}_{hh} \textbf{h}_{t-1} + \textbf{b}_h)
 \end{equation}
 
-Para computar os gradientes ao longo da dimensão temporal, aplica-se a Propagação Reversa Através do Tempo (BPTT --- \textit{Backpropagation Through Time}). O BPTT estende a Regra da Cadeia desdobrando a rede passo temporal por passo temporal, acumulando os Jacobianos desde o horizonte temporal $T$ até o passo inicial $t=1$:
+Para computar os gradientes ao longo da dimensão temporal, aplica-se a Propagação Reversa Através do Tempo (BPTT, \textit{Backpropagation Through Time}). O BPTT estende a Regra da Cadeia desdobrando a rede passo temporal por passo temporal, acumulando os Jacobianos desde o horizonte temporal $T$ até o passo inicial $t=1$:
 \begin{equation}
     \frac{\partial \mathcal{L}}{\partial \textbf{W}_{hh}} = \sum_{t=1}^T \frac{\partial \mathcal{L}_t}{\partial \textbf{W}_{hh}} = \sum_{t=1}^T \sum_{k=1}^t \frac{\partial \mathcal{L}_t}{\partial \hat{\textbf{y}}_t} \frac{\partial \hat{\textbf{y}}_t}{\partial \textbf{h}_t} \frac{\partial \textbf{h}_t}{\partial \textbf{h}_k} \frac{\partial \textbf{h}_k}{\partial \textbf{W}_{hh}}
     \label{eq:bptt_equation}
@@ -255,7 +255,7 @@ Postulado originalmente por \cite{schuster1997bidirectional} e transposto às LS
     \mathbf{h}_t = [\overrightarrow{\mathbf{h}_t} \; ; \; \overleftarrow{\mathbf{h}_t}]
 \end{equation}
 
-Essa concatenação resulta num vetor de dimensão $2 \times d_h$ (onde $d_h$ é a dimensão oculta), conferindo ao modelo uma visão contextual completa da sequência. No contexto de séries temporais climáticas, a camada \textit{backward} permite que o modelo identifique padrões de ``preparação'' para eventos extremos --- por exemplo, reconhecer que uma sequência de dias quentes seguida de precipitação intensa constitui um padrão precursor de picos de interrupções.
+Essa concatenação resulta num vetor de dimensão $2 \times d_h$ (onde $d_h$ é a dimensão oculta), conferindo ao modelo uma visão contextual completa da sequência. No contexto de séries temporais climáticas, a camada \textit{backward} permite que o modelo identifique padrões de ``preparação'' para eventos extremos. Um exemplo seria reconhecer que uma sequência de dias quentes seguida de precipitação intensa constitui um padrão precursor de picos de interrupções.
 
 É importante ressaltar que, em previsão de séries temporais, a bidirecionalidade opera sobre a \textbf{janela de \textit{lookback}} (os 14 dias passados utilizados como entrada), e não sobre dados futuros. A camada \textit{backward} percorre os 14 dias de entrada na ordem inversa ($t_{-1} \leftarrow t_{-14}$), permitindo que o modelo pondere a relevância de cada dia da janela em ambas as direções. Essa abordagem difere da previsão sequencial tradicional (\textit{autoregressive}), onde a informação flui exclusivamente do passado para o presente, e aproxima-se conceitualmente dos mecanismos de atenção empregados em arquiteturas \textit{Transformer} \cite{lim2021temporal}.
 
@@ -353,7 +353,7 @@ A técnica \textit{Min-Max Scaling} empregada neste trabalho confina cada atribu
     \label{eq:minmax}
 \end{equation}
 
-É imperativo que os parâmetros $x_{\min}$ e $x_{\max}$ sejam computados exclusivamente sobre o conjunto de treinamento. Aplicar os mesmos parâmetros ao conjunto de teste sem recalculá-los previne o \textit{Data Leakage} --- a contaminação indevida de informações futuras no processo de treinamento \cite{hastie2009elements}. No presente trabalho, utilizou-se a implementação \texttt{MinMaxScaler} da biblioteca Scikit-Learn \cite{pedregosa2011scikit}, ajustada exclusivamente nos dados de treino e aplicada de forma transformativa nos dados de teste.
+É imperativo que os parâmetros $x_{\min}$ e $x_{\max}$ sejam computados exclusivamente sobre o conjunto de treinamento. Aplicar os mesmos parâmetros ao conjunto de teste sem recalculá-los previne o \textit{Data Leakage}, isto é, a contaminação indevida de informações futuras no processo de treinamento \cite{hastie2009elements}. No presente trabalho, utilizou-se a implementação \texttt{MinMaxScaler} da biblioteca Scikit-Learn \cite{pedregosa2011scikit}, ajustada exclusivamente nos dados de treino e aplicada de forma transformativa nos dados de teste.
 
 \section{Métricas de Avaliação Numérica}\label{sec:metricas_avaliacao}
 A avaliação de modelos preditivos contínuos requer métricas que quantifiquem a discrepância entre os valores previstos e os observados. Diferentemente da classificação binária, onde matrizes de confusão são suficientes, a regressão exige funções de erro que operem sobre valores reais contínuos \cite{goodfellow2016deep}. Denotando por $y_t$ o valor real (observado) e por $\hat{y}_t$ o valor previsto pelo modelo num conjunto de $N$ observações, as seguintes métricas foram adotadas conforme recomendado por \cite{hyndman2018forecasting}:
