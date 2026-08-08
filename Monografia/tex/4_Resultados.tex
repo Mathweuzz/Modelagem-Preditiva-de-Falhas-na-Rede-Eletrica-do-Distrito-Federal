@@ -268,9 +268,9 @@ Os modelos foram avaliados sob um protocolo unificado de \textbf{previsão diret
 \toprule
 \textbf{Modelo} & \textbf{MAE} & \textbf{RMSE} & \textbf{$R^2$} & \textbf{MAPE (\%)} \\
 \midrule
-XGBoost & 61,09 & 99,72 & 0,409 & 20,64 \% \\
-Bi-LSTM & 62,71 & 98,80 & 0,420 & 20,94 \% \\
-Bi-GRU  & 73,44 & 119,21 & 0,156 & 26,18 \% \\
+XGBoost & \textbf{61,47} & 99,73 & 0,409 & 20,38 \% \\
+Bi-LSTM & 61,74 & 99,83 & 0,408 & \textbf{19,87} \% \\
+Bi-GRU  & 62,10 & \textbf{96,90} & \textbf{0,442} & 20,48 \% \\
 Persistência & 68,59 & 105,61 & 0,337 & 22,37 \% \\
 \bottomrule
 \end{tabular}
@@ -278,9 +278,9 @@ Persistência & 68,59 & 105,61 & 0,337 & 22,37 \% \\
 \small{Fonte: Elaborado pelos autores (2026). Persistência: $\hat{y}_{t+1}=y_t$.}
 \end{table}
 
-A análise da Tabela~\ref{tab:metricas_modelos} revela que o \textbf{XGBoost} (MAE $= 61{,}09$, $R^2 = 0{,}409$) e a \textbf{Bi-LSTM} (MAE $= 62{,}71$, $R^2 = 0{,}420$) apresentam desempenhos descritivamente próximos --- diferença de 1,62 interrupções por dia em MAE (2,7\%) e de 0,011 em $R^2$. A Bi-LSTM apresenta RMSE numericamente menor (98,80 vs.\ 99,72), sem que essa diferença isolada demonstre melhor tratamento dos eventos extremos. Ambos registram MAE menor que a persistência (68,59) e $R^2$ maior que 0,337, indicando ganho preditivo observado além da simples repetição do último valor. Como as representações de entrada diferem, os resultados comparam as arquiteturas no protocolo implementado, mas não constituem um teste de equivalência entre memória sequencial e engenharia de atributos.
+A análise da Tabela~\ref{tab:metricas_modelos} mostra resultados próximos entre os três modelos treinados: a amplitude dos MAEs é de apenas 0,63 interrupção por dia. O \textbf{XGBoost} apresenta o menor MAE (61,47), a \textbf{Bi-LSTM} o menor MAPE (19,87\%) e a \textbf{Bi-GRU} o menor RMSE (96,90) e o maior $R^2$ (0,442). Todos registram MAE menor que a persistência (68,59) e $R^2$ maior que 0,337, indicando ganho preditivo observado além da simples repetição do último valor. Como as representações de entrada diferem, os resultados comparam as arquiteturas no protocolo implementado, mas não constituem um teste de equivalência entre memória sequencial e engenharia de atributos.
 
-Observa-se que a Bi-GRU, arquiteturalmente mais leve (dois portões em vez de três, conforme Tabela~\ref{tab:lstm_vs_gru}), apresentou erros numericamente maiores (MAE $= 73{,}44$, MAPE $= 26{,}18\%$) e não superou a persistência em $h=1$. Sem um experimento de ablação dos portões ou um teste inferencial previamente definido, essa diferença não pode ser atribuída especificamente à ausência do \textit{Cell State} ou do \textit{Forget Gate}. Como discutido na Seção~\ref{sec:multihorizonte}, a mesma arquitetura apresenta comportamento distinto em horizontes mais longos.
+A Bi-GRU usa dois portões, em vez dos três da LSTM (Tabela~\ref{tab:lstm_vs_gru}), e melhora sobretudo as métricas sensíveis aos maiores erros, mas não lidera em MAE nem MAPE. Sem um experimento de ablação ou um teste inferencial previamente definido, essa diferença não pode ser atribuída especificamente à ausência do \textit{Cell State} ou do \textit{Forget Gate}. Como discutido na Seção~\ref{sec:multihorizonte}, a ordenação também varia conforme a métrica e o horizonte.
 
 \subsection{Séries Temporais Preditas vs. Reais}
 
@@ -305,7 +305,7 @@ Para avaliar visualmente a aderência das previsões ao comportamento real da s�
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.95\textwidth]{img/ts_pred_gru_bi.png}
-    \caption{Série temporal de predição da Bi-GRU (vermelho) vs. valores reais (azul) no conjunto de teste. Observa-se maior erro agregado que no XGBoost e na Bi-LSTM em $h=1$.}
+    \caption{Série temporal de predição da Bi-GRU (vermelho) vs. valores reais (azul) no conjunto de teste. A rede obtém o menor RMSE e o maior $R^2$ em $h=1$, embora ainda comprima picos extremos.}
     \small{Fonte: Elaborado pelos autores (2026).}
     \label{fig:ts_gru}
 \end{figure}
@@ -344,7 +344,7 @@ Os três modelos exibem um padrão comum de \textbf{compressão para a média}: 
 
 \subsection{Segmentação do Erro por Faixa de Volume do Alvo}
 
-Para quantificar a dependência do erro em relação à magnitude das interrupções, segmentou-se o conjunto de teste nas mesmas três faixas descritivas e calculou-se o MAE de cada modelo em cada faixa, conforme a Tabela~\ref{tab:erro_faixa}. Os limites de 200 e 400 são escolhas analíticas dos autores e não uma classificação oficial da ANEEL. Uma única série inteira do alvo canônico foi usada para construir as máscaras, depois reutilizadas em todos os modelos.
+O conjunto de teste foi segmentado nas mesmas três faixas descritivas para calcular o MAE de cada modelo em cada faixa, conforme a Tabela~\ref{tab:erro_faixa}. Os limites de 200 e 400 são escolhas analíticas dos autores e não uma classificação oficial da ANEEL. Uma única série inteira do alvo canônico foi usada para construir as máscaras, depois reutilizadas em todos os modelos.
 
 \begin{table}[H]
 \caption{MAE dos Modelos Segmentado por Faixa de Volume das Interrupções}
@@ -355,9 +355,9 @@ Para quantificar a dependência do erro em relação à magnitude das interrupç
 \toprule
 \textbf{Faixa} & \textbf{Dias (\%)} & \textbf{XGBoost} & \textbf{Bi-LSTM} & \textbf{Bi-GRU} \\
 \midrule
-Baixo volume ($< 200$) & 73 (20,0\%) & 44,6 & 47,9 & 66,9 \\
-Volume intermediário (200--400) & 242 (66,3\%) & 50,6 & 49,8 & 61,7 \\
-Alto volume ($> 400$) & 50 (13,7\%) & 136,0 & 146,8 & 140,1 \\
+Baixo volume ($< 200$) & 73 (20,0\%) & \textbf{43,27} & 43,93 & 44,39 \\
+Volume intermediário (200--400) & 242 (66,3\%) & 49,85 & \textbf{48,41} & 52,66 \\
+Alto volume ($> 400$) & 50 (13,7\%) & 144,33 & 152,25 & \textbf{133,67} \\
 \bottomrule
 \end{tabular}
 \normalsize
@@ -365,7 +365,7 @@ Alto volume ($> 400$) & 50 (13,7\%) & 136,0 & 146,8 & 140,1 \\
 \small{Fonte: Elaborado pelos autores (2026).}
 \end{table}
 
-Os resultados mostram que o erro de todos os modelos aumenta substancialmente nos 50 dias de alto volume, nos quais o MAE do XGBoost é cerca de três vezes o observado na faixa de baixo volume (136,0 contra 44,6). O XGBoost apresenta o menor MAE nas faixas de baixo e alto volume. Na faixa intermediária, que reúne 242 dias (66,3\% do teste), a Bi-LSTM é ligeiramente melhor: alcança MAE de 49,8, contra 50,6 do XGBoost e 61,7 da Bi-GRU.
+Os resultados mostram que o erro de todos os modelos aumenta substancialmente nos 50 dias de alto volume. A liderança depende da faixa: o XGBoost apresenta o menor MAE no baixo volume (43,27), a Bi-LSTM no volume intermediário (48,41) e a Bi-GRU no alto volume (133,67). Mesmo o melhor resultado da faixa alta é aproximadamente três vezes o melhor da faixa baixa, confirmando que os eventos operacionalmente mais críticos permanecem os mais difíceis de prever.
 
 \section{Análise da Distribuição Residual (KDE)}\label{sec:residuais}
 A fim de ratificar matematicamente as variações probabilísticas de cada arquitetura, abstraiu-se a Função de Densidade de Probabilidade (PDF) do Erro Residual ($e_t = y_t - \hat{y}_t$) de toda a partição do Bloco de Testes. A estimativa não-paramétrica \textit{Kernel Density Estimation} (KDE) foi computada com \textit{kernel} Gaussiano, conforme apresentado na Figura~\ref{fig:kde_residuos}.
@@ -378,9 +378,9 @@ A fim de ratificar matematicamente as variações probabilísticas de cada arqui
     \label{fig:kde_residuos}
 \end{figure}
 
-Observa-se que as redes recorrentes (Bi-LSTM e Bi-GRU) apresentam distribuições KDE com maior densidade próxima de zero, enquanto o XGBoost apresenta pico mais achatado e caudas mais controladas. A forma da densidade descreve a distribuição global dos resíduos, mas não demonstra menor MAE das redes nos dias de baixo volume. Nessa faixa, o XGBoost obteve MAE 44,6, contra 47,9 da Bi-LSTM e 66,9 da Bi-GRU; na faixa intermediária, a Bi-LSTM registrou o menor MAE.
+Observa-se que as redes recorrentes (Bi-LSTM e Bi-GRU) apresentam distribuições KDE com maior densidade próxima de zero, enquanto o XGBoost apresenta pico mais achatado e caudas mais controladas. A forma da densidade descreve a distribuição global dos resíduos, mas não demonstra menor MAE das redes nos dias de baixo volume. Nessa faixa, o XGBoost obteve MAE 43,27, contra 43,93 da Bi-LSTM e 44,39 da Bi-GRU; nas faixas intermediária e alta, lideraram Bi-LSTM e Bi-GRU, respectivamente.
 
-Para averiguar a premissa linear clássica da homocedasticidade (variância constante do erro), compilou-se o Diagrama de Dispersão Residual do modelo vencedor neural (Bi-LSTM) (Figura~\ref{fig:scatter_hetero}). É nítida a característica heterocedástica imposta pela natureza intermitente da rede elétrica: quanto maior a escala de interrupções reais num dado temporal agressivo, maior dilata-se o cone de dispersão preditiva.
+Para averiguar a premissa linear clássica da homocedasticidade (variância constante do erro), compilou-se o Diagrama de Dispersão Residual da Bi-LSTM (Figura~\ref{fig:scatter_hetero}). É nítida a característica heterocedástica imposta pela natureza intermitente da rede elétrica: quanto maior a escala de interrupções reais num dado temporal agressivo, maior dilata-se o cone de dispersão preditiva.
 
 \begin{figure}[H]
     \centering
@@ -486,9 +486,9 @@ Para avaliar o comportamento dos modelos em cenários de uso operacional, os tr�
 \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}
 \textbf{Modelo} & MAE & RMSE & MAE & RMSE & MAE & RMSE & MAE & RMSE \\
 \midrule
-XGBoost & \textbf{62,46} & 101,41 & 78,77 & 120,02 & 83,83 & 132,10 & 71,34 & 115,23 \\
-Bi-LSTM & 64,19 & \textbf{100,44} & \textbf{74,01} & \textbf{119,47} & 79,49 & 128,40 & 67,69 & 110,24 \\
-Bi-GRU  & 75,10 & 121,18 & 77,67 & 121,77 & \textbf{73,61} & \textbf{119,92} & \textbf{64,31} & \textbf{106,27} \\
+XGBoost & \textbf{62,86} & 101,40 & 76,72 & 119,47 & 79,24 & 124,82 & 70,64 & 114,36 \\
+Bi-LSTM & 63,03 & 101,46 & 71,33 & \textbf{115,64} & 70,48 & \textbf{112,47} & 69,13 & 114,03 \\
+Bi-GRU  & 63,45 & \textbf{98,48} & \textbf{70,72} & 118,19 & \textbf{68,17} & 113,74 & \textbf{67,50} & \textbf{112,11} \\
 Persistência & 69,83 & 107,22 & 86,22 & 139,70 & 84,56 & 143,65 & 88,00 & 153,87 \\
 \bottomrule
 \end{tabular}
@@ -502,20 +502,20 @@ A Figura~\ref{fig:multihorizonte_degradacao} apresenta as curvas de desempenho p
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.90\textwidth]{img/previsao_multihorizonte_degradacao.png}
-    \caption{MAE dos três modelos treinados por horizonte de previsão direta. A Bi-GRU apresenta o menor MAE observado em $h=7$ e $h=14$.}
+    \caption{MAE dos três modelos treinados por horizonte de previsão direta. A Bi-GRU apresenta o menor MAE observado em $h=3$, $h=7$ e $h=14$.}
     \small{Fonte: Elaborado pelos autores (2026).}
     \label{fig:multihorizonte_degradacao}
 \end{figure}
 
 O protocolo de \textbf{previsão direta} (\textit{Direct Multi-Step Forecasting}) mantém, para cada horizonte $h$, as mesmas 41 variáveis por instante, a mesma data-limite de origem e as mesmas datas-alvo. O XGBoost recebe uma linha tabular na origem $t$. Bi-LSTM e Bi-GRU recebem 14 linhas terminando em $t$; portanto, os modelos compartilham variáveis e corte causal, mas não uma representação idêntica. Todos preveem diretamente o alvo no instante $t+h$, sem estimativas intermediárias. As 352 datas-alvo são comuns, de 14/06/2024 a 31/05/2025, e a divisão treino/teste usa a data-alvo. Como a primeira origem em $h=14$ é 31/05/2024, nenhum alvo de treinamento nem observação usada pelo normalizador é posterior à origem da primeira previsão.
 
-Para $h=1$, XGBoost (MAE$=62{,}46$) e Bi-LSTM (MAE$=64{,}19$) apresentam resultados descritivamente próximos e menores que a persistência (69,83); a Bi-GRU registra 75,10. Para $h=3$, a Bi-LSTM apresenta o menor MAE observado entre os modelos treinados (74,01), seguida pela Bi-GRU (77,67) e pelo XGBoost (78,77), todos abaixo da persistência (86,22). Em $h=7$ e $h=14$, a Bi-GRU apresenta os menores MAEs observados: 73,61 e 64,31, respectivamente. Os três modelos treinados registram MAE menor que a persistência nos horizontes de 3, 7 e 14 dias; em $h=1$, apenas XGBoost e Bi-LSTM o fazem. O XGBoost apresenta $R^2 = -0{,}027$ em $h=7$, indicando desempenho inferior ao \textit{baseline} da média nesse horizonte.
+Para $h=1$, os três modelos treinados apresentam MAEs próximos e menores que a persistência (69,83): XGBoost registra 62,86, Bi-LSTM 63,03 e Bi-GRU 63,45. A Bi-GRU, por sua vez, obtém o menor RMSE (98,48) e o maior $R^2$ (0,430). Em $h=3$, $h=7$ e $h=14$, a Bi-GRU apresenta os menores MAEs observados entre os modelos treinados: 70,72, 68,17 e 67,50, respectivamente. A Bi-LSTM registra o menor RMSE em $h=3$ (115,64) e $h=7$ (112,47), enquanto a Bi-GRU lidera também em RMSE em $h=14$ (112,11). Todos os modelos treinados apresentam MAE menor que a persistência nos quatro horizontes; os $R^2$ permanecem positivos, embora caiam em relação a $h=1$.
 
 \subsection{Comparação ao Longo dos Meses do Período de Teste}\label{sec:multihorizonte_mensal}
 
 As Figuras~\ref{fig:multihorizonte_temporal_xgb}, \ref{fig:multihorizonte_temporal_lstm} e~\ref{fig:multihorizonte_temporal_gru} confrontam Real $\times$ Previsto nos quatro horizontes entre 14 de junho de 2024 e 31 de maio de 2025. O período abrange 12 meses civis e 352 datas-alvo: cada ponto tem antecedência fixa de 1, 3, 7 ou 14 dias e não constitui uma única previsão feita um ano antes.
 
-Os painéis evidenciam dois comportamentos comuns. Primeiro, os modelos acompanham a mudança do patamar médio entre a estação seca e a chuvosa, mas comprimem os picos extremos observados em outubro de 2024, janeiro e março de 2025. Segundo, ampliar o horizonte não produz degradação monotônica em todos os modelos: em particular, a Bi-GRU apresenta séries mais aderentes ao nível central em $h=7$ e $h=14$ do que em $h=1$, em concordância com as métricas agregadas. Esse resultado não significa que prever mais longe seja intrinsecamente mais fácil; indica que o erro depende conjuntamente do horizonte, da arquitetura e da distribuição das datas-alvo.
+Os painéis evidenciam dois comportamentos comuns. Primeiro, os modelos acompanham a mudança do patamar médio entre a estação seca e a chuvosa, mas comprimem os picos extremos observados em outubro de 2024, janeiro e março de 2025. Segundo, ampliar o horizonte não produz degradação monotônica em todos os modelos: depois da piora em $h=3$, os MAEs de Bi-LSTM e Bi-GRU diminuem em $h=7$ e $h=14$, embora permaneçam acima dos respectivos valores em $h=1$. Esse resultado não significa que prever mais longe seja intrinsecamente mais fácil; indica que o erro depende conjuntamente do horizonte, da arquitetura e da distribuição das datas-alvo.
 
 A Figura~\ref{fig:multihorizonte_mae_mensal} decompõe o MAE por mês civil. A transição para a estação chuvosa concentra os maiores erros: setembro e outubro de 2024 formam a região mais crítica para o XGBoost, enquanto outubro também apresenta o maior MAE da Bi-LSTM na maioria dos horizontes. Nos meses secos de junho e julho, os erros ficam, em geral, entre aproximadamente 21 e 43 interrupções, muito abaixo das médias anuais.
 
@@ -551,7 +551,7 @@ A Figura~\ref{fig:multihorizonte_mae_mensal} decompõe o MAE por mês civil. A t
     \small{Fonte: Elaborado pelos autores (2026).}
 \end{figure}
 
-A Tabela~\ref{tab:melhor_modelo_mes_horizonte} sintetiza o modelo de menor MAE em cada mês e horizonte. Em $h=1$, o XGBoost registra o menor MAE em 9 dos 12 meses, enquanto a Bi-LSTM o faz em setembro e outubro e a Bi-GRU em abril. Em $h=3$, o XGBoost fica em primeiro em 7 meses, embora a Bi-LSTM apresente o menor MAE no agregado; essa diferença mostra que a contagem mensal não incorpora a magnitude dos erros nem o número distinto de dias de cada mês. Em $h=7$, a primeira posição é distribuída entre Bi-GRU (5 meses), XGBoost (4) e Bi-LSTM (3), e a Bi-GRU também obtém o menor MAE agregado. Em $h=14$, a Bi-GRU registra o menor MAE em 7 meses, coerentemente com sua primeira posição no resultado agregado.
+A Tabela~\ref{tab:melhor_modelo_mes_horizonte} sintetiza o modelo de menor MAE em cada mês e horizonte. Em $h=1$ e $h=3$, o XGBoost registra o menor MAE em 6 dos 12 meses, a Bi-GRU em 4 e a Bi-LSTM em 2. Em $h=7$, a primeira posição é distribuída entre Bi-LSTM (5 meses), Bi-GRU (4) e XGBoost (3), embora a Bi-GRU obtenha o menor MAE agregado. Em $h=14$, a Bi-GRU vence 5 meses, o XGBoost 4 e a Bi-LSTM 3. Essas diferenças mostram que a contagem mensal não incorpora a magnitude dos erros nem o número distinto de dias de cada mês.
 
 \begin{table}[H]
 \caption{Modelo com menor MAE em cada mês e horizonte}
@@ -562,18 +562,18 @@ A Tabela~\ref{tab:melhor_modelo_mes_horizonte} sintetiza o modelo de menor MAE e
 \toprule
 \textbf{Mês-alvo} & \textbf{$h=1$} & \textbf{$h=3$} & \textbf{$h=7$} & \textbf{$h=14$} \\
 \midrule
-Jun/24$^{*}$ & XGBoost (22,9) & Bi-LSTM (21,9) & Bi-GRU (28,3) & Bi-GRU (22,1) \\
-Jul/24 & XGBoost (22,3) & XGBoost (23,6) & XGBoost (21,8) & Bi-GRU (22,0) \\
-Ago/24 & XGBoost (46,8) & Bi-GRU (38,9) & Bi-GRU (44,5) & Bi-LSTM (36,6) \\
-Set/24 & Bi-LSTM (55,6) & Bi-LSTM (56,4) & Bi-LSTM (70,1) & Bi-LSTM (56,1) \\
-Out/24 & Bi-LSTM (118,8) & XGBoost (150,6) & Bi-GRU (141,4) & Bi-GRU (135,7) \\
-Nov/24 & XGBoost (73,2) & XGBoost (71,5) & XGBoost (76,2) & XGBoost (64,0) \\
-Dez/24 & XGBoost (74,0) & XGBoost (71,0) & Bi-GRU (79,3) & Bi-GRU (82,0) \\
-Jan/25 & XGBoost (82,0) & XGBoost (98,3) & Bi-LSTM (80,4) & Bi-GRU (81,0) \\
-Fev/25 & XGBoost (40,9) & Bi-GRU (45,7) & XGBoost (51,5) & Bi-LSTM (42,8) \\
-Mar/25 & XGBoost (54,0) & XGBoost (79,0) & XGBoost (82,2) & Bi-GRU (77,2) \\
-Abr/25 & Bi-GRU (40,6) & Bi-LSTM (58,0) & Bi-GRU (56,8) & Bi-GRU (56,0) \\
-Mai/25 & XGBoost (33,5) & XGBoost (32,4) & Bi-LSTM (33,6) & Bi-LSTM (29,5) \\
+Jun/24$^{*}$ & XGBoost (23,6) & XGBoost (23,2) & Bi-LSTM (28,7) & Bi-GRU (24,6) \\
+Jul/24 & XGBoost (22,7) & XGBoost (23,3) & XGBoost (21,8) & Bi-LSTM (25,2) \\
+Ago/24 & Bi-GRU (38,5) & Bi-GRU (39,9) & Bi-GRU (41,0) & Bi-GRU (38,4) \\
+Set/24 & Bi-GRU (43,6) & Bi-GRU (40,6) & Bi-GRU (52,3) & Bi-GRU (72,4) \\
+Out/24 & Bi-GRU (118,5) & Bi-LSTM (139,9) & Bi-GRU (147,3) & XGBoost (137,7) \\
+Nov/24 & XGBoost (76,7) & XGBoost (73,1) & XGBoost (81,4) & XGBoost (71,3) \\
+Dez/24 & XGBoost (76,1) & XGBoost (76,9) & Bi-LSTM (72,9) & XGBoost (83,5) \\
+Jan/25 & Bi-LSTM (75,5) & XGBoost (90,1) & Bi-LSTM (88,9) & Bi-LSTM (86,4) \\
+Fev/25 & XGBoost (43,9) & Bi-LSTM (41,6) & Bi-GRU (47,9) & XGBoost (46,6) \\
+Mar/25 & XGBoost (59,8) & Bi-GRU (77,8) & Bi-LSTM (74,1) & Bi-LSTM (76,1) \\
+Abr/25 & Bi-GRU (43,8) & Bi-GRU (53,0) & XGBoost (60,2) & Bi-GRU (52,7) \\
+Mai/25 & Bi-LSTM (29,1) & XGBoost (31,0) & Bi-LSTM (30,4) & Bi-GRU (29,1) \\
 \bottomrule
 \end{tabular}
 \normalsize
@@ -598,11 +598,11 @@ Tendência Temporal & Crescimento de 65,3\% na média diária de interrupções 
 Sazonalidade & Picos entre outubro e março (chuvosa: 292,0) vs. vales entre maio e agosto (seca: 182,3) \\
 Autocorrelação & Dependência temporal significativa até $k=14$ dias, fundamentando o \textit{Lookback Window} \\
 Correlação Climática & Componentes seno/cosseno da direção circular ($r=-0{,}52/0{,}57$ mensal) e precipitação ($r=0{,}54$ mensal), em análise descritiva \\
-Resultados em $h=1$ & XGBoost e Bi-LSTM descritivamente próximos (MAE$\approx$61--63) e melhores que a persistência (MAE$=68{,}6$); Bi-GRU com MAE$=73{,}4$ \\
-Distribuição Residual & Redes recorrentes mais concentradas em zero (leptocúrticas); XGBoost mais disperso nos extremos \\
-Eventos Extremos & XGBoost conservador (saturação arbórea); Bi-LSTM superestima picos inéditos \\
+Resultados em $h=1$ & Os três modelos têm MAE entre 61,47 e 62,10 e superam a persistência (68,59); a liderança varia por métrica \\
+Distribuição Residual & Redes recorrentes apresentam maior densidade próxima de zero; a liderança por MAE varia conforme a faixa do alvo \\
+Eventos Extremos & Os três modelos comprimem parte dos maiores picos; o menor MAE no alto volume é 133,67 (Bi-GRU) \\
 Importância & Lags da própria série dominam; variáveis climáticas defasadas validam inércia temporal \\
-Multi-Horizonte & Bi-LSTM tem o menor MAE observado em $h=3$; Bi-GRU em $h=7$ e $h=14$; a ordenação mensal varia com a sazonalidade \\
+Multi-Horizonte & XGBoost tem o menor MAE em $h=1$; Bi-GRU em $h=3$, $h=7$ e $h=14$; a ordenação mensal varia com a sazonalidade \\
 \bottomrule
 \end{tabular}
 \normalsize

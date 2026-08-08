@@ -15,8 +15,9 @@ Este documento mapeia **cada figura, tabela e métrica da monografia ao script P
 A partir da raiz do repositório, com Python ≥ 3.10 e as dependências instaladas, a reprodução oficial deve usar o orquestrador, que valida todos os artefatos antes de promovê-los:
 
 ```bash
-python Fonte/run_pipeline.py --interrupcoes-dir /caminho/interrupcoes \
-  --clima-dir /caminho/clima --consumo-csv /caminho/samp-balanco.csv
+Fonte/venv/bin/python Fonte/run_pipeline.py \
+  --interruptions /caminho/dados_completos_brasilia.csv \
+  --inmet-dir /caminho/dados_clima-inmet_limpos
 ```
 
 Os detalhes dos argumentos, etapas e artefatos obrigatórios estão em `Fonte/README.md`.
@@ -114,7 +115,7 @@ Diagramas de fluxo (pipeline de dados, arquitetura experimental) — todos **Tik
 
 ## 5. Reprodutibilidade
 
-- **XGBoost**: `random_state=42`. Resultado **determinístico**. Protocolo h=1 direto (separação pela data-alvo): MAE=61.09 / RMSE=99.72 / R²=0.409 / MAPE=20.64% — conforme reportado no Cap. 4.
+- **XGBoost**: `random_state=42`. Resultado **determinístico**. Protocolo h=1 direto (separação pela data-alvo): MAE=61.47 / RMSE=99.73 / R²=0.409 / MAPE=20.38% — conforme reportado no Cap. 4.
 - **PyTorch (LSTM/GRU)**: pequenas variações entre execuções são esperadas (non-determinism do CUDA/cuDNN, ordem dos batches no DataLoader). As métricas reportadas no Cap. 4 foram obtidas no ambiente descrito no Apêndice (Reprodutibilidade) — versão dos pacotes em `Apendices`.
 
 ## 6. Limitações e ressalvas

@@ -416,7 +416,7 @@ Orientador: Prof. Jan Mendonça Corrêa}
 
 \section{Desempenho preditivo}
 
-\begin{frame}{XGBoost e Bi-LSTM têm MAE próximo}{Resultados para $h=1$}
+\begin{frame}{Os três modelos superam a persistência}{Resultados para $h=1$}
   \begin{columns}[T,onlytextwidth]
     \begin{column}{0.62\textwidth}
       \resizebox{\linewidth}{!}{%
@@ -424,9 +424,9 @@ Orientador: Prof. Jan Mendonça Corrêa}
           \toprule
           \textbf{Modelo} & \textbf{MAE} & \textbf{RMSE} & \textbf{$R^2$} & \textbf{MAPE} \\
           \midrule
-          \textbf{XGBoost} & \textbf{61,09} & 99,72 & 0,409 & \textbf{20,64\%} \\
-          \textbf{Bi-LSTM} & 62,71 & \textbf{98,80} & \textbf{0,420} & 20,94\% \\
-          Bi-GRU & 73,44 & 119,21 & 0,156 & 26,18\% \\
+          \textbf{XGBoost} & \textbf{61,47} & 99,73 & 0,409 & 20,38\% \\
+          \textbf{Bi-LSTM} & 61,74 & 99,83 & 0,408 & \textbf{19,87\%} \\
+          \textbf{Bi-GRU} & 62,10 & \textbf{96,90} & \textbf{0,442} & 20,48\% \\
           Persistência & 68,59 & 105,61 & 0,337 & 22,37\% \\
           \bottomrule
         \end{tabular}%
@@ -434,17 +434,17 @@ Orientador: Prof. Jan Mendonça Corrêa}
     \end{column}
     \begin{column}{0.34\textwidth}
       \vspace{0.2em}
-      \keynumber{2,7\%}{diferença de MAE entre XGBoost e Bi-LSTM}
+      \keynumber{0,63}{amplitude do MAE entre os três modelos}
       \vspace{1.0em}
       \textbf{Interpretação}\\
-      XGBoost e Bi-LSTM tiveram MAEs próximos e inferiores ao da persistência em $h=1$.
+      XGBoost lidera em MAE; Bi-LSTM em MAPE; Bi-GRU em RMSE e $R^2$.
     \end{column}
   \end{columns}
 
   \source{Elaboração dos autores; 365 dias de teste.}
   \note{%
     Apresentador: Mateus. Tempo-alvo: 1 minuto e 30 segundos.
-    Evitar declarar vencedor absoluto: XGBoost tem menor MAE/MAPE; Bi-LSTM, menor RMSE e maior R2. Explicar que as variáveis por instante são comuns, mas as representações diferem.
+    Evitar declarar vencedor absoluto: XGBoost tem menor MAE; Bi-LSTM, menor MAPE; Bi-GRU, menor RMSE e maior R2. Explicar que as variáveis por instante são comuns, mas as representações diferem.
     [Sources] Monografia, Tabela 4.2; arquivos de métricas do repositório.
   }
 \end{frame}
@@ -472,12 +472,12 @@ Orientador: Prof. Jan Mendonça Corrêa}
       \includegraphics[width=\textwidth]{scatter_heteroscedasticity.png}
     \end{column}
     \begin{column}{0.39\textwidth}
-      \textbf{\large MAE do XGBoost}
+      \textbf{\large Menor MAE por faixa}
       \vspace{0.6em}
 
-      \modelwinner{Baixo ($<200$)}{44,6}{20,0\% dos dias}
-      \modelwinner{Intermediário (200--400)}{50,6}{66,3\% dos dias}
-      \modelwinner{Alto ($>400$)}{136,0}{13,7\% dos dias}
+      \modelwinner{Baixo ($<200$)}{43,3}{XGBoost}
+      \modelwinner{Intermediário (200--400)}{48,4}{Bi-LSTM}
+      \modelwinner{Alto ($>400$)}{133,7}{Bi-GRU}
 
       \vspace{0.6em}
       \small
@@ -529,10 +529,10 @@ Orientador: Prof. Jan Mendonça Corrêa}
     \end{column}
     \begin{column}{0.25\textwidth}
       \vspace{0.4em}
-      \modelwinner{$h=1$}{XGBoost}{MAE 62,5}
-      \modelwinner{$h=3$}{Bi-LSTM}{MAE 74,0}
-      \modelwinner{$h=7$}{Bi-GRU}{MAE 73,6}
-      \modelwinner{$h=14$}{Bi-GRU}{MAE 64,3}
+      \modelwinner{$h=1$}{XGBoost}{MAE 62,86}
+      \modelwinner{$h=3$}{Bi-GRU}{MAE 70,72}
+      \modelwinner{$h=7$}{Bi-GRU}{MAE 68,17}
+      \modelwinner{$h=14$}{Bi-GRU}{MAE 67,50}
     \end{column}
   \end{columns}
 
@@ -566,14 +566,14 @@ Orientador: Prof. Jan Mendonça Corrêa}
       \toprule
       Horizonte & Modelo indicado & Uso operacional \\
       \midrule
-      1 dia & XGBoost ou Bi-LSTM &
-      Alerta de curtíssimo prazo, com boa relação entre erro e custo. \\
+      1 dia & XGBoost, Bi-LSTM ou Bi-GRU &
+      Escolha conforme MAE, MAPE ou penalização de grandes erros. \\
       \addlinespace
-      3 dias & Bi-LSTM &
-      Planejamento de equipes e materiais para a próxima janela operacional. \\
+      3 dias & Bi-GRU ou Bi-LSTM &
+      Bi-GRU tem menor MAE; Bi-LSTM, menor RMSE. \\
       \addlinespace
-      7 e 14 dias & Bi-GRU &
-      Preparação logística e acompanhamento preventivo de médio prazo. \\
+      7 e 14 dias & Bi-GRU / Bi-LSTM &
+      Bi-GRU lidera em MAE; Bi-LSTM em RMSE para 7 dias. \\
       \bottomrule
     \end{tabular}%
   }
@@ -652,8 +652,8 @@ Orientador: Prof. Jan Mendonça Corrêa}
 \begin{frame}{A melhor arquitetura depende do horizonte}{Conclusões}
   \begin{enumerate}
     \item O clima e o histórico recente contêm \textbf{sinal preditivo relevante}.
-    \item Em $h=1$, \textbf{XGBoost e Bi-LSTM} apresentam desempenhos próximos.
-    \item Em $h=3$, $h=7$ e $h=14$, uma \textbf{rede recorrente registra o menor MAE observado}.
+    \item Em $h=1$, os \textbf{três modelos} apresentam MAEs próximos.
+    \item Em $h=3$, $h=7$ e $h=14$, a \textbf{Bi-GRU registra o menor MAE observado}.
     \item Eventos extremos continuam sendo o principal desafio de previsão.
   \end{enumerate}
 
@@ -703,16 +703,16 @@ Orientador: Prof. Jan Mendonça Corrêa}
     \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}
     Modelo & MAE & RMSE & MAE & RMSE & MAE & RMSE & MAE & RMSE \\
     \midrule
-    XGBoost & 62,46 & 101,41 & 78,77 & 120,02 & 83,83 & 132,10 & 71,34 & 115,23 \\
-    Bi-LSTM & 64,19 & 100,44 & 74,01 & 119,47 & 79,49 & 128,40 & 67,69 & 110,24 \\
-    Bi-GRU  & 75,10 & 121,18 & 77,67 & 121,77 & 73,61 & 119,92 & 64,31 & 106,27 \\
+    XGBoost & 62,86 & 101,40 & 76,72 & 119,47 & 79,24 & 124,82 & 70,64 & 114,36 \\
+    Bi-LSTM & 63,03 & 101,46 & 71,33 & 115,64 & 70,48 & 112,47 & 69,13 & 114,03 \\
+    Bi-GRU  & 63,45 & 98,48 & 70,72 & 118,19 & 68,17 & 113,74 & 67,50 & 112,11 \\
     Persistência & 69,83 & 107,22 & 86,22 & 139,70 & 84,56 & 143,65 & 88,00 & 153,87 \\
     \bottomrule
   \end{tabular}
 
   \vspace{1em}
   \normalsize
-  O XGBoost atinge $R^2=-0{,}027$ em $h=7$; a Bi-GRU atinge $R^2=0{,}336$ em $h=14$.
+  A Bi-GRU tem o maior $R^2$ em $h=1$ (0,430) e $h=14$ (0,261); a Bi-LSTM lidera em $h=3$ (0,213) e $h=7$ (0,256).
 
   \source{Arquivo de métricas multi-horizonte do repositório.}
   \note{%
@@ -788,7 +788,7 @@ Orientador: Prof. Jan Mendonça Corrêa}
   }
 \end{frame}
 
-\begin{frame}[noframenumbering]{A Bi-GRU registra o menor MAE em $h=7$ e $h=14$}{Reserva: série multi-horizonte}
+\begin{frame}[noframenumbering]{A Bi-GRU registra o menor MAE em $h=3$, $h=7$ e $h=14$}{Reserva: série multi-horizonte}
   \centering
   \includegraphics[height=0.72\textheight]{previsao_multihorizonte_temporal_bigru.png}
 
