@@ -112,7 +112,7 @@ Para o pré-processamento dos dados e o treinamento dos modelos de aprendizado d
 A manipulação e integração dos dados foi realizada com a biblioteca \textbf{Pandas} \cite{mckinney2010data}, cujas estruturas \textit{DataFrame} permitem operações eficientes de fusão (\textit{merge}) entre as bases do INMET e da ANEEL por chave temporal. O pacote \textbf{NumPy} \cite{harris2020array} foi utilizado para operações vetorizadas, incluindo as codificações trigonométricas (seno e cosseno) das variáveis temporais cíclicas.
 
 \subsection{Pipelines Estatísticos: Scikit-Learn}
-A biblioteca \textbf{Scikit-Learn} \cite{pedregosa2011scikit} foi utilizada para a normalização dos dados (\texttt{MinMaxScaler}, que escala cada variável ao intervalo $[0, 1]$) e para a validação cruzada temporal (\texttt{Time\-Series\-Split}). A normalização é necessária porque as variáveis possuem escalas distintas (por exemplo, precipitação em mm e temperatura em °C), o que prejudicaria a convergência dos algoritmos de descida de gradiente nas redes neurais.
+A biblioteca \textbf{Scikit-Learn} \cite{pedregosa2011scikit} forneceu a classe \texttt{MinMaxScaler} para normalizar os dados no intervalo $[0, 1]$ e o método \texttt{Time\-Series\-Split} para a validação cruzada temporal. A normalização é necessária porque as variáveis possuem escalas distintas (por exemplo, precipitação em mm e temperatura em °C), o que prejudicaria a convergência dos algoritmos de descida de gradiente nas redes neurais.
 
 \subsection{PyTorch: Grafos Computacionais Dinâmicos}
 A implementação das redes recorrentes utilizou o \textit{framework} \textbf{PyTorch} \cite{paszke2019pytorch}, que se diferencia por adotar grafos computacionais dinâmicos (\textit{Define-by-Run}). Essa abordagem permite que o grafo de computação seja reconstruído a cada iteração, facilitando a depuração e a experimentação com diferentes arquiteturas. O módulo \textit{Autograd} do PyTorch computa automaticamente os gradientes via BPTT (\textit{Backpropagation Through Time}), enquanto o problema do desvanecimento do gradiente é mitigado pelas próprias arquiteturas LSTM e GRU, conforme descrito na Seção~\ref{sec:sistema_eletrico}.
@@ -215,7 +215,7 @@ Todos os conjuntos de dados utilizados neste trabalho são de domínio público 
 
 Dada a característica intrinsecamente ruidosa da frequência horária coletada nos pólos meteorológicos, instituíram-se métodos de agregação diária para a base utilizada na modelagem. Separadamente, os relatórios regulatórios de consumo foram mantidos em escala mensal para a análise exploratória, sem desagregação artificial para frequência diária.
 
-\subsection{Agrupamento por Somatório Contínuo (Precipitação e Falhas)}
+\subsection{Somatório Contínuo de Precipitação e Falhas}
 Variáveis que representam eventos acumuláveis --- como a precipitação total diária ou o número de interrupções reportadas pela Neoenergia --- foram agregadas por somatório simples. Para um dado dia $t$, o total diário ($V_t$) de uma grandeza observada $n$ vezes no dia é definido por:
 \begin{equation}
     V_t = \sum_{i=1}^{n} v_i
@@ -490,7 +490,7 @@ Para o XGBoost, os hiperparâmetros foram otimizados via \textit{Grid Search} co
     \item \textbf{Profundidade da Árvore (\texttt{max\_depth}):} Testada em $\{4, 6, 8\}$. Limita a complexidade de cada árvore individual.
     \item \textbf{Número de Estimadores (\texttt{n\_estimators}):} Testado em $\{300, 500\}$. Define o total de árvores no \textit{ensemble}.
     \item \textbf{Subamostragem (\texttt{subsample}):} Testada em $\{0{,}7;\, 0{,}8\}$. Fração dos dados usada para treinar cada árvore.
-    \item \textbf{Subamostragem de Colunas (\texttt{colsample\_bytree}):} Testada em $\{0{,}7;\, 0{,}8\}$. Fração das \textit{features} amostradas por árvore.
+    \item \textbf{Subamostragem de Colunas:} O parâmetro \texttt{colsample}\allowbreak\texttt{\_bytree} foi testado em $\{0{,}7;\, 0{,}8\}$. Ele determina a fração das \textit{features} amostradas por árvore.
     \item \textbf{Peso Mínimo por Folha (\texttt{min\_child\_weight}):} Testado em $\{1, 3\}$. Controla a criação de nós folha com poucas amostras.
     \item \textbf{Perda Mínima de Divisão (\texttt{gamma}):} Testado em $\{0;\, 0{,}1\}$. Regularização que exige ganho mínimo para cada divisão adicional.
 \end{enumerate}
@@ -525,7 +525,7 @@ Direção Circular (cosseno) & 0,1 & 0,6 & $-1{,}0$ & 0,0 & 1,0 & 0,9 \\
 \small{Fonte: Calculado pelos autores a partir dos dados do INMET e ANEEL (2017--2025). A base contém 3.073 datas; as variáveis meteorológicas têm 3.072 observações antes da interpolação da única lacuna diária.}
 \end{table}
 
-Observa-se que a variável \textit{target} (interrupções diárias) apresenta distribuição assimétrica positiva (média $= 243{,}6$ superior à mediana $= 219$), com cauda longa à direita evidenciada pelo máximo de 1.424 interrupções --- quase seis vezes a média. Essa assimetria reflete a ocorrência esporádica de dias com volume muito elevado de interrupções, sem identificar sua causa. A precipitação total diária é igualmente assimétrica: a mediana é zero (63,8\% dos dias não registraram chuva), porém o máximo atinge 113 mm.
+A distribuição da variável alvo (interrupções diárias) é assimétrica positiva (média $= 243{,}6$ superior à mediana $= 219$), com cauda longa à direita evidenciada pelo máximo de 1.424 interrupções --- quase seis vezes a média. Essa assimetria reflete a ocorrência esporádica de dias com volume muito elevado de interrupções, sem identificar sua causa. A precipitação total diária é igualmente assimétrica: a mediana é zero (63,8\% dos dias não registraram chuva), porém o máximo atinge 113 mm.
 
 A Tabela~\ref{tab:descritiva_anual} revela a evolução temporal das interrupções, evidenciando uma tendência de crescimento ao longo do período analisado.
 
@@ -565,6 +565,7 @@ A Tabela~\ref{tab:hiperparametros} consolida os hiperparâmetros finais de cada 
 \label{tab:hiperparametros}
 \begin{center}
 \small
+\renewcommand{\arraystretch}{0.94}
 \begin{tabular}{p{4cm} p{2.8cm} p{2.8cm} p{2.8cm}}
 \toprule
 \textbf{Hiperparâmetro} & \textbf{XGBoost} & \textbf{Bi-LSTM} & \textbf{Bi-GRU} \\

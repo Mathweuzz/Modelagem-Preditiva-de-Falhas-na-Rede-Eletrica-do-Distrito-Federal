@@ -50,9 +50,9 @@ O aquecimento progressivo agrava o estresse térmico suportado por cabos de alum
     \Delta L = L_0 \cdot \alpha \cdot \Delta T
     \label{eq:dilatacao}
 \end{equation}
-Onde $L_0$ representa o comprimento do vão do cabo, $\alpha$ é o coeficiente de dilatação térmica do alumínio ($23 \times 10^{-6} \, °C^{-1}$), e $\Delta T$ denota a variação da temperatura. O aumento em $\Delta L$ gera a chamada ``flecha'' no cabeamento (aumento da distância vertical entre o ponto de fixação e o ponto mais baixo do condutor), que reduz a distância de segurança entre fases e entre os condutores e o solo, aumentando o risco de curto-circuito e de contato com a vegetação. Esse mecanismo é particularmente relevante no Centro-Oeste, onde as amplitudes térmicas diárias podem ser elevadas.
+Onde $L_0$ representa o comprimento do vão do cabo, $\alpha$ é o coeficiente de dilatação térmica do alumínio ($23 \times 10^{-6} \, {}^\circ\mathrm{C}^{-1}$), e $\Delta T$ denota a variação da temperatura. O aumento em $\Delta L$ gera a chamada ``flecha'' no cabeamento (aumento da distância vertical entre o ponto de fixação e o ponto mais baixo do condutor), que reduz a distância de segurança entre fases e entre os condutores e o solo, aumentando o risco de curto-circuito e de contato com a vegetação. Esse mecanismo é particularmente relevante no Centro-Oeste, onde as amplitudes térmicas diárias podem ser elevadas.
 
-\subsection{Mecânica dos Fluidos: Força do Arrasto Aerodinâmico ($F_D$)}
+\subsection{Mecânica dos Fluidos: Força do Arrasto Aerodinâmico \texorpdfstring{($F_D$)}{(FD)}}
 O impacto destrutivo de rajadas de vento sobre a rede aérea excede a mera vibração dos condutores. Em cenários de turbulência severa (velocidades superiores a $20~m/s$), o fluxo de ar incidindo sobre postes de concreto e transformadores impõe uma força de arrasto aerodinâmico modelada pela equação clássica da mecânica dos fluidos:
 \begin{equation}
     F_D = \frac{1}{2} \cdot \rho \cdot C_D \cdot A \cdot v^2
@@ -321,7 +321,7 @@ Proposto por \cite{srivastava2014dropout}, o Dropout desativa aleatoriamente uma
 \end{equation}
 onde $\mathbf{m}$ é uma máscara binária amostrada independentemente a cada iteração. No presente trabalho, adotou-se $p = 0{,}4$ (40\% de desativação) nas camadas intermediárias entre a saída da rede recorrente bidirecional e a camada densa final. Durante a inferência, o Dropout é desativado e as ativações são escaladas pelo fator $(1 - p)$ para manter a consistência estatística.
 
-\subsection{Regularização por Decaimento de Pesos ($L_2$)}
+\subsection{Regularização por Decaimento de Pesos \texorpdfstring{($L_2$)}{(L2)}}
 A regularização $L_2$ (\textit{Weight Decay}) adiciona um termo de penalidade proporcional à norma euclidiana dos pesos à função de perda \cite{goodfellow2016deep}:
 \begin{equation}
     \mathcal{L}_{reg} = \mathcal{L}_{dados} + \frac{\lambda}{2} \sum_{i} w_i^2
@@ -379,7 +379,7 @@ O MAPE expressa o erro como porcentagem do valor real, facilitando a interpreta�
 \end{equation}
 Embora intuitivo, o MAPE apresenta limitações quando os valores reais são muito pequenos ou nulos, pois a divisão por $y_t$ torna-se numericamente instável \cite{hyndman2018forecasting}. No presente estudo, o mínimo de interrupções diárias no conjunto de teste é 63, evitando esse problema.
 
-\subsection{Coeficiente de Determinação ($R^2$)}
+\subsection{Coeficiente de Determinação \texorpdfstring{($R^2$)}{(R2)}}
 O coeficiente de determinação $R^2$ quantifica a proporção da variância total da variável dependente que é explicada pelo modelo:
 \begin{equation}
     R^2 = 1 - \frac{\sum_{t=1}^N (y_t - \hat{y}_t)^2}{\sum_{t=1}^N (y_t - \bar{y})^2}

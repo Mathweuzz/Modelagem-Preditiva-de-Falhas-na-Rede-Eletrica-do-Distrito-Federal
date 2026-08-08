@@ -27,15 +27,15 @@ O script \path{Fonte/src/models/baseline_persistence.py} calcula a referência i
 \section{Geração dos Gráficos Multi-Horizonte}
 Script complementar (\texttt{Fonte/src/models/plot\_\-multi\-horizonte.py}) que regenera os gráficos de desempenho por horizonte (MAE e RMSE) a partir do arquivo \texttt{previsao\_\-multi\-horizonte\_\-metricas.csv}, sem necessidade de re-executar os modelos. Produz três figuras: comparação de MAE por horizonte com anotações, comparação de RMSE e painel duplo MAE/RMSE. O código integral deste módulo está incluído no repositório público do projeto.
 
-O módulo \texttt{plot\_\-multi\-horizonte\_\-temporal.py} complementa essa análise consumindo diretamente as 4.224 observações de \texttt{predictions\_all.csv}. O script valida as 352 datas-alvo comuns a cada combinação modelo--horizonte, calcula MAE e RMSE por mês civil e produz os painéis Real $\times$ Previsto ao longo dos 12 meses abrangidos, além dos mapas de calor mensais. Todas essas saídas são derivadas das previsões oficiais já reproduzidas, sem novo treinamento dos modelos.
+O módulo \path{plot_multihorizonte_temporal.py} complementa essa análise consumindo diretamente as 4.224 observações de \path{predictions_all.csv}. O script valida as 352 datas-alvo comuns a cada combinação modelo--horizonte, calcula MAE e RMSE por mês civil e produz os painéis Real $\times$ Previsto ao longo dos 12 meses abrangidos, além dos mapas de calor mensais. Todas essas saídas são derivadas das previsões oficiais já reproduzidas, sem novo treinamento dos modelos.
 
 \section{Scripts Complementares de Análise}
 Em complemento aos módulos descritos acima, o diretório \texttt{Fonte/src/} contém cinco scripts dedicados à análise exploratória e à engenharia de atributos, descritos nos Capítulos~\ref{3_Metodologia} e~\ref{4_Resultados}:
 
 \begin{itemize}
     \item \texttt{01\_eda\_sazonalidade.py}: decomposição STL aditiva e funções de autocorrelação (ACF/PACF) sobre a série diária de interrupções e precipitação.
-    \item \texttt{02\_correlacoes\_nao\_lineares.py}: matrizes de correlação de Spearman e Kendall e correlogramas cruzados (\textit{cross-correlation}) entre variáveis climáticas e interrupções.
-    \item \texttt{03\_feature\_\-engineering.py}: construção do \textit{dataset} final (\texttt{dataset\_\-engenharia\_\-features.csv}) a partir da base diária consolidada, aplicando defasagens, médias móveis exponenciais (EMA), desvio-padrão móvel e features cíclicas de calendário.
+    \item \path{02_correlacoes_nao_lineares.py}: matrizes de correlação de Spearman e Kendall e correlações cruzadas entre variáveis climáticas e interrupções.
+    \item \path{03_feature_engineering.py}: construção do \textit{dataset} final (\path{dataset_engenharia_features.csv}) a partir da base diária consolidada, aplicando defasagens, médias móveis exponenciais (EMA), desvio-padrão móvel e features cíclicas de calendário.
     \item \texttt{04\_eda\_basica.py}: geração da série temporal completa, distribuição estatística, evolução anual e \textit{violin plot} térmico por faixas descritivas do volume diário.
     \item \texttt{05\_correlacoes\_unificadas.py}: cálculo e visualização canônicos das correlações de Pearson nas escalas diária, semanal e mensal.
 \end{itemize}

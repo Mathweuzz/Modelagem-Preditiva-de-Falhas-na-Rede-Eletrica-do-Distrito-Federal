@@ -22,6 +22,10 @@
 \usepackage{tikz}
 \usetikzlibrary{shapes.geometric, arrows, positioning, calc}
 
+% Permite ao TeX redistribuir discretamente os espaços em linhas difíceis,
+% evitando pequenos excessos de margem sem alterar o conteúdo.
+\setlength{\emergencystretch}{3em}
+
 \usepackage{listings}
 \lstset{
   basicstyle=\ttfamily\small,
@@ -53,9 +57,7 @@
     {─}{{-}}1
 }
 
-\makeglossaries
-\loadglsentries{tex/siglas}
-\glsaddall % Força a impressão de todas as siglas listadas
+% A classe carrega as siglas, registra todas as entradas e gera o glossário.
 % \AtBeginDocument{\renewcommand\contentsname{Índice}}%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

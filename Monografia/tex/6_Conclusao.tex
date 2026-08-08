@@ -7,7 +7,7 @@ Este trabalho de conclusão de curso desenvolveu e avaliou modelos preditivos pa
 Os principais achados são:
 
 \begin{enumerate}
-    \item \textbf{Associações clima--falhas quantificadas:} A análise em múltiplas escalas mostrou correlações mensais de $r = 0{,}54$ para precipitação, $r = -0{,}52/0{,}57$ para as componentes seno/cosseno da direção circular e $r = 0{,}48$ para consumo de energia. Para precipitação, rajada e componentes direcionais, as magnitudes são maiores nas escalas agregadas; esse padrão é descritivo e não demonstra efeitos climáticos cumulativos.
+    \item \textbf{Associações entre clima e falhas:} A análise em múltiplas escalas mostrou correlações mensais de $r = 0{,}54$ para precipitação, $r = -0{,}52/0{,}57$ para as componentes seno/cosseno da direção circular e $r = 0{,}48$ para consumo de energia. Para precipitação, rajada e componentes direcionais, as magnitudes são maiores nas escalas agregadas; esse padrão é descritivo e não demonstra efeitos climáticos cumulativos.
 
     \item \textbf{Desempenhos próximos entre os três modelos para $h=1$:} Sob protocolo unificado de previsão $h=1$, XGBoost, Bi-LSTM e Bi-GRU apresentaram MAEs de 61,47, 61,74 e 62,10, todos inferiores ao da persistência (68,59). O XGBoost teve o menor MAE, a Bi-LSTM o menor MAPE (19,87\%) e a Bi-GRU o menor RMSE (96,90) e o maior $R^2$ (0,442). Todos compartilharam as mesmas 41 variáveis por instante e o corte temporal, mas o XGBoost recebeu uma linha e as redes, janelas de 14 dias; logo, não se trata de uma representação idêntica.
 
@@ -67,5 +67,5 @@ Os resultados e limitações identificados neste trabalho abrem diversas frentes
 
     \item \textbf{Incorporação de índices ENSO:} A inclusão explícita do \textit{Oceanic Niño Index} (ONI) como \textit{feature} preditora permitiria ao modelo antecipar períodos de maior vulnerabilidade climática com meses de antecedência, uma vez que os eventos El Niño são previstos por modelos acoplados oceano-atmosfera com horizonte de 6 a 9 meses.
 
-    \item \textbf{Funções de perda alternativas:} A heteroscedasticidade observada na distribuição residual (Capítulo~\ref{4_Resultados}) sugere a investigação de funções de perda alternativas ao MSE, como o \textit{Huber Loss} (robusto a \textit{outliers}), o \textit{Quantile Loss} (para previsão de percentis específicos) ou o \textit{Pinball Loss} (para calibração probabilística), que poderiam produzir modelos com melhor performance nos dias de operação normal sem sacrificar a acurácia nos extremos.
+    \item \textbf{Funções de perda:} A heteroscedasticidade observada na distribuição residual (Capítulo~\ref{4_Resultados}) sugere a investigação de funções de perda alternativas ao MSE, como o \textit{Huber Loss} (robusto a \textit{outliers}), o \textit{Quantile Loss} (para previsão de percentis específicos) ou o \textit{Pinball Loss} (para calibração probabilística), que poderiam produzir modelos com melhor performance nos dias de operação normal sem sacrificar a acurácia nos extremos.
 \end{enumerate}

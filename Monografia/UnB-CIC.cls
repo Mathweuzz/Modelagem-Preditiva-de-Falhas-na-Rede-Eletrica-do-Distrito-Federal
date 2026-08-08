@@ -138,7 +138,7 @@
 %%
 
 
-\RequirePackage[brazil,american]{babel}% Idiomas
+\RequirePackage[brazilian,american]{babel}% Idiomas
 \RequirePackage[fixlanguage]{babelbib}%  Idioma das referências
 \RequirePackage[utf8]{inputenc}%         Arquivos na codificação UTF-8
 \RequirePackage[T1]{fontenc}%            Habilita busca com caracteres latinos
@@ -704,13 +704,15 @@
 \AtBeginDocument{%
 	%define propriedades do PDF e carrega pacotes auxiliares
 	\@ifpackageloaded{hyperref}{
+	\pdfstringdefDisableCommands{\def\\{; }}%
 	\hypersetup{
             pdftitle=\@title,
             pdfauthor=\@author,
             pdfsubject=\@assunto,
-            pdfkeywords=\@palavraschave}
-		%posiciona melhor os links para captions
-        \RequirePackage[all]{hypcap}
+            pdfkeywords=\@palavraschave,
+            hypertexnames=false}
+		% O hyperref atual já cria âncoras corretas para captions. Carregar
+		% hypcap neste ponto duplicava os destinos PDF de figuras e tabelas.
 	}{
 		\RequirePackage{nohyperref} %dummy macros for hyperref
 		\RequirePackage{url} %permite quebra de linha em URLs
@@ -735,7 +737,7 @@
 	%traducoes para glossaries.sty
 	\@ifpackageloaded{glossaries}{%
 		\@ifundefined{XeTeXversion}{
-			\addto\captionsbrazil{%
+			\addto\captionsbrazilian{%
 			\renewcommand*{\glossaryname}{Gloss\'ario}%
 			\renewcommand*{\acronymname}{Lista de Abreviaturas e Siglas}%
 			\renewcommand*{\entryname}{Entrada}%
@@ -745,7 +747,7 @@
 			\renewcommand*{\glssymbolsgroupname}{S\'imbolos}%
 			\renewcommand*{\glsnumbersgroupname}{N\'umeros}}
 		}{
-			\addto\captionsbrazil{%
+			\addto\captionsbrazilian{%
 			\renewcommand*{\glossaryname}{Glossário}%
 			\renewcommand*{\acronymname}{Lista de Abreviaturas e Siglas}%
 			\renewcommand*{\entryname}{Entrada}%
@@ -879,6 +881,7 @@
 
 \newcommand{\@listofacronyms}{%
 	\@inputTeXFile{siglas}%
+	\glsaddall% inclui também as siglas não citadas explicitamente no texto
 	\printglossary[type=\acronymtype]%
 }%
 
@@ -892,8 +895,8 @@
 	\@IncluirSecao{resumo}%
 	\selectlanguage{american}%
 	\@IncluirSecao{abstract}%
-	\selectlanguage{brazil}%
-    \selectbiblanguage{brazil}%
+	\selectlanguage{brazilian}%
+	\selectbiblanguage{brazilian}%
 	\@erroSeNaoExiste{bibliografia.bib}%
 
 	\tableofcontents%
