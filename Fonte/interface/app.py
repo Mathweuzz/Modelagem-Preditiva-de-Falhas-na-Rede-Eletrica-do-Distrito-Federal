@@ -20,6 +20,7 @@ from model_service import (
     load_dataset,
     load_direct_results,
     load_reference_results,
+    mean_absolute_percentage_error,
     run_allowlisted_script,
     run_experiment,
     save_experiment,
@@ -195,10 +196,10 @@ def monthly_metric_table(predictions: pd.DataFrame) -> pd.DataFrame:
                 "R2": 1 - error.pow(2).sum() / denominator
                 if denominator > 0
                 else float("nan"),
-                "MAPE": (
-                    error.abs() / (group["y_real"].abs() + 1e-8)
-                ).mean()
-                * 100,
+                "MAPE": mean_absolute_percentage_error(
+                    group["y_real"].to_numpy(),
+                    group["y_pred"].to_numpy(),
+                ),
             }
         )
     return pd.DataFrame(rows)

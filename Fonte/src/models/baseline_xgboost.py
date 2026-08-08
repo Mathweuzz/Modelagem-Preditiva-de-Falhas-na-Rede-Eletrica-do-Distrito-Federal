@@ -34,14 +34,10 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.model_selection import GridSearchCV, TimeSeriesSplit
 
+from metric_utils import mean_absolute_percentage_error
+
 plt.style.use('seaborn-v0_8-whitegrid')
 plt.rcParams.update({'figure.dpi': 300, 'font.size': 12})
-
-
-def mean_absolute_percentage_error(y_true, y_pred):
-    y_true, y_pred = np.array(y_true), np.array(y_pred)
-    # epsilon evita divisão por zero quando y_true == 0
-    return np.mean(np.abs((y_true - y_pred) / (y_true + 1e-8))) * 100
 
 
 TEST_START = pd.Timestamp('2024-06-01')

@@ -57,6 +57,7 @@ import xgboost as xgb
 
 from lstm_bidirecional import AdvancedLSTM, train_dl_model, reverse_scaling, set_seeds, SEED
 from gru_avancada import AdvancedGRU, train_gru_model
+from metric_utils import mean_absolute_percentage_error
 
 plt.style.use('seaborn-v0_8-whitegrid')
 plt.rcParams.update({'figure.dpi': 300, 'font.size': 12})
@@ -74,8 +75,7 @@ EXPECTED_TEST_DAYS = (TEST_END - TEST_START).days + 1
 
 
 def mape(y_true, y_pred):
-    y_true, y_pred = np.array(y_true), np.array(y_pred)
-    return np.mean(np.abs((y_true - y_pred) / (y_true + 1e-8))) * 100
+    return mean_absolute_percentage_error(y_true, y_pred)
 
 
 def calcular_metricas(y_true, y_pred):

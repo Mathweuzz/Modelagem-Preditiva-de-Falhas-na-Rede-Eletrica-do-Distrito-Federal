@@ -35,7 +35,7 @@ from baseline_xgboost import evaluate_and_plot
 SEED = 42
 
 def set_seeds(seed=SEED):
-    """Fixa todas as sementes para reproducibilidade deterministica."""
+    """Favorece repetibilidade no mesmo ambiente de hardware e software."""
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
@@ -68,10 +68,11 @@ class AdvancedLSTM(nn.Module):
         h0 = torch.zeros(self.num_layers * 2, x.size(0), self.hidden_size).to(x.device)
         c0 = torch.zeros(self.num_layers * 2, x.size(0), self.hidden_size).to(x.device)
 
-        out, _ = self.lstm(x, (h0, c0))
-        out = out[:, -1, :]   # último passo da sequência
+        _, (h_n, _) = self.lstm(x, (h0, c0))
+        # Último estado da camada superior em cada direção.
+        rep = torch.cat((h_n[-2], h_n[-1]), dim=1)
 
-        out = self.fc1(out)
+        out = self.fc1(rep)
         out = self.relu(out)
         out = self.dropout(out)
         out = self.fc2(out)

@@ -59,9 +59,10 @@ class AdvancedGRU(nn.Module):
 
     def forward(self, x):
         h0 = torch.zeros(self.num_layers * 2, x.size(0), self.hidden_size).to(x.device)
-        out, _ = self.gru(x, h0)
-        out = out[:, -1, :]
-        out = self.fc1(out)
+        _, h_n = self.gru(x, h0)
+        # Último estado da camada superior em cada direção.
+        rep = torch.cat((h_n[-2], h_n[-1]), dim=1)
+        out = self.fc1(rep)
         out = self.relu(out)
         out = self.dropout(out)
         out = self.fc2(out)

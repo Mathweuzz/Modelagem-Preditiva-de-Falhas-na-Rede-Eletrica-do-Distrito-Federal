@@ -47,6 +47,7 @@ from lstm_bidirecional import (  # noqa: E402
     set_seeds,
     train_dl_model,
 )
+from metric_utils import mean_absolute_percentage_error  # noqa: E402
 from previsao_multihorizonte import criar_sequencias_diretas  # noqa: E402
 
 
@@ -255,7 +256,7 @@ def calculate_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> dict[str, float
     """Calcula as métricas adotadas no trabalho."""
     y_true = np.asarray(y_true, dtype=float)
     y_pred = np.maximum(0, np.asarray(y_pred, dtype=float))
-    mape = np.mean(np.abs((y_true - y_pred) / (y_true + 1e-8))) * 100
+    mape = mean_absolute_percentage_error(y_true, y_pred)
     return {
         "n": int(len(y_true)),
         "MAE": float(mean_absolute_error(y_true, y_pred)),
