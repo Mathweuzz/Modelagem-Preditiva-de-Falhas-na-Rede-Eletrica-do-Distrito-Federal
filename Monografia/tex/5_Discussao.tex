@@ -14,7 +14,19 @@ O resultado não sustenta a hipótese de superioridade sistemática das arquitet
     \item \textbf{Tamanho limitado do conjunto de dados:} Com 2.700 linhas de origem de treinamento (XGBoost) e 2.687 sequências (RNNs) com 41 variáveis por instante, o volume de dados é modesto para redes recorrentes profundas. O XGBoost, por sua natureza \textit{ensemble} de árvores, é adequado a dados tabulares desse porte \cite{chen2016xgboost}.
 \end{enumerate}
 
-\section{XGBoost vs. Deep Learning: Análise de Trade-offs}
+\section{Incerteza Estatística e Relevância Prática}\label{sec:discussao_incerteza}
+
+Os intervalos pareados apresentados na Seção~\ref{sec:resultados_bootstrap} alteram a interpretação das diferenças pontuais. O fato de um modelo registrar MAE numericamente menor não basta para afirmar que sua vantagem se manteria sob outra realização temporal do mesmo processo. Nos contrastes entre XGBoost, Bi-LSTM e Bi-GRU, todos os intervalos de 95\% contêm zero. Assim, o experimento não oferece evidência suficiente para ordenar os três modelos pelo MAE, embora permita descrever os valores observados no período de teste.
+
+Essa conclusão também não demonstra que os modelos sejam equivalentes. Ausência de evidência de diferença e evidência de equivalência são afirmações distintas. Para sustentar equivalência prática seria necessário definir, antes da análise, uma margem de diferença considerada operacionalmente irrelevante e aplicar um procedimento inferencial formulado para essa hipótese. Como tal margem depende do custo de mobilizar equipes, do custo de um alerta não atendido e da capacidade diária da concessionária, ela não pode ser deduzida apenas das métricas estatísticas disponíveis.
+
+Os três modelos treinados apresentaram ganhos pontuais de aproximadamente 6,5 a 7,1 interrupções por dia em relação à persistência. Entretanto, os intervalos dos contrastes semanais incluem zero e sua classificação varia nas análises de sensibilidade. Portanto, os valores centrais favorecem os modelos treinados, mas o estudo não deve converter essa vantagem observada em uma garantia geral de superioridade sobre a referência ingênua. Uma confirmação prospectiva, com previsões registradas antes da ocorrência dos alvos, reduziria a ambiguidade entre ganho circunstancial e ganho reproduzível.
+
+A sensibilidade ao comprimento do bloco possui significado substantivo. Blocos de sete, 14 e 30 dias preservam escalas diferentes de dependência e de concentração dos erros; por isso, mudanças nos limites dos intervalos não constituem uma falha do procedimento, mas revelam quanto a conclusão depende da estrutura temporal assumida. O \textit{block bootstrap} reduz o problema de tratar dias vizinhos como independentes, porém continua condicionado ao único período observado e às escolhas de reamostragem \cite{lahiri2003resampling}.
+
+Quando os resultados não permitem separar os modelos com segurança, outros critérios ganham importância na escolha operacional. O menor custo de treinamento, a ausência de dependência de GPU e a auditabilidade relativa tornam o XGBoost uma alternativa parcimoniosa para $h=1$. Isso não o transforma no melhor modelo em sentido universal: a Bi-GRU apresentou os menores MAEs observados em $h\geq3$, e a liderança mensal variou. A decisão deve combinar antecedência, função de custo, estabilidade prospectiva, recursos computacionais e capacidade de explicar o resultado aos responsáveis pela operação.
+
+\section{Trade-offs entre XGBoost e Deep Learning}
 
 A comparação entre os paradigmas vai além das métricas numéricas. A Tabela~\ref{tab:tradeoffs} sintetiza os \textit{trade-offs} práticos relevantes para uma eventual implantação operacional.
 
@@ -116,7 +128,7 @@ A Tabela~\ref{tab:comparacao_literatura} contextualiza os resultados deste traba
 \small{Fonte: Compilado pelos autores (2026).}
 \end{table}
 
-Os $R^2$ de 0,409 (XGBoost), 0,408 (Bi-LSTM) e 0,442 (Bi-GRU) obtidos neste trabalho representam uma contribuição relevante ao estado da arte, considerando as especificidades do contexto. A comparação direta de métricas entre estudos é limitada pelas diferenças metodológicas substanciais: os trabalhos da literatura variam em resolução temporal (diária, semanal, por evento), variáveis disponíveis, tamanho do conjunto de dados e região geográfica. \cite{zhang2023deep} utilizam dados socioeconômicos e de infraestrutura adicionais; \cite{smith2021hybrid} incorporam dados de vegetação de alta resolução; \cite{saha2019machine} empregam otimização por enxame de partículas para seleção de hiperparâmetros. A contribuição diferencial deste trabalho reside na aplicação ao bioma Cerrado, com seu regime climático bimodal único, e na comparação sistemática entre modelos tabulares e redes recorrentes bidirecionais sob um mesmo protocolo experimental.
+Os $R^2$ de 0,409 (XGBoost), 0,408 (Bi-LSTM) e 0,442 (Bi-GRU) caracterizam a capacidade explicativa alcançada neste conjunto de dados, mas não permitem posicionar os modelos em uma ordenação direta de estado da arte. Os trabalhos da literatura variam em alvo, escala, resolução temporal, variáveis disponíveis, tamanho da amostra e região geográfica. \cite{zhang2023deep} utilizam dados socioeconômicos e de infraestrutura adicionais; \cite{smith2021hybrid} incorporam dados de vegetação de alta resolução; \cite{saha2019machine} empregam otimização por enxame de partículas para seleção de hiperparâmetros. A contribuição deste trabalho é, portanto, metodológica e aplicada: estudar o contexto do Distrito Federal e comparar modelos tabulares e redes recorrentes bidirecionais sob datas-alvo, cortes temporais e variáveis por instante controlados, explicitando também a incerteza e os limites dessa comparação.
 
 \section{Limitações do Estudo}\label{sec:limitacoes}
 
@@ -136,6 +148,8 @@ O presente trabalho possui limitações que devem ser explicitadas para contextu
     \item \textbf{Volume de dados para Deep Learning:} As 2.687 sequências de treinamento disponíveis para as redes neurais (2.700 linhas de origem para o XGBoost), embora suficientes para modelos tabulares, são modestas para redes recorrentes profundas. A disponibilidade de séries mais longas ou de dados de múltiplas concessionárias poderia favorecer as arquiteturas neurais.
 
     \item \textbf{Ablação pós-hoc:} Os grupos de atributos foram comparados no mesmo período reservado para a avaliação principal. O resultado é diagnóstico e precisa ser confirmado em um novo intervalo antes de orientar seleção de modelo. Além disso, as variantes reutilizaram a configuração do XGBoost completo, sem busca específica.
+
+    \item \textbf{Único período de teste e sensibilidade da reamostragem:} A avaliação principal cobre 365 dias consecutivos, e o \textit{block bootstrap} reutiliza segmentos desse mesmo intervalo. O procedimento quantifica a variabilidade interna preservando parte da dependência, mas não reproduz outros anos, mudanças na rede ou novos regimes meteorológicos. Além disso, alguns contrastes mudaram de classificação conforme o bloco passou de sete para 14 ou 30 dias, de modo que as conclusões inferenciais permanecem condicionadas à escala temporal adotada.
 \end{enumerate}
 
 \section{Implicações Práticas para a Neoenergia Brasília}
@@ -206,6 +220,18 @@ Esse padrão heteroscedástico tem duas implicações metodológicas relevantes:
 
     \item \textbf{Previsão probabilística:} A variância não-constante do erro torna as previsões pontuais insuficientes para a tomada de decisão operacional. Os intervalos de \textit{bootstrap} acrescentados quantificam incerteza das métricas agregadas, não a incerteza de ``250 interrupções amanhã''. Intervalos preditivos calibrados continuam sendo uma extensão necessária.
 \end{enumerate}
+
+\section{Dependência Temporal dos Resíduos}\label{sec:discussao_residuos_temporais}
+
+O diagnóstico da Seção~\ref{sec:resultados_residuos_temporais} mostra que viés médio próximo de zero não é suficiente para caracterizar adequadamente os erros. Os intervalos de viés dos três modelos contêm zero, mas as medianas são negativas e os resíduos conservam dependência temporal. Erros positivos e negativos podem se compensar na média enquanto permanecem organizados em sequências de subestimação ou superestimação. Por isso, a ausência de viés médio claramente diferente de zero não deve ser interpretada como calibração completa.
+
+A autocorrelação de primeira ordem foi positiva no XGBoost (0,238), na Bi-LSTM (0,304) e na Bi-GRU (0,362). Em termos práticos, parte do erro cometido em um dia tende a persistir no dia seguinte. Os testes de Ljung--Box rejeitaram a ausência conjunta de autocorrelação até 14 dias em todos os modelos ($p<10^{-7}$), indicando que nenhum deles converteu a série residual em ruído branco \cite{ljung1978measure}. O resultado é compatível com regimes operacionais e meteorológicos que duram vários dias, efeitos sazonais incompletamente representados e variáveis não observadas relacionadas à condição da rede.
+
+Essa dependência não invalida as previsões nem identifica automaticamente a especificação correta. O teste informa que existe estrutura remanescente, mas não distingue se ela decorre de sazonalidade, mudança de nível, eventos extremos agrupados, ausência de dados espaciais ou dinâmica própria da infraestrutura. Acrescentar indiscriminadamente novas defasagens poderia apenas aumentar a complexidade e o sobreajuste. A escolha de uma correção deve ser submetida ao mesmo corte temporal e à validação fora da amostra usados na comparação principal.
+
+Como extensões, podem ser avaliados um componente autorregressivo aplicado aos resíduos, variáveis de regime, modelos em múltiplas escalas temporais ou combinações que atualizem a previsão conforme erros recentes. Também é necessário que métodos probabilísticos preservem a ordem temporal durante a calibração, pois intervalos construídos como se os resíduos fossem independentes podem apresentar cobertura inadequada em sequências de dias críticos. Procedimentos conformais temporais e multi-horizonte constituem uma direção pertinente para tratar essa estrutura \cite{wang2024conformal}.
+
+Para o uso operacional, a principal consequência é que o risco não se resume ao erro médio de um dia isolado. Uma sequência de subestimações pode manter equipes abaixo da necessidade durante vários dias, enquanto superestimações consecutivas podem mobilizar recursos sem retorno. O monitoramento deve acompanhar resíduos recentes, cobertura dos intervalos e desempenho por regime, acionando recalibração ou retreinamento quando houver deterioração persistente. Essa leitura conecta o diagnóstico estatístico a uma política de implantação gradual, auditável e sujeita a revisão contínua.
 
 \section{Implicações da Tendência de Crescimento das Interrupções}
 
