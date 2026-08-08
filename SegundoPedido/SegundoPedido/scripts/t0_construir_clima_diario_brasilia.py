@@ -2,14 +2,13 @@ from pathlib import Path
 
 import pandas as pd
 
+from path_config import raw_data_root
+
 # =====================================================
 # 1) CONFIGURAÇÕES DE CAMINHO
 # =====================================================
 
-THIS_FILE = Path(__file__).resolve()
-
-# /home/mateus/CLEAR DATA
-ROOT_DIR = THIS_FILE.parents[3]
+ROOT_DIR = raw_data_root()
 
 # Pasta com os CSVs horários do INMET
 CLIMA_HOURLY_DIR = ROOT_DIR / "dados_clima-inmet_limpos"

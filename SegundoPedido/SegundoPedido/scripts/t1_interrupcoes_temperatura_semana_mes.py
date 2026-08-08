@@ -4,16 +4,13 @@ from pathlib import Path
 import pandas as pd
 import matplotlib.pyplot as plt
 
+from path_config import DELIVERY_ROOT, raw_data_root
+
 # =====================================================
 # 1) CONFIGURAÇÕES DE CAMINHO
 # =====================================================
 
-# Este arquivo está em:
-#   /home/mateus/CLEAR DATA/SegundoPedido/SegundoPedido/scripts/t1_....py
-THIS_FILE = Path(__file__).resolve()
-
-# Raiz "CLEAR DATA"
-ROOT_DIR = THIS_FILE.parents[3]   # -> /home/mateus/CLEAR DATA
+ROOT_DIR = raw_data_root()
 
 # Projeto original de interrupções
 INTERRUPCOES_DIR = ROOT_DIR / "interrupcoes-aneel"
@@ -23,7 +20,7 @@ INTERRUPCOES_CSV = INTERRUPCOES_DIR / "dados_completos_brasilia.csv"
 CLIMA_CSV = INTERRUPCOES_DIR / "clima_diario_brasilia.csv"
 
 # Pasta da nova entrega (a "inner" SegundoPedido)
-SEGUNDO_PEDIDO_DIR = THIS_FILE.parents[1]  # -> /home/mateus/CLEAR DATA/SegundoPedido/SegundoPedido
+SEGUNDO_PEDIDO_DIR = DELIVERY_ROOT
 
 DADOS_DIR = SEGUNDO_PEDIDO_DIR / "dados"
 GRAFICOS_DIR = SEGUNDO_PEDIDO_DIR / "graficos"

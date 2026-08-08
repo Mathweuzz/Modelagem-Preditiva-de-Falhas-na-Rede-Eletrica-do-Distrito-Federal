@@ -5,17 +5,16 @@ import math
 import pandas as pd
 import matplotlib.pyplot as plt
 
+from path_config import DELIVERY_ROOT, PROJECT_ROOT
+
 # =====================================================
 # 1) CONFIGURAÇÕES DE CAMINHO
 # =====================================================
 
-THIS_FILE = Path(__file__).resolve()
-
-# /home/mateus/CLEAR DATA
-ROOT_DIR = THIS_FILE.parents[3]
+ROOT_DIR = PROJECT_ROOT
 
 # Pasta da nova entrega (inner SegundoPedido)
-SEGUNDO_PEDIDO_DIR = THIS_FILE.parents[1]
+SEGUNDO_PEDIDO_DIR = DELIVERY_ROOT
 DADOS_DIR = SEGUNDO_PEDIDO_DIR / "dados"
 GRAFICOS_DIR = SEGUNDO_PEDIDO_DIR / "graficos"
 

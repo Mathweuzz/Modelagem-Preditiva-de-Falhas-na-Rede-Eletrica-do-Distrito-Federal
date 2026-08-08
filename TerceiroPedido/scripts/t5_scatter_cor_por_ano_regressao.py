@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-ROOT = Path("/home/mateus/CLEAR DATA/TerceiroPedido/TerceiroPedido")
+ROOT = Path(__file__).resolve().parents[1]
 DADOS_DIR = ROOT / "dados"
 GRAFICOS_DIR = ROOT / "graficos" / "T5_scatter_regressao"
 GRAFICOS_DIR.mkdir(parents=True, exist_ok=True)

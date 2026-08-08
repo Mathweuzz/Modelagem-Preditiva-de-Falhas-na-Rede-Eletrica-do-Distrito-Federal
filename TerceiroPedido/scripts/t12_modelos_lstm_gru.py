@@ -1,6 +1,5 @@
 import sys
 from pathlib import Path
-import math
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -14,7 +13,7 @@ except Exception as e:
     print("  pip install torch --index-url https://download.pytorch.org/whl/cpu")
     raise
 
-ROOT = Path("/home/mateus/CLEAR DATA/TerceiroPedido/TerceiroPedido")
+ROOT = Path(__file__).resolve().parents[1]
 DADOS_DIR = ROOT / "dados"
 GRAFICOS_DIR = ROOT / "graficos" / "T12_modelos_dl"
 GRAFICOS_DIR.mkdir(parents=True, exist_ok=True)
@@ -97,8 +96,7 @@ def load_and_build():
     df["data"] = pd.to_datetime(df["data"])
     df = df.sort_values("data").reset_index(drop=True)
 
-    # Features exógenas (diárias)
-    # direção do vento como variável circular (sin/cos) — melhora muito vs usar graus “cru”
+    # Features exógenas diárias; a direção já chega codificada de forma circular.
     # Converter colunas base para numérico
     base_cols = [
         "interrupcoes",
@@ -106,7 +104,8 @@ def load_and_build():
         "precipitacao_total_mm",
         "vento_velocidade_media_ms",
         "vento_rajada_max_ms",
-        "vento_direcao_media_gr",
+        "vento_dir_sin",
+        "vento_dir_cos",
     ]
     for c in base_cols:
         df[c] = pd.to_numeric(df[c], errors="coerce")
@@ -127,18 +126,13 @@ def load_and_build():
         "precipitacao_total_mm",
         "vento_velocidade_media_ms",
         "vento_rajada_max_ms",
-        "vento_direcao_media_gr",
+        "vento_dir_sin",
+        "vento_dir_cos",
     ]
     med = train_df[fill_cols].median(numeric_only=True)
 
     for c in fill_cols:
         df[c] = df[c].fillna(med[c])
-
-    # Direção do vento -> sin/cos (agora sem NaN)
-    wd = df["vento_direcao_media_gr"].to_numpy()
-    wd_rad = np.deg2rad(wd)
-    df["vento_dir_sin"] = np.sin(wd_rad)
-    df["vento_dir_cos"] = np.cos(wd_rad)
 
     # Features finais (histórico inclui interrupções)
     feats = [

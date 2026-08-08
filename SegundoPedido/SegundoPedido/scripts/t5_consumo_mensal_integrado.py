@@ -3,17 +3,16 @@ from pathlib import Path
 
 import pandas as pd
 
+from path_config import DELIVERY_ROOT, raw_data_root
+
 # =====================================================
 # 1) CAMINHOS
 # =====================================================
 
-THIS_FILE = Path(__file__).resolve()
-
-# /home/mateus/CLEAR DATA
-ROOT_DIR = THIS_FILE.parents[3]
+ROOT_DIR = raw_data_root()
 
 # Pasta da nova entrega (inner SegundoPedido)
-SEGUNDO_PEDIDO_DIR = THIS_FILE.parents[1]
+SEGUNDO_PEDIDO_DIR = DELIVERY_ROOT
 DADOS_DIR = SEGUNDO_PEDIDO_DIR / "dados"
 
 DADOS_DIR.mkdir(parents=True, exist_ok=True)

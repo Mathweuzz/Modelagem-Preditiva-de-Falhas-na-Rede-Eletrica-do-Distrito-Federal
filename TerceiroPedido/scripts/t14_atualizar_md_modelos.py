@@ -3,7 +3,7 @@ import sys
 from pathlib import Path
 import pandas as pd
 
-ROOT = Path("/home/mateus/CLEAR DATA/TerceiroPedido/TerceiroPedido")
+ROOT = Path(__file__).resolve().parents[1]
 MD = ROOT / "TerceiroPedido.md"
 MET = ROOT / "dados" / "metricas_dl_lstm_gru.csv"
 
@@ -15,7 +15,20 @@ def main():
         raise FileNotFoundError(f"Não encontrei: {MET} (rode o T12 antes)")
 
     met = pd.read_csv(MET)
-    met_md = met.to_markdown(index=False)
+    headers = [str(column) for column in met.columns]
+    rows = [[str(value) for value in row] for row in met.itertuples(index=False, name=None)]
+    widths = [
+        max(len(headers[index]), *(len(row[index]) for row in rows))
+        for index in range(len(headers))
+    ]
+    met_md = "\n".join([
+        "| " + " | ".join(value.ljust(widths[index]) for index, value in enumerate(headers)) + " |",
+        "| " + " | ".join("-" * width for width in widths) + " |",
+        *[
+            "| " + " | ".join(value.ljust(widths[index]) for index, value in enumerate(row)) + " |"
+            for row in rows
+        ],
+    ])
 
     bloco = []
     bloco.append("\n## Modelos de previsão (Deep Learning) — LSTM e GRU (PyTorch)\n")
