@@ -31,7 +31,7 @@ def plot_residual_kde(df, output_dir='img'):
     
     plt.axvline(0, color='black', linestyle='--', linewidth=1.5)
     plt.title('Kernel Density Estimation of Predictive Residuals (Test Set)')
-    plt.xlabel('Absolute Error (Real - Predicted Outages)')
+    plt.xlabel('Residual Error (Real - Predicted Outages)')
     plt.ylabel('Density')
     plt.legend()
     plt.tight_layout()

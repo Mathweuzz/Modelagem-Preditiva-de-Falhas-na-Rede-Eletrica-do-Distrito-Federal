@@ -315,10 +315,10 @@ def _xgboost_params() -> dict:
         "n_estimators": 300,
         "learning_rate": 0.03,
         "max_depth": 4,
-        "subsample": 0.7,
+        "subsample": 0.8,
         "colsample_bytree": 0.8,
         "min_child_weight": 1,
-        "gamma": 0,
+        "gamma": 0.1,
     }
 
 
