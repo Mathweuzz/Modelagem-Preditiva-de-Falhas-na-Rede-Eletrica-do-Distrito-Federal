@@ -1,0 +1,377 @@
+\section{Auditoria do Protocolo Experimental}\label{sec:protocolo_detalhado}
+
+Concluída a apresentação das etapas de modelagem, esta seção consolida as invariantes usadas para auditá-las e acrescenta os detalhes operacionais necessários à reprodução. O protocolo experimental foi definido pela data-alvo. Essa decisão é essencial quando a entrada de uma linha pertence a $t$ e o resultado pertence a $t+h$. Uma divisão efetuada somente sobre a data da entrada poderia incluir no treinamento um par cujo alvo já está no intervalo reservado para teste. Em todos os procedimentos diretos, portanto, a máscara de treinamento é aplicada a $t+h$.
+
+\subsection{Avaliação Principal de Um Dia à Frente}
+
+Na avaliação principal, as 3.066 linhas analíticas são convertidas em pares de um passo. A última origem é removida por não possuir alvo no dia seguinte. O treinamento contém pares cujo alvo antecede 01/06/2024, e o teste contém alvos entre 01/06/2024 e 31/05/2025, inclusive.
+
+Para o XGBoost, isso resulta em 2.700 origens de treinamento e 365 de teste. Para as redes, o subconjunto anterior ao teste contém 2.701 linhas, mas as 14 primeiras são usadas apenas como contexto, produzindo 2.687 sequências de treinamento. Os últimos 14 dias desse subconjunto são concatenados ao teste como contexto para que a primeira data-alvo do teste também possua janela completa. Esse contexto não é alvo de teste e não aumenta o número de previsões: permanecem exatamente 365.
+
+\begin{table}[H]
+\centering
+\caption{Contagem de amostras na avaliação principal}
+\label{tab:contagem_avaliacao_principal}
+\small
+\begin{tabularx}{\textwidth}{p{3.2cm} r r X}
+\toprule
+\textbf{Representação} & \textbf{Treino} & \textbf{Teste} & \textbf{Regra} \\
+\midrule
+XGBoost & 2.700 linhas & 365 linhas & $\mathbf{x}_t\rightarrow y_{t+1}$ \\
+Bi-LSTM & 2.687 sequências & 365 sequências & $[\mathbf{x}_{t-13},\ldots,\mathbf{x}_t]\rightarrow y_{t+1}$ \\
+Bi-GRU & 2.687 sequências & 365 sequências & Mesma construção da Bi-LSTM \\
+Persistência & --- & 365 pares & $\widehat y_{t+1}=y_t$ \\
+\bottomrule
+\end{tabularx}
+\small{Fonte: Elaborado pelos autores a partir do protocolo implementado (2026).}
+\end{table}
+
+\subsection{Normalização sem Contaminação do Teste}
+
+O \texttt{MinMaxScaler} das redes é ajustado às linhas de treinamento. Para a coluna $j$,
+\begin{equation}
+    x'_{t,j}=\frac{x_{t,j}-m_j}{M_j-m_j},
+\end{equation}
+em que $m_j$ e $M_j$ são, respectivamente, mínimo e máximo observados no treinamento. O teste usa os mesmos parâmetros, mesmo que um valor futuro produza $x'<0$ ou $x'>1$. Reajustar os limites para conter o teste revelaria sua amplitude e configuraria vazamento.
+
+O alvo também é normalizado durante o treinamento das redes. Para apresentar as previsões em interrupções por dia, a transformação inversa é aplicada somente à posição da coluna alvo, mantendo zeros auxiliares nas demais posições. Valores preditos negativos depois da inversão são truncados em zero, pois a variável é uma contagem não negativa. O mesmo truncamento é aplicado às saídas do XGBoost antes das métricas.
+
+O XGBoost não recebe normalização, pois divisões de árvores dependem da ordenação e dos limiares e não do gradiente em escala comum. Aplicar ou não Min--Max a árvores monotonicamente não altera a ordem dos valores, mas acrescentaria uma etapa sem necessidade operacional.
+
+\subsection{Busca Temporal de Hiperparâmetros do XGBoost}
+
+A busca avalia o produto cartesiano de sete conjuntos. O total é
+\begin{equation}
+  2\times3\times3\times2\times2\times2\times2=288
+\end{equation}
+configurações. Cada configuração é avaliada em cinco divisões temporais progressivas. Diferentemente de uma validação aleatória, cada conjunto de validação ocorre depois do respectivo conjunto de ajuste.
+
+O critério do \texttt{GridSearchCV} é o MAE negativo, convenção pela qual valores maiores correspondem a erros absolutos menores. Depois da seleção, o estimador é reajustado com todo o treinamento. Os 288 resultados e a configuração vencedora são preservados em arquivos separados, o que permite verificar que o modelo final corresponde à busca descrita.
+
+\begin{table}[H]
+\centering
+\caption{Espaço discreto da busca do XGBoost}
+\label{tab:espaco_grid_detalhado}
+\small
+\begin{tabularx}{\textwidth}{p{4cm} X r}
+\toprule
+\textbf{Parâmetro} & \textbf{Valores avaliados} & \textbf{Quantidade} \\
+\midrule
+\texttt{n\_estimators} & 300; 500 & 2 \\
+\texttt{learning\_rate} & 0,03; 0,05; 0,10 & 3 \\
+\texttt{max\_depth} & 4; 6; 8 & 3 \\
+\texttt{subsample} & 0,7; 0,8 & 2 \\
+\texttt{colsample\_bytree} & 0,7; 0,8 & 2 \\
+\texttt{min\_child\_weight} & 1; 3 & 2 \\
+\texttt{gamma} & 0; 0,1 & 2 \\
+\midrule
+Produto cartesiano & --- & 288 \\
+\bottomrule
+\end{tabularx}
+\small{Fonte: Elaborado pelos autores (2026).}
+\end{table}
+
+A busca é restrita à avaliação principal. Na extensão multi-horizonte, um novo estimador é ajustado em cada $h$, mas usa os parâmetros já selecionados. Isso mantém a análise complementar comparável e evita afirmar que cada horizonte recebeu otimização própria.
+
+\subsection{Treinamento das Redes Recorrentes}
+
+As duas redes recebem lotes na ordem temporal, com \texttt{shuffle=False}. A ausência de embaralhamento preserva a organização das sequências, embora cada sequência já seja uma amostra autônoma de 14 passos. Para cada lote, os gradientes anteriores são zerados, a saída é calculada, a MSE normalizada é retropropagada, a norma do gradiente é limitada a 1,0 e o AdamW atualiza os pesos.
+
+O treinamento possui 150 épocas fixas. Não há \textit{early stopping} nem conjunto interno de validação para as redes. O \texttt{ReduceLROnPlateau} observa a perda média de treinamento, usa paciência de 15 épocas e reduz a taxa pela metade quando ocorre estagnação. Por isso, a curva registrada é curva de treinamento, não evidência de generalização durante as épocas.
+
+Os estados iniciais ocultos são vetores de zero criados em cada passagem. Na Bi-LSTM, também é criado o estado de célula. Ao final da camada recorrente superior, o último estado da direção direta e o último estado da direção reversa são concatenados, produzindo 128 componentes. Essa representação passa por uma camada linear de 128 para 64, ReLU, \textit{dropout} e uma camada de saída escalar.
+
+\subsection{Sentido da Bidirecionalidade no Experimento}
+
+A bidirecionalidade opera \textbf{dentro da janela histórica}. Para uma amostra com origem $t$, a direção reversa percorre os instantes de $t$ a $t-13$, mas não acessa $t+1$ nem o alvo futuro. Portanto, ser bidirecional não equivale a olhar além da origem. O limite causal é determinado pela janela fornecida ao modelo.
+
+Esse ponto pode ser representado como
+\begin{equation}
+ [t-13,\ldots,t]\xrightarrow{\text{Bi-RNN}}\mathbf{r}_t
+ \xrightarrow{\text{MLP}}\widehat y_{t+h}.
+\end{equation}
+A direção reversa muda a ordem de leitura dos 14 elementos já conhecidos. Qualquer inclusão de $t+1$ na janela, por outro lado, seria vazamento para $h\geq1$ e é impedida pela função construtora de sequências.
+
+\subsection{Protocolo Multi-Horizonte com Origem Comum}
+
+Na análise complementar, o primeiro alvo é 14/06/2024. Para cada $h$, sua origem é obtida subtraindo $h$ dias. Assim, as primeiras origens são 13/06, 11/06, 07/06 e 31/05 para $h=1,3,7,14$, respectivamente. O último alvo é 31/05/2025 e as últimas origens variam de acordo com a mesma regra.
+
+\begin{table}[H]
+\centering
+\caption{Datas extremas do protocolo multi-horizonte}
+\label{tab:datas_multihorizonte_detalhado}
+\small
+\begin{tabular}{crrr}
+\toprule
+$h$ & \textbf{Primeira origem} & \textbf{Primeiro alvo} & \textbf{Número de alvos} \\
+\midrule
+1 & 13/06/2024 & 14/06/2024 & 352 \\
+3 & 11/06/2024 & 14/06/2024 & 352 \\
+7 & 07/06/2024 & 14/06/2024 & 352 \\
+14 & 31/05/2024 & 14/06/2024 & 352 \\
+\bottomrule
+\end{tabular}
+\par\smallskip
+{\small Fonte: Elaborado pelos autores (2026).\par}
+\end{table}
+
+O treino aceita somente alvos anteriores a 01/06/2024. A primeira origem de teste no maior horizonte é 31/05/2024, e o maior alvo de treinamento não é posterior a essa origem. O escalonador das redes é ajustado com linhas anteriores ao corte. Essas condições são verificadas por asserções para cada horizonte.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  scale=0.84, transform shape,
+  origem/.style={rectangle, draw=blue!65!black, rounded corners,
+    fill=blue!8, minimum width=3.4cm, minimum height=0.72cm, align=center},
+  origemcorte/.style={rectangle, draw=orange!75!black, rounded corners,
+    fill=orange!12, minimum width=3.4cm, minimum height=0.72cm, align=center},
+  alvo/.style={rectangle, draw=green!50!black, rounded corners,
+    fill=green!10, minimum width=3.4cm, minimum height=0.72cm, align=center},
+  horizonte/.style={circle, draw=black!60, fill=gray!8,
+    minimum size=0.78cm, font=\small\bfseries},
+  seta/.style={draw, -latex', thick, blue!55!black}
+]
+\node[font=\small\bfseries] at (0,4.55) {Horizonte};
+\node[font=\small\bfseries] at (4.0,4.55) {Data de origem};
+\node[font=\small\bfseries] at (10.3,4.55) {Primeiro alvo comum};
+
+\node[horizonte] (h1) at (0,3.55) {$h=1$};
+\node[origem] (o1) at (4.0,3.55) {13/06/2024};
+\node[alvo] (t1) at (10.3,3.55) {14/06/2024};
+\path[seta] (o1) -- node[above, font=\small] {$+1$ dia} (t1);
+
+\node[horizonte] (h3) at (0,2.45) {$h=3$};
+\node[origem] (o3) at (4.0,2.45) {11/06/2024};
+\node[alvo] (t3) at (10.3,2.45) {14/06/2024};
+\path[seta] (o3) -- node[above, font=\small] {$+3$ dias} (t3);
+
+\node[horizonte] (h7) at (0,1.35) {$h=7$};
+\node[origem] (o7) at (4.0,1.35) {07/06/2024};
+\node[alvo] (t7) at (10.3,1.35) {14/06/2024};
+\path[seta] (o7) -- node[above, font=\small] {$+7$ dias} (t7);
+
+\node[horizonte] (h14) at (0,0.25) {$h=14$};
+\node[origemcorte] (o14) at (4.0,0.25) {31/05/2024};
+\node[alvo] (t14) at (10.3,0.25) {14/06/2024};
+\path[seta] (o14) -- node[above, font=\small] {$+14$ dias} (t14);
+
+\end{tikzpicture}
+\caption{Relação entre corte, origens e primeiro alvo comum na análise multi-horizonte.}
+\small{Fonte: Elaborado pelos autores (2026).}
+\label{fig:linha_tempo_multihorizonte_detalhada}
+\end{figure}
+
+\subsection{Persistência como Referência Operacional}
+
+A referência ingênua prevê que o próximo valor será igual ao último observado:
+\begin{equation}
+    \widehat y_{t+h}^{\mathrm{pers}}=y_t.
+\end{equation}
+Embora simples, ela é uma comparação exigente quando há autocorrelação. Um modelo complexo que não supera a persistência pode ter aprendido principalmente a repetir o nível recente. A persistência não possui fase de ajuste, mas respeita as mesmas datas e horizontes.
+
+Ela também funciona como verificação do alinhamento. Para cada data-alvo, a origem é calculada pela subtração do horizonte e o valor real da origem é buscado na série canônica. Se a origem não existir, a avaliação falha. Assim, a linha de base ajuda a detectar deslocamentos incorretos além de fornecer uma referência numérica.
+
+\subsection{Definição e Interpretação das Métricas}
+
+O MAE mede a magnitude média do erro em interrupções por dia:
+\begin{equation}
+    \mathrm{MAE}=\frac{1}{n}\sum_{i=1}^{n}|y_i-\widehat y_i|.
+\end{equation}
+O RMSE enfatiza erros grandes:
+\begin{equation}
+    \mathrm{RMSE}=\sqrt{\frac{1}{n}\sum_{i=1}^{n}(y_i-\widehat y_i)^2}.
+\end{equation}
+O coeficiente de determinação compara o erro quadrático com a variabilidade do alvo:
+\begin{equation}
+    R^2=1-\frac{\sum_i(y_i-\widehat y_i)^2}{\sum_i(y_i-\bar y)^2}.
+\end{equation}
+Por fim, o MAPE expressa erro percentual médio:
+\begin{equation}
+    \mathrm{MAPE}=\frac{100}{|I_+|}\sum_{i\in I_+}
+    \left|\frac{y_i-\widehat y_i}{y_i}\right|,
+    \qquad I_+=\{i:y_i\neq0\}.
+\end{equation}
+
+Somente o MAPE exclui alvos iguais a zero, porque a divisão seria indefinida. MAE, RMSE e $R^2$ usam todas as observações. Na base estudada não há dia sem interrupção, mas a função foi implementada de maneira geral e devolve resultado indefinido se todos os alvos forem zero.
+
+Nenhuma métrica isolada determina superioridade absoluta. O MAE é diretamente interpretável; o RMSE revela sensibilidade a picos; $R^2$ mede variância explicada em relação à média; e o MAPE pondera relativamente dias de menor volume. Diferenças pequenas devem ser discutidas considerando essas propriedades e a ausência de um teste inferencial de diferença entre modelos.
+
+\subsection{Avaliação por Faixas de Volume}
+
+Para examinar a heterogeneidade do erro, as datas do teste principal foram separadas de acordo com o alvo canônico: volume baixo, $y<200$; médio, $200\leq y\leq400$; e alto, $y>400$. Os limites são descritivos e foram centralizados em uma única rotina para evitar intervalos sobrepostos ou lacunas.
+
+As previsões dos três modelos são associadas ao mesmo alvo pela data. A rotina rejeita arquivos com datas diferentes e ignora eventuais colunas de valor real específicas de cada modelo, usando a série canônica do conjunto analítico. Em cada faixa calcula-se o MAE. O objetivo é verificar onde o erro absoluto se concentra, não transformar a regressão em classificação.
+
+\subsection{Avaliação Mensal Multi-Horizonte}
+
+As previsões multi-horizonte são agrupadas pelo mês da data-alvo. Cada grupo conserva o modelo e o horizonte. Junho de 2024 possui 17 dias porque o intervalo começa no dia 14; os demais meses possuem a quantidade de dias civis correspondente. Para cada célula modelo--horizonte--mês são calculados MAE e RMSE.
+
+A avaliação mensal reutiliza as previsões globais. Não há novo ajuste, escolha de parâmetros ou exclusão de meses difíceis. Essa propriedade é importante porque impede que os mapas de calor sejam interpretados como doze experimentos com modelos selecionados separadamente.
+
+\subsection{Artefatos Mínimos para Auditoria das Previsões}
+
+Cada registro multi-horizonte contém \texttt{modelo}, \texttt{horizonte}, \texttt{data\_origem}, \texttt{data\_alvo}, \texttt{y\_real} e \texttt{y\_pred}. Esses campos bastam para recalcular as métricas, verificar $\text{data\_alvo}=\text{data\_origem}+h$ e comparar vetores reais.
+
+Na avaliação principal, cada modelo grava suas previsões e métricas. Um arquivo consolidado é produzido para gráficos de resíduos. Os parâmetros escolhidos e o resultado completo da busca do XGBoost permanecem separados das previsões, permitindo distinguir seleção, ajuste final e avaliação.
+
+\begin{table}[H]
+\centering
+\caption{Artefatos e verificações associadas ao experimento}
+\label{tab:artefatos_experimento}
+\small
+\begin{tabularx}{\textwidth}{p{4.7cm} X}
+\toprule
+\textbf{Artefato} & \textbf{Verificação possibilitada} \\
+\midrule
+\texttt{xgboost\_cv\_results.csv} & Conferir as 288 configurações e a pontuação de cada divisão \\
+\texttt{xgboost\_best\_}\allowbreak\texttt{params.json} & Confirmar a configuração reutilizada no multi-horizonte \\
+\texttt{predictions\_}\allowbreak\texttt{modelo.csv} & Recalcular métricas do teste principal por data \\
+\texttt{predictions\_}\allowbreak\texttt{all.csv} & Auditar modelos, horizontes, origens, alvos e igualdade do vetor real \\
+\texttt{metrics\_multi}\allowbreak\texttt{horizon.csv} & Conferir o resumo das 12 combinações \\
+\texttt{metrics\_multi}\allowbreak\texttt{horizon\_monthly.csv} & Reproduzir a análise mensal \\
+Curvas e gráficos & Representar saídas numéricas já registradas, sem nova estimação \\
+\bottomrule
+\end{tabularx}
+\small{Fonte: Elaborado pelos autores (2026).}
+\end{table}
+
+\section{Garantia de Qualidade e Reprodutibilidade}\label{sec:qualidade_reprodutibilidade}
+
+A reprodutibilidade foi tratada como propriedade do fluxo completo, não apenas como fixação de semente. O executor principal cria uma área temporária, copia o código e os dados processados necessários, remove dessa cópia os artefatos que serão regenerados e executa as etapas em ordem. Os diretórios oficiais só são substituídos depois que todas as saídas obrigatórias existem, possuem conteúdo e os testes foram aprovados.
+
+\subsection{Execução em Área Temporária}
+
+O executor exige árvore Git limpa. Essa condição impede que uma promoção misture artefatos novos com modificações locais não identificadas. Em seguida, cria um diretório temporário no mesmo sistema de arquivos, condição necessária para a substituição atômica por renomeação.
+
+Na área temporária são executados, em ordem: reconstrução da base, engenharia de atributos, análises exploratórias, agregações canônicas, testes, persistência, XGBoost, Bi-LSTM, Bi-GRU, gráficos avançados, análise por volume, previsão multi-horizonte e gráficos correspondentes. As figuras finais são copiadas para a pasta da monografia ainda na área preparada.
+
+Se faltar um arquivo obrigatório ou se ele estiver vazio, a promoção não ocorre. Se uma falha acontecer durante a substituição de diretórios, as versões oficiais anteriores são restauradas. A área temporária é preservada para diagnóstico em caso de erro. Esse desenho reduz o risco de um capítulo referenciar metade de uma execução nova e metade de uma execução anterior.
+
+\subsection{Promoção Transacional dos Resultados}
+
+Quatro diretórios são promovidos em conjunto: dados, resultados exploratórios, resultados de modelagem e imagens da monografia. Antes da promoção, os destinos atuais são movidos para uma área de cópia de segurança. Cada diretório preparado ocupa então o caminho oficial. Somente depois do sucesso completo a cópia é removida.
+
+Se a segunda ou a terceira substituição falhar, o algoritmo percorre em ordem inversa os diretórios já promovidos, devolve os novos para a área temporária e restaura os anteriores. O comportamento foi testado com uma falha parcial simulada. Assim, atomicidade aqui significa que o usuário observa todos os conjuntos novos ou todos os conjuntos anteriores, e não uma combinação intermediária.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+ scale=0.67, transform shape,
+ node distance=0.75cm,
+ box/.style={rectangle,draw,rounded corners,fill=blue!7,text width=11cm,minimum height=0.78cm,align=center},
+ ok/.style={rectangle,draw,rounded corners,fill=green!12,text width=5cm,minimum height=0.78cm,align=center},
+ err/.style={rectangle,draw,rounded corners,fill=red!10,text width=5cm,minimum height=0.78cm,align=center},
+ statusok/.style={rectangle,draw=green!50!black,rounded corners,fill=green!12,
+   text width=1.8cm,minimum height=0.5cm,align=center,font=\small\bfseries},
+ statuserr/.style={rectangle,draw=red!55!black,rounded corners,fill=red!10,
+   text width=1.8cm,minimum height=0.5cm,align=center,font=\small\bfseries},
+ seta/.style={draw,-latex',thick}
+]
+\node[box] (clean) {Confirmar árvore Git limpa e preparar cópia temporária};
+\node[box,below=of clean] (run) {Executar dados, testes, modelos, métricas e figuras};
+\node[box,below=of run] (val) {Validar todos os artefatos obrigatórios};
+\node[statusok,below left=0.55cm and 1.35cm of val] (valid) {válido};
+\node[statuserr,below right=0.55cm and 1.35cm of val] (invalid) {inválido};
+\node[ok,below=0.45cm of valid] (prom) {Sucesso: promover os quatro diretórios};
+\node[err,below=0.45cm of invalid] (fail) {Falha: manter resultados oficiais anteriores};
+\node[ok,below=of prom] (done) {Remover cópia de segurança};
+\node[err,below=of fail] (diag) {Preservar área temporária para diagnóstico};
+\path[seta] (clean)--(run); \path[seta] (run)--(val);
+\path[seta] (val)--(valid); \path[seta] (valid)--(prom);
+\path[seta] (val)--(invalid); \path[seta] (invalid)--(fail);
+\path[seta] (prom)--(done); \path[seta] (fail)--(diag);
+\end{tikzpicture}
+\caption{Fluxo de execução segura e promoção transacional.}
+\small{Fonte: Elaborado pelos autores (2026).}
+\label{fig:pipeline_transacional}
+\end{figure}
+
+\subsection{Testes como Invariantes Metodológicas}
+
+A suíte automatizada não busca apenas defeitos de programação; ela codifica decisões do estudo. Há testes para agregações físicas, reconstrução meteorológica, protocolo temporal, modelos, métricas por volume e atomicidade. Uma alteração que viole essas condições deve falhar antes de atualizar os resultados oficiais.
+
+\begin{longtable}{p{4.2cm} p{9.3cm}}
+\caption{Invariantes verificadas pela suíte automatizada}\label{tab:invariantes_testes}\\
+\toprule
+\textbf{Grupo} & \textbf{Comportamentos verificados} \\
+\midrule
+\endfirsthead
+\multicolumn{2}{c}{\tablename\ \thetable{} -- Continuação}\\
+\toprule
+\textbf{Grupo} & \textbf{Comportamentos verificados} \\
+\midrule
+\endhead
+Agregação & Soma de contagens e chuva; média de grandezas contínuas; máximo de rajada; semana encerrada na segunda; direção unitária ou ausente; chuva inteiramente ausente permanece ausente. \\
+Meteorologia & Média circular na passagem pelo norte; remoção de duplicatas idênticas; recusa de duplicatas conflitantes; direção oposta indefinida; renormalização depois da interpolação. \\
+Temporal & Datas-alvo separadas pelo horizonte correto; janelas terminam na origem; escalonador usa apenas treino; persistência reproduz as métricas documentadas. \\
+Modelos & Bi-LSTM e Bi-GRU usam o estado final das duas direções; MAPE exclui somente alvos zero e é indefinido quando todos são zero. \\
+Volume & Limites das três faixas sem ambiguidade; mesmo conjunto de datas; alvo canônico inteiro; colunas reais específicas não substituem a referência. \\
+Atomicidade & Área temporária começa sem saídas antigas; promoção bem-sucedida substitui todos os diretórios; falha parcial restaura todos; arquivos ausentes ou vazios são recusados; somente PNGs são sincronizados. \\
+\bottomrule
+\end{longtable}
+
+Esses testes não garantem ausência de qualquer erro científico. Eles verificam propriedades explícitas que poderiam regredir durante manutenção. A validade das fontes, a adequação do recorte e a interpretação dos resultados continuam exigindo análise humana.
+
+\subsection{Sementes e Limites do Determinismo}
+
+A semente 42 é aplicada a \texttt{random}, NumPy, PyTorch e CUDA. O cuDNN é configurado em modo determinístico e com \textit{benchmark} desativado. O XGBoost recebe \texttt{random\_state=42}. Essas decisões controlam fontes conhecidas de aleatoriedade, incluindo inicialização de pesos, \textit{dropout} e subamostragem de árvores.
+
+Determinismo não equivale a identidade universal entre ambientes. Versões de bibliotecas, compiladores, dispositivos e rotinas numéricas paralelas podem gerar pequenas diferenças. Por isso, a metodologia registra versões e hardware e preserva as previsões usadas no texto. Uma reprodução deve comparar tanto métricas arredondadas quanto arquivos de saída, admitindo resíduos de ponto flutuante quando não alterem conclusões.
+
+\subsection{Critérios de Aceitação da Execução}
+
+Uma execução completa é considerada válida quando: as entradas existem; a árvore estava limpa; todos os scripts terminam sem erro; os testes passam; cada artefato obrigatório existe e não está vazio; as previsões multi-horizonte contêm as 12 combinações esperadas; cada combinação contém 352 linhas; as datas extremas coincidem; a diferença entre alvo e origem é $h$; e o vetor real é comum aos modelos.
+
+\begin{table}[H]
+\centering
+\caption{Checklist de aceite do pipeline experimental}
+\label{tab:checklist_aceite_pipeline}
+\small
+\begin{tabularx}{\textwidth}{p{1.25cm} X p{3.55cm}}
+\toprule
+\textbf{Etapa} & \textbf{Condição} & \textbf{Resposta à falha} \\
+\midrule
+1 & Arquivos ANEEL e diretório INMET disponíveis & Não iniciar \\
+2 & Árvore Git sem modificações locais & Não preparar promoção \\
+3 & Base diária com 3.073 datas & Interromper reconstrução \\
+4 & Base analítica sem lacunas ou ausentes & Interromper engenharia \\
+5 & Suíte automatizada aprovada & Não treinar/promover \\
+6 & Artefatos obrigatórios presentes e não vazios & Recusar promoção \\
+7 & Protocolo multi-horizonte consistente & Recusar arquivo de previsões \\
+8 & Promoção integral concluída & Restaurar cópia em falha parcial \\
+\bottomrule
+\end{tabularx}
+\small{Fonte: Elaborado pelos autores (2026).}
+\end{table}
+
+\section{Ameaças à Validade do Procedimento}\label{sec:ameacas_validade_metodo}
+
+\subsection{Validade de Construção}
+
+O alvo é uma contagem de ordens de interrupção, não uma medida direta da continuidade percebida por cada consumidor. Uma ocorrência pode afetar quantidades distintas de unidades consumidoras e ter durações distintas. Dessa forma, ``mais interrupções'' não significa necessariamente maior DEC, maior energia não suprida ou maior dano econômico. O trabalho controla essa ameaça nomeando explicitamente a variável e evitando substituir a contagem por conceitos regulatórios diferentes.
+
+A estação A001 é uma aproximação das condições meteorológicas do Distrito Federal. Eventos convectivos podem ser localizados e não atingir a estação. O uso de uma única estação favorece continuidade e uniformidade, mas limita a representação espacial. A interpretação deve ser regional e agregada.
+
+\subsection{Validade Interna}
+
+Como o estudo é observacional, variáveis omitidas podem explicar simultaneamente clima e interrupções ou modificar sua associação. Manutenção, idade de ativos, vegetação, obras, expansão da rede e mudanças no registro não estão disponíveis. A tendência anual do alvo pode refletir processos institucionais além de fenômenos físicos.
+
+O risco de vazamento temporal foi reduzido por separação por data-alvo, ajuste do escalonador no treino e testes de alinhamento. A interpolação bilateral da única lacuna é uma exceção conscientemente limitada à reconstrução histórica dentro do treino. Ela não deve ser replicada sem adaptação em produção.
+
+\subsection{Validade Externa}
+
+Os resultados foram obtidos no Distrito Federal, em um período específico e com uma distribuidora. Redes, climas e práticas de registro diferem entre localidades. A aplicação em outra concessão exigiria reconstrução local, nova avaliação fora da amostra e, provavelmente, outras fontes meteorológicas.
+
+O teste contém um ano civil contínuo em termos sazonais, mas não contém todas as combinações possíveis de eventos extremos. O desempenho diante de um evento mais severo que os observados não é identificável a partir desse recorte.
+
+\subsection{Validade de Conclusão}
+
+As métricas são pontuais e não foram acompanhadas por intervalos de confiança ou testes pareados de diferença. Assim, pequenas diferenças numéricas não devem ser tratadas como prova estatística de superioridade. A comparação conjunta de MAE, RMSE, $R^2$, MAPE e persistência oferece evidência descritiva, não uma ordenação universal.
+
+O XGBoost recebeu busca sistemática com validação temporal, enquanto as redes usam configuração empírica final. Essa assimetria faz parte do experimento e limita conclusões sobre a capacidade máxima das arquiteturas. Uma busca neural mais extensa poderia produzir resultados diferentes, mas também exigiria protocolo próprio de validação e custo computacional adicional.
+
+\subsection{Validade de Reprodutibilidade}
+
+O manifesto, os testes e os artefatos reduzem ambiguidades, porém a coleta inicial dos portais não está automatizada no executor. Uma reprodução integral precisa obter as versões corretas e aplicar a mesma padronização. Os hashes permitem detectar divergência, mas não baixar automaticamente os arquivos correspondentes.
+
+A promoção transacional protege a consistência dos produtos oficiais, mas não substitui o versionamento. Dados, código, texto e figuras devem permanecer associados à mesma revisão. Antes de divulgar novos resultados, é necessário recompilar a monografia e conferir se tabelas e números continuam alinhados aos CSVs.

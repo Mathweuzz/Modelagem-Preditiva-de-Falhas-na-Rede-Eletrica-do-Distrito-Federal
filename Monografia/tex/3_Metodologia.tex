@@ -42,6 +42,8 @@ O processo de triagem está representado no Diagrama de Fluxo (Figura~\ref{fig:p
 \label{fig:prisma_flowchart}
 \end{figure}
 
+\input{tex/3_Metodologia_01_Desenho}
+
 \section{Fonte de Dados e Estrutura de Armazenamento}\label{sec:bases}
 
 A espinha dorsal da modelagem preditiva sustenta-se na integração diária de duas fontes de dados ao longo de \textbf{3.073 dias} (compreendendo rigorosamente o período entre 01/01/2017 e 31/05/2025): medições meteorológicas do INMET e registros de interrupções da ANEEL. Após a engenharia de atributos (defasagens, médias móveis e desvios padrão em janela deslizante) e o tratamento de lacunas temporais por interpolação linear, o conjunto final possui \textbf{3.066 observações} válidas (a partir de 08/01/2017), totalizando 41 colunas (40 \textit{features} de entrada + 1 variável alvo). Esse horizonte temporal abrange múltiplos ciclos anuais completos, incluindo eventos climáticos relevantes como o El Niño de 2023--2024 e as transições sazonais características do bioma Cerrado.
@@ -104,6 +106,8 @@ A Tabela~\ref{tab:dic_aneel} descreve os campos da base de interrupções da ANE
 \end{center}
 \small{Fonte: Dicionário de Metadados de Dados Abertos - ANEEL (2025).}
 \end{table}
+
+\input{tex/3_Metodologia_02_Dados}
 
 \section{Ecossistema Computacional e Bibliotecas}\label{sec:computacional}
 Para o pré-processamento dos dados e o treinamento dos modelos de aprendizado de máquina e redes neurais, utilizou-se a linguagem \textbf{Python} (\textit{Python Software Foundation}, versão 3.10+). A escolha do Python justifica-se pela ampla disponibilidade de bibliotecas especializadas em aprendizado de máquina e manipulação de dados, com implementações de alto desempenho em \texttt{C/C++} expostas através de interfaces de alto nível. As principais bibliotecas utilizadas são descritas a seguir.
@@ -185,7 +189,7 @@ Sistema Operacional & Manjaro Linux, \textit{kernel} 6.x \\
 \midrule
 \multicolumn{2}{l}{\textit{Configuração 2}} \\
 \midrule
-Processador (CPU) & Intel Core i9-14900HX, 24 núcleos / 48 \textit{threads}, até 5{,}80\,GHz \\
+Processador (CPU) & Intel Core i9-14900HX, 24 núcleos / 32 \textit{threads}, até 5{,}80\,GHz \\
 Memória RAM       & 32\,GB DDR5 \\
 Acelerador (GPU)  & NVIDIA GeForce RTX 4070 Laptop GPU, 8\,GB GDDR6 (capacidade computacional CUDA 8.9) \\
 Sistema Operacional & Arch Linux, \textit{kernel} 7.0.9 \\
@@ -393,6 +397,8 @@ Empregou-se a Correlação Produto-Momento de Pearson ($r$) para diagnosticar as
 \end{equation}
 
 A matriz de correlação de Pearson (detalhada na Seção~\ref{sec:pearson}) foi utilizada como diagnóstico de pares de variáveis com elevada associação linear, adotando-se $|r| > 0{,}90$ como limiar de inspeção. O \textit{pipeline} final não aplica filtro automático nem remove colunas com base nesse critério: as 40 \textit{features} construídas foram preservadas para os modelos, e a correlação foi utilizada apenas na análise exploratória e na interpretação das redundâncias. Essa decisão mantém a implementação reprodutível e evita atribuir ao experimento uma etapa de seleção dimensional que não foi executada.
+
+\input{tex/3_Metodologia_03_Engenharia}
 
 \section{Tratamento de Outliers e Qualidade dos Dados}\label{sec:outliers}
 
@@ -635,3 +641,5 @@ Para o XGBoost, cada horizonte recebe um novo ajuste sobre os respectivos pares 
 Além das métricas agregadas sobre todo o conjunto de teste, as 352 previsões de cada combinação modelo--horizonte foram ordenadas pela data-alvo e examinadas nos 12 meses civis abrangidos entre junho de 2024 e maio de 2025. Essa representação corresponde a uma sequência de previsões diretas com antecedência fixa --- por exemplo, 352 previsões de um dia à frente em $h=1$ dentro da análise multi-horizonte --- e não a uma única previsão realizada com horizonte de 352 dias.
 
 Para quantificar a variação sazonal do desempenho, as previsões foram agrupadas pelo mês civil da data-alvo. Junho de 2024 contém 17 observações (14 a 30 de junho), e os demais meses contêm de 28 a 31 observações. Calcularam-se MAE e RMSE separadamente para os três modelos e os quatro horizontes. Esse procedimento é exclusivamente descritivo e utiliza as mesmas previsões do teste global, sem novo ajuste, seleção de hiperparâmetros ou alteração da separação temporal. Os resultados mensais permitem verificar se a ordenação agregada dos modelos varia entre as estações seca, de transição e chuvosa.
+
+\input{tex/3_Metodologia_04_Validacao}

@@ -1,0 +1,170 @@
+\section{Proveniência, Padronização e Linhagem dos Dados}\label{sec:proveniencia_linhagem}
+
+A reprodutibilidade da base começa antes da engenharia de atributos. Os arquivos utilizados pelo construtor foram cópias oficiais previamente padronizadas, preservadas com nome e resumo criptográfico SHA-256. A coleta nos portais e a padronização inicial constituem etapas distintas: o código principal não presume que todos os arquivos disponibilizados ao público tenham separador, codificação, cabeçalho ou nomes de coluna uniformes. Antes da execução automatizada, foram removidas linhas de metadados do cabeçalho do INMET, convertida a vírgula decimal e normalizados os nomes necessários ao esquema canônico.
+
+O manifesto registra o período, o arquivo consolidado de interrupções, os nove arquivos anuais da estação A001 e o hash de cada entrada. O hash não atesta que uma fonte esteja conceitualmente correta, mas funciona como uma impressão digital: qualquer alteração de conteúdo produz, com probabilidade prática extremamente alta, outro valor. Assim, duas execuções que declarem usar o mesmo arquivo podem verificar se os bytes realmente coincidem.
+
+\subsection{Camadas de Dados e Responsabilidades}
+
+Foram distinguidas quatro camadas. A camada \textit{bruta} corresponde ao material obtido dos portais; a camada \textit{padronizada} mantém o conteúdo selecionado com esquema uniforme; a camada \textit{consolidada} estabelece uma linha diária; e a camada \textit{analítica} adiciona atributos derivados e organiza entradas e alvos. Essa separação evita que uma rotina de treinamento passe a executar silenciosamente decisões de limpeza que deveriam ser documentadas na ingestão.
+
+\begin{table}[H]
+\centering
+\caption{Camadas da linhagem de dados}
+\label{tab:camadas_linhagem}
+\small
+\begin{tabularx}{\textwidth}{p{2.7cm} p{3.6cm} X}
+\toprule
+\textbf{Camada} & \textbf{Conteúdo} & \textbf{Responsabilidade} \\
+\midrule
+Bruta & Arquivos obtidos dos portais & Preservar a evidência de origem e os metadados disponibilizados \\
+Padronizada & CSVs com esquema e tipos uniformes & Resolver codificação, separador, cabeçalhos e nomes sem alterar a semântica \\
+Consolidada & Uma linha por dia & Deduplicar eventos, agregar horas e unir as fontes pela data \\
+Analítica & 40 atributos mais o alvo & Criar calendário, defasagens, EMAs e desvios móveis para os modelos \\
+Resultados & Previsões, métricas e figuras & Registrar as saídas sem substituir a base que lhes deu origem \\
+\bottomrule
+\end{tabularx}
+\small{Fonte: Elaborado pelos autores (2026).}
+\end{table}
+
+As camadas não foram tratadas como versões intercambiáveis. O arquivo consolidado ainda contém a variável de completude horária \texttt{n\_registros}; a base analítica a remove, pois ela não é uma condição meteorológica disponível de maneira prospectiva. Já a contagem de interrupções permanece na base analítica porque, depois do deslocamento do alvo, o valor em $t$ é histórico em relação a $t+h$.
+
+\subsection{Reconstrução do Alvo a partir dos Eventos da ANEEL}
+
+O arquivo consolidado da ANEEL contém 754.599 linhas de entrada. O primeiro passo seleciona o identificador \texttt{NumOrdemInterrupcao} e a data de início \texttt{DatInicioInterrupcao}, converte a data, limita o período e remove repetições do mesmo identificador. Esse procedimento resulta em 748.542 eventos únicos. A diferença de 6.057 linhas corresponde a repetições que não devem produzir contagens adicionais.
+
+Se $E$ é o conjunto de eventos únicos e $d(e)$ a data civil de início do evento $e$, o alvo é
+\begin{equation}
+    y_t=\sum_{e\in E}\mathbb{1}\{d(e)=t\},
+\end{equation}
+em que $\mathbb{1}$ é a função indicadora. O índice diário completo entre 01/01/2017 e 31/05/2025 é criado antes da união. Uma data sem evento receberia contagem zero, e não valor ausente. Na série efetivamente utilizada, todos os 3.073 dias apresentam ao menos uma ocorrência.
+
+A contagem usa eventos únicos, não a soma de uma coluna previamente agregada. Isso permite auditar a unidade do alvo e impede que uma mesma ordem apareça mais de uma vez devido a atualizações ou repetições no arquivo de origem. Também não houve filtro por \texttt{FatGeradorInterrupcao}; logo, o alvo inclui todas as causas registradas e não deve ser denominado ``interrupção climática''.
+
+\begin{table}[H]
+\centering
+\caption{Balanço da construção da variável alvo}
+\label{tab:balanco_alvo}
+\small
+\begin{tabularx}{\textwidth}{X r X}
+\toprule
+\textbf{Etapa} & \textbf{Quantidade} & \textbf{Interpretação} \\
+\midrule
+Linhas do arquivo consolidado & 754.599 & Registros recebidos antes da deduplicação \\
+Eventos únicos & 748.542 & Identificadores distintos no período de estudo \\
+Repetições removidas & 6.057 & Linhas que não geram uma segunda ocorrência diária \\
+Datas do calendário completo & 3.073 & Dias entre 01/01/2017 e 31/05/2025, inclusive \\
+Datas sem interrupção & 0 & Nenhum preenchimento com zero foi necessário na série observada \\
+Média diária & 243,59 & Média calculada após a deduplicação \\
+Máximo diário & 1.424 & Pico preservado como observação válida \\
+\bottomrule
+\end{tabularx}
+\small{Fonte: Calculado pelos autores a partir do manifesto e da base consolidada (2026).}
+\end{table}
+
+\subsection{Seleção e Validação dos Arquivos Meteorológicos}
+
+O período requer nove arquivos anuais, de 2017 a 2025. O construtor procura exclusivamente arquivos cujo nome identifique a estação A001 de Brasília e cujo diretório anual coincida com o ano codificado no nome. A execução é interrompida se faltar algum ano ou se houver mais de um candidato para o mesmo ano. Essa regra evita a concatenação acidental de estações distintas ou de versões duplicadas.
+
+Em cada arquivo são lidas apenas as colunas necessárias: data, hora UTC, temperatura de bulbo seco, precipitação horária, velocidade e direção horárias do vento e rajada máxima. Data e hora formam a chave horária. Linhas com chave inválida são recusadas. Depois da concatenação, o período é limitado ao recorte do estudo, pois o arquivo de 2025 disponível na fonte alcança data posterior a 31/05/2025.
+
+O controle de duplicatas distingue dois casos. Se duas linhas apresentam a mesma data, hora e os mesmos valores meteorológicos, uma delas é descartada sem perda de informação. Se compartilham data e hora, mas divergem em qualquer variável, o processamento falha e exibe exemplos das chaves conflitantes. A recusa é preferível à média automática, porque não existe fundamento para decidir se os valores representam correção, erro de exportação ou observações distintas.
+
+\subsection{Controle de Domínio das Variáveis Meteorológicas}
+
+Os códigos sentinela menores ou iguais a $-999$ são convertidos em ausentes. A precipitação inferior a zero também é inválida, assim como velocidades negativas. A direção é aceita somente entre $0^\circ$ e $360^\circ$. Essas regras são aplicadas antes da agregação, para que valores inválidos não contaminem médias, máximos ou somas.
+
+O limite superior das variáveis não foi usado como filtro automático. Rajadas, temperaturas ou precipitações elevadas podem ser eventos legítimos, e a simples raridade não constitui prova de erro. Em vez disso, a validação superior depende da inspeção descritiva e da consistência da fonte. Esse tratamento assimétrico é deliberado: há valores negativos impossíveis para algumas grandezas, mas um máximo raro ainda pode ser fisicamente plausível.
+
+\begin{table}[H]
+\centering
+\caption{Regras de validação aplicadas antes da agregação diária}
+\label{tab:validacao_dominios}
+\small
+\begin{tabularx}{\textwidth}{p{4.2cm} p{4.2cm} X}
+\toprule
+\textbf{Campo} & \textbf{Regra} & \textbf{Ação quando violada} \\
+\midrule
+Data e hora & Conversão temporal válida & Interromper a reconstrução \\
+Chave horária & Única, salvo cópia idêntica & Remover cópia idêntica ou recusar conflito \\
+Código sentinela & Valor $\leq -999$ & Converter em ausente \\
+Precipitação & $x\geq0$ & Converter valor negativo em ausente \\
+Velocidade/rajada & $x\geq0$ & Converter valor negativo em ausente \\
+Direção & $0^\circ\leq\theta\leq360^\circ$ & Converter valor fora do domínio em ausente \\
+Período & 01/01/2017 a 31/05/2025 & Descartar linha externa ao recorte \\
+\bottomrule
+\end{tabularx}
+\small{Fonte: Elaborado pelos autores a partir das validações do construtor da base (2026).}
+\end{table}
+
+\subsection{Agregação Horária para a Escala Diária}
+
+A estatística diária depende da natureza física da variável. Temperatura e velocidade horária são resumidas pela média; a própria velocidade também gera o máximo diário; a rajada usa o máximo; e a precipitação usa a soma com preservação de ausência quando todas as observações do dia estão ausentes. O argumento equivalente a \texttt{min\_count=1} impede que um dia inteiramente sem medição de chuva seja transformado incorretamente em zero milímetro.
+
+Para a direção, cada ângulo horário $\theta_i$ é projetado no círculo unitário. Calculam-se
+\begin{equation}
+    \bar{s}_t=\frac{1}{n_t}\sum_i\sin(\theta_i), \qquad
+    \bar{c}_t=\frac{1}{n_t}\sum_i\cos(\theta_i),
+\end{equation}
+e a norma $r_t=\sqrt{\bar{s}_t^2+\bar{c}_t^2}$. Quando $r_t\geq10^{-12}$, as componentes são normalizadas: $s_t=\bar{s}_t/r_t$ e $c_t=\bar{c}_t/r_t$. Se vetores opostos se cancelarem e a norma ficar abaixo do limiar, a direção é considerada indefinida. A operação resolve corretamente a vizinhança entre norte, $359^\circ$, e $1^\circ$, cuja média aritmética seria próxima de $180^\circ$ e fisicamente enganosa.
+
+O número de horários válidos para a velocidade é guardado na base consolidada como \texttt{n\_registros}. Esse campo auxilia a inspeção da completude, mas é removido antes da engenharia preditiva. Utilizá-lo no modelo significaria ensinar uma característica do processo de aquisição que pode não estar consolidada no instante operacional da previsão.
+
+\subsection{União Temporal e Cardinalidade}
+
+O calendário do alvo funciona como tabela principal. A meteorologia diária é associada por uma união à esquerda, validada como um-para-um. Essa cardinalidade significa que cada data do calendário aparece no máximo uma vez em cada lado. Se a agregação meteorológica produzisse duas linhas para o mesmo dia, a união falharia em vez de multiplicar silenciosamente a contagem de interrupções.
+
+O resultado deve possuir exatamente
+\begin{equation}
+    N=(\text{31/05/2025}-\text{01/01/2017})+1=3.073
+\end{equation}
+linhas. A soma inclui as duas extremidades e contempla os anos bissextos de 2020 e 2024. Essa verificação não depende do número encontrado no arquivo: ele é calculado a partir do intervalo esperado e comparado ao resultado.
+
+Na base reconstruída, um dia não apresenta registros horários da A001, deixando ausentes sete campos meteorológicos após a união. A continuidade é restaurada na etapa de engenharia, exclusivamente para essas variáveis. O alvo nunca é interpolado, pois uma contagem ausente não possui interpretação física equivalente à média dos dias vizinhos.
+
+\subsection{Exemplo de Reconstrução de um Dia}
+
+Considere um dia hipotético com três medições válidas de temperatura, $20$, $22$ e $24\,^{\circ}\mathrm{C}$; precipitações $0$, $2$ e $5\,\mathrm{mm}$; velocidades $1$, $3$ e $2\,\mathrm{m/s}$; e direções $350^\circ$, $0^\circ$ e $10^\circ$. A temperatura diária é $22\,^{\circ}\mathrm{C}$, a precipitação é $7\,\mathrm{mm}$, a velocidade média é $2\,\mathrm{m/s}$ e a máxima é $3\,\mathrm{m/s}$. A direção circular é próxima de $0^\circ$, e não $120^\circ$, pois os vetores estão agrupados em torno do norte.
+
+Se 185 identificadores únicos da ANEEL tiverem início nessa data, $y_t=185$. O registro diário será formado por essa contagem e pelos resumos meteorológicos. Nenhuma das três linhas horárias vira uma amostra separada de treinamento, e nenhuma ocorrência individual é duplicada para combinar com cada hora.
+
+Esse exemplo evidencia por que a fusão é executada somente depois das agregações. Uma união precoce entre eventos e horas geraria um produto de cardinalidades: cada ocorrência poderia ser repetida para cada medição meteorológica do dia, inflando tanto o conjunto quanto as estatísticas.
+
+\subsection{Agregações Semanais e Mensais para Análise}
+
+Além da base diária de modelagem, foram produzidas escalas semanais e mensais para comparar correlações. As regras preservam a semântica: interrupções e precipitação são somadas; temperatura e velocidade média são promediadas; velocidade máxima e rajada conservam o máximo; e as componentes direcionais são novamente normalizadas após a média.
+
+A frequência semanal \texttt{W-MON} representa grupos encerrados na segunda-feira, cobrindo a terça-feira anterior até a própria segunda-feira. Explicitar o fechamento é necessário porque o rótulo semanal, isoladamente, não informa ao leitor quais dias pertencem ao grupo. A frequência mensal usa o início do mês como índice representativo. O consumo energético, originalmente mensal, só é unido nessa escala e nunca é replicado artificialmente em cada dia.
+
+As correlações em escalas diferentes não são tratadas como amostras equivalentes. A agregação reduz o número de pontos e suaviza variações de alta frequência, podendo alterar a magnitude do coeficiente. Por essa razão, uma associação mensal mais alta não implica automaticamente maior capacidade de previsão diária.
+
+\subsection{Manifesto e Cadeia de Auditoria}
+
+Ao final da reconstrução são gravados a base diária, o arquivo meteorológico diário e o manifesto. O manifesto documenta o formato de entrada, o intervalo, a definição do alvo, a ausência de filtro por causa, o campo de deduplicação, as quantidades intermediárias, os nomes e os hashes. Ele não contém os arquivos brutos nem substitui o registro das fontes; serve para conferir a identidade do material usado.
+
+Uma auditoria pode começar pela comparação do hash, reconstruir as 3.073 linhas, executar a engenharia e verificar a forma final. Se o hash divergir, a execução ainda pode ser tecnicamente válida, mas já não é a mesma reprodução e deve ser identificada como nova versão dos dados. Se o hash coincidir e a saída divergir além de resíduos de ponto flutuante, a diferença deve estar no ambiente ou no código.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    node distance=0.9cm,
+    box/.style={rectangle, draw, rounded corners, text width=10.8cm,
+        align=center, minimum height=0.82cm, fill=blue!7},
+    seta/.style={draw, -latex', thick}
+]
+\node[box, fill=orange!10] (fontes) {Entradas padronizadas identificadas por nome e SHA-256};
+\node[box, below=of fontes] (valid) {Validação de período, chaves, tipos, domínios e arquivos anuais};
+\node[box, below=of valid] (cons) {Base consolidada: 3.073 dias e união um-para-um};
+\node[box, below=of cons] (feat) {Base analítica: 3.066 dias, 40 atributos e alvo};
+\node[box, below=of feat] (pred) {Previsões com datas de origem, alvo, valor real e estimado};
+\node[box, below=of pred, fill=green!10] (prod) {Métricas, tabelas e figuras derivadas das previsões};
+\path[seta] (fontes) -- (valid);
+\path[seta] (valid) -- (cons);
+\path[seta] (cons) -- (feat);
+\path[seta] (feat) -- (pred);
+\path[seta] (pred) -- (prod);
+\end{tikzpicture}
+\caption{Cadeia de linhagem entre entradas e produtos analíticos.}
+\small{Fonte: Elaborado pelos autores (2026).}
+\label{fig:linhagem_artefatos}
+\end{figure}

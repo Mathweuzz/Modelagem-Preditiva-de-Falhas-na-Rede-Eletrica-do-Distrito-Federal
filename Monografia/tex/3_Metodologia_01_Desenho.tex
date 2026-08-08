@@ -1,0 +1,130 @@
+\section{Delineamento Operacional do Estudo}\label{sec:delineamento_operacional}
+
+O delineamento foi organizado como um estudo observacional longitudinal de previsão. A expressão \textit{observacional} indica que nenhuma condição meteorológica ou ocorrência da rede foi manipulada pelos autores; \textit{longitudinal} indica que as medições foram alinhadas ao longo de uma linha do tempo comum; e \textit{de previsão} delimita o objetivo empírico: estimar o total de interrupções de uma data futura a partir das informações já disponíveis em uma data de origem. Essa definição impede que associações encontradas nos dados sejam interpretadas, por si sós, como relações causais.
+
+A unidade observacional da base de modelagem é o \textbf{dia civil no Distrito Federal}. Cada linha reúne o total de interrupções iniciado naquele dia, as condições meteorológicas agregadas da estação A001 e os atributos históricos ou calendáricos derivados. A unidade de previsão também é diária. Assim, o valor estimado não representa duração, número de consumidores afetados, energia não suprida ou causa da falha; representa exclusivamente a contagem de identificadores únicos de interrupção cuja data de início pertence ao dia-alvo.
+
+Essa distinção entre unidade observacional, unidade de previsão e fenômeno físico foi mantida durante todo o trabalho. Os registros individuais da ANEEL são usados para construir o alvo, porém o treinamento ocorre depois da agregação diária. De modo análogo, as observações horárias do INMET são usadas para caracterizar o dia, mas não constituem amostras independentes do modelo. Portanto, o número de linhas da base final não corresponde ao número de registros horários nem ao número de ocorrências individuais: corresponde ao número de dias completos após a construção dos atributos.
+
+\subsection{Pergunta Preditiva e Formalização da Origem Temporal}
+
+Seja $t$ a data de origem da previsão e $h$ a antecedência, em dias. O problema é estimar
+\begin{equation}
+    \widehat{y}_{t+h}=f_h(\mathcal{I}_t),
+\end{equation}
+em que $y_{t+h}$ é a contagem de interrupções na data-alvo e $\mathcal{I}_t$ representa o conjunto de informações disponível até a origem. Na avaliação principal, $h=1$. Na análise complementar, $h\in\{1,3,7,14\}$. Um modelo independente é ajustado para cada horizonte, de modo que $f_1$, $f_3$, $f_7$ e $f_{14}$ correspondem a tarefas preditivas distintas.
+
+Para o XGBoost, $\mathcal{I}_t$ é representado por uma linha tabular datada em $t$. Para as redes recorrentes, a mesma informação por instante é organizada como uma sequência de 14 linhas, de $t-13$ a $t$. A diferença é, portanto, de representação: ambas as famílias recebem 41 variáveis por instante, mas o XGBoost recebe uma fotografia da origem e as redes recebem uma janela que termina nessa mesma origem.
+
+O índice temporal da linha não deve ser confundido com o índice do alvo. No caso de $h=1$, por exemplo, a linha de 31/05/2024 é uma origem capaz de produzir uma previsão para 01/06/2024. Essa convenção foi aplicada explicitamente nos scripts por meio do deslocamento do alvo e da geração das datas-alvo, evitando uma separação por posição que pudesse colocar pares origem--alvo no lado incorreto do corte.
+
+\subsection{Encadeamento das Etapas Metodológicas}
+
+A Figura~\ref{fig:visao_metodologica_integral} sintetiza o encadeamento adotado. As setas indicam dependência de dados, e não uma relação causal entre clima e interrupções. A coleta produz arquivos de granularidades diferentes; a consolidação estabelece a chave diária; a engenharia adiciona memória temporal; a separação cronológica define o que pode ser aprendido; e somente então são realizados ajuste e avaliação.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    node distance=0.85cm,
+    etapa/.style={rectangle, draw, rounded corners, fill=blue!7,
+        text width=12.8cm, minimum height=0.83cm, align=center},
+    dado/.style={rectangle, draw, rounded corners, fill=orange!10,
+        text width=5.7cm, minimum height=0.85cm, align=center},
+    seta/.style={draw, -latex', thick}
+]
+\node[dado] (aneel) {ANEEL: eventos individuais de interrupção};
+\node[dado, right=0.8cm of aneel] (inmet) {INMET A001: observações meteorológicas horárias};
+\node[etapa, below=0.95cm of $(aneel)!0.5!(inmet)$] (pad) {Padronização, validação de tipos, deduplicação e controle de domínio};
+\node[etapa, below=of pad] (dia) {Agregação diária e união um-para-um pela data};
+\node[etapa, below=of dia] (eng) {Continuidade temporal, interpolação meteorológica e engenharia de 40 atributos};
+\node[etapa, below=of eng] (split) {Construção causal dos pares origem--alvo e separação cronológica};
+\node[etapa, below=of split] (fit) {Ajuste: persistência, XGBoost, Bi-LSTM e Bi-GRU};
+\node[etapa, below=of fit, fill=green!10] (eval) {Avaliação fora da amostra, auditoria de artefatos e análise por horizonte};
+\path[seta] (aneel) -- (pad);
+\path[seta] (inmet) -- (pad);
+\path[seta] (pad) -- (dia);
+\path[seta] (dia) -- (eng);
+\path[seta] (eng) -- (split);
+\path[seta] (split) -- (fit);
+\path[seta] (fit) -- (eval);
+\end{tikzpicture}
+\caption{Visão integral do delineamento metodológico.}
+\small{Fonte: Elaborado pelos autores (2026).}
+\label{fig:visao_metodologica_integral}
+\end{figure}
+
+O encadeamento foi implementado de forma que cada transformação produzisse um artefato inspecionável. A base diária antecede o conjunto com atributos; os parâmetros selecionados pelo XGBoost antecedem sua reutilização na análise multi-horizonte; e os arquivos de previsões antecedem o cálculo das métricas e a geração das figuras. Essa separação permite distinguir resultados primários de representações gráficas derivadas e reduz a possibilidade de uma figura ser atualizada sem a correspondente atualização numérica.
+
+\subsection{Dimensões do Problema e Escopo das Inferências}
+
+A Tabela~\ref{tab:unidades_escopo_metodologico} explicita as dimensões que poderiam ser confundidas durante a leitura. O recorte espacial é o Distrito Federal, mas a meteorologia é representada por uma única estação automática. O alvo abrange os registros atribuídos à distribuidora local, mas a base não contém a topologia de cada alimentador nem a localização exata de cada ocorrência. Consequentemente, as previsões são agregadas para o território estudado e não podem ser convertidas diretamente em risco por bairro, circuito ou equipamento.
+
+\begin{table}[H]
+\centering
+\caption{Unidades, granularidades e limites operacionais do estudo}
+\label{tab:unidades_escopo_metodologico}
+\small
+\begin{tabularx}{\textwidth}{p{3.3cm} X X}
+\toprule
+\textbf{Dimensão} & \textbf{Definição adotada} & \textbf{Implicação metodológica} \\
+\midrule
+Espaço & Distrito Federal; clima representado pela estação A001 & Não há previsão espacial por região administrativa ou alimentador \\
+Tempo & Dia civil, de 01/01/2017 a 31/05/2025 & Observações horárias e eventos individuais são consolidados antes da modelagem \\
+Alvo & Contagem diária de interrupções únicas & Não estima duração, consumidores afetados ou energia não suprida \\
+Origem & Última data cujas variáveis integram a entrada & Toda previsão é associada explicitamente a uma data-alvo posterior \\
+Horizonte & Diferença, em dias, entre alvo e origem & Cada $h$ define uma tarefa direta independente \\
+Inferência & Desempenho preditivo fora da amostra & Correlações climáticas não demonstram causalidade física \\
+\bottomrule
+\end{tabularx}
+\small{Fonte: Elaborado pelos autores (2026).}
+\end{table}
+
+O estudo compara algoritmos sob um conjunto de dados comum, mas não pretende provar que um modelo seja universalmente superior. As conclusões de desempenho se limitam ao período de teste, ao recorte geográfico, às fontes e às configurações documentadas. Também não se interpreta a importância de uma variável de árvore como efeito causal: ela expressa apenas quanto o preditor foi utilizado pelo modelo no contexto das demais variáveis.
+
+\subsection{Critérios de Inclusão, Exclusão e Preservação}
+
+Foram incluídas todas as datas do intervalo oficial e todas as interrupções únicas com início válido nesse período, sem filtro por causa. Eventos duplicados pelo identificador \texttt{NumOrdemInterrupcao} foram consolidados para que a repetição de uma mesma ordem no arquivo não inflasse a contagem. Não foram incluídos campos que dependessem de informação indisponível no momento da previsão, nem a variável \texttt{n\_registros}, que descreve a completude da medição meteorológica diária e foi tratada como informação de auditoria, não como preditor prospectivo.
+
+Valores meteorológicos reconhecidos como códigos de ausência, valores negativos fisicamente inválidos para precipitação e velocidades, e direções fora do intervalo de $0^\circ$ a $360^\circ$ foram convertidos em ausentes antes da agregação. Duplicatas horárias idênticas foram reduzidas a uma linha; duplicatas conflitantes foram definidas como erro impeditivo, pois escolher arbitrariamente uma delas alteraria o valor diário. Essa política distingue correções determinísticas, que não mudam o significado da medição, de decisões ambíguas que exigiriam revisão da fonte.
+
+Os valores extremos válidos foram preservados. A regra de exclusão não se baseou na raridade estatística, mas na validade do registro. Um pico de interrupções pode ser raro e ainda representar justamente o cenário operacional de maior interesse. Em contrapartida, um valor meteorológico sentinela, embora numericamente extremo, não representa uma observação física e não deve ser tratado como evento real.
+
+\subsection{Matriz entre Objetivos e Evidências Produzidas}
+
+Para manter rastreabilidade entre os objetivos do trabalho e a execução, cada questão foi associada a uma operação e a um conjunto de evidências. A Tabela~\ref{tab:objetivos_evidencias} não acrescenta novas hipóteses; ela mostra onde cada conclusão encontra suporte empírico.
+
+\begin{table}[H]
+\centering
+\caption{Relação entre objetivos, operações e evidências}
+\label{tab:objetivos_evidencias}
+\small
+\begin{tabularx}{\textwidth}{p{3.7cm} X X}
+\toprule
+\textbf{Objetivo operacional} & \textbf{Procedimento} & \textbf{Evidência gerada} \\
+\midrule
+Construir uma série integrada & Deduplicação de eventos, agregação do INMET e união diária & Base diária, manifesto de entradas e verificações de integridade \\
+Caracterizar relações temporais & Estatísticas descritivas, correlações e agregações canônicas & Tabelas e figuras exploratórias em escalas diária, semanal e mensal \\
+Comparar modelos & Mesmo alvo, datas de teste e métricas para as três arquiteturas & Arquivos de previsões individuais e quadro comparativo \\
+Avaliar utilidade preditiva & Comparação com a persistência $\widehat y_{t+h}=y_t$ & Ganho ou perda em relação ao último valor conhecido \\
+Investigar antecedências & Treinamento direto para $h=1,3,7,14$ & Métricas globais, mensais e séries ordenadas por data-alvo \\
+Assegurar auditabilidade & Testes, sementes, hashes e promoção transacional & Artefatos reproduzíveis e falha explícita quando uma invariável é violada \\
+\bottomrule
+\end{tabularx}
+\small{Fonte: Elaborado pelos autores (2026).}
+\end{table}
+
+\subsection{Estratégia de Comparação Justa}
+
+Uma comparação justa não exige que os modelos tenham a mesma estrutura interna, mas exige que respondam à mesma pergunta. Por isso, as datas-alvo, o horizonte e a variável real foram igualados. O XGBoost não foi obrigado a usar janelas tridimensionais, pois sua natureza é tabular; as redes não foram reduzidas a uma linha, pois sua natureza é sequencial. O elemento comum é a informação disponível até $t$ e o alvo $y_{t+h}$.
+
+Na avaliação principal, os três modelos produzem 365 previsões, uma para cada dia de 01/06/2024 a 31/05/2025. Na avaliação multi-horizonte, todos produzem 352 previsões por horizonte, uma para cada data-alvo de 14/06/2024 a 31/05/2025. A redução de 13 dias cria um intervalo comum no qual até a previsão de 14 dias possui origem em 31/05/2024, sem exigir observações de teste para formar a primeira origem.
+
+As métricas foram calculadas sobre os mesmos vetores reais, e verificações automatizadas recusam combinações modelo--horizonte ausentes, datas duplicadas, quantidades divergentes ou diferenças no alvo real entre modelos. A persistência foi submetida aos mesmos recortes. Dessa forma, diferenças nas métricas decorrem das previsões e não de uma seleção diferente de dias.
+
+\subsection{Decisões Confirmatórias e Análises Complementares}
+
+A avaliação de um dia à frente constitui a comparação principal. Ela foi definida sobre um ano completo de teste e concentra o quadro comparativo central. A análise multi-horizonte é complementar: amplia a antecedência, examina a degradação do desempenho e permite a leitura mensal, mas reutiliza no XGBoost a configuração selecionada em $h=1$. Portanto, ela não equivale a quatro novas buscas independentes de hiperparâmetros.
+
+As análises de correlação, sazonalidade, severidade descritiva e resíduos auxiliam a interpretação, mas não alteram o conjunto de teste, não selecionam novamente modelos e não fornecem testes causais. As faixas de volume diário foram definidas para descrever o comportamento dos erros em regimes de contagem, sem serem apresentadas como categorias regulatórias da ANEEL.
+
+Esse ordenamento reduz o risco de transformar uma descoberta exploratória em confirmação retrospectiva. Resultados mensais, por exemplo, servem para localizar períodos de maior erro, e não para escolher o modelo depois de observar cada mês. A escolha final deve considerar o conjunto completo de métricas e as limitações previamente documentadas.

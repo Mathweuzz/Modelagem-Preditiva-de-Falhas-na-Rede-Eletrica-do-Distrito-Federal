@@ -1,0 +1,187 @@
+\section{Execução da Engenharia de Atributos}\label{sec:especificacao_engenharia}
+
+Esta seção detalha a ordem efetiva das transformações. A ordem é parte da metodologia: alterar a sequência entre preenchimento, defasagem e remoção de ausentes produziria outro conjunto. O procedimento recebe a base consolidada, converte a data em índice ordenado, reindexa a frequência diária, trata a única lacuna meteorológica, remove a variável de auditoria \texttt{n\_registros}, cria atributos e somente então elimina as linhas iniciais sem histórico suficiente.
+
+\subsection{Continuidade do Índice e Separação entre Ausência e Zero}
+
+O índice completo é construído entre a menor e a maior data com frequência diária. Essa operação torna qualquer lacuna explícita. Para interrupções, zero representa uma contagem observada nula e \textit{NaN} representa ausência de informação; por isso, a coluna não é interpolada. Para precipitação, zero representa ausência de chuva medida, enquanto \textit{NaN} representa ausência de medição. Confundir esses estados reduziria artificialmente a precipitação acumulada.
+
+Somente sete variáveis meteorológicas podem ser interpoladas: temperatura, precipitação, velocidade média, velocidade máxima, rajada e as duas componentes da direção. O preenchimento linear da reconstrução histórica usa os vizinhos anterior e posterior. Em seguida, as componentes direcionais são renormalizadas para que
+\begin{equation}
+    d_{\mathrm{sen},t}^{2}+d_{\mathrm{cos},t}^{2}=1.
+\end{equation}
+Se a norma for praticamente nula, o processamento é interrompido porque não existe direção definida. A verificação final exige ausência de lacunas meteorológicas e espaçamento de exatamente um dia entre índices consecutivos.
+
+\subsection{Calendário Civil como Informação Exógena}
+
+Mês, dia da semana e dia do ano são calculados diretamente a partir do índice. Eles são conhecidos antecipadamente e, portanto, não introduzem informação futura sobre o alvo. O mês também é projetado no círculo unitário. Por exemplo, dezembro é representado por $(0,1)$ e janeiro aproximadamente por $(0{,}5,0{,}866)$; a distância entre esses pontos é compatível com meses consecutivos, ao contrário da distância numérica entre 12 e 1.
+
+A codificação dupla não elimina as colunas inteiras. No XGBoost, a versão inteira permite divisões por intervalos e a versão circular oferece uma geometria sazonal contínua. Nas redes, ambas fazem parte do vetor normalizado. Não foi acrescentada codificação senoidal para dia da semana ou dia do ano, pois ela não consta da implementação avaliada.
+
+\subsection{Defasagens e Disponibilidade da Informação}
+
+Para cada série $z_t$ entre interrupções, precipitação, temperatura e rajada, foram criadas defasagens de 1, 2, 3 e 7 dias:
+\begin{equation}
+    z_{t}^{(k)}=z_{t-k}, \qquad k\in\{1,2,3,7\}.
+\end{equation}
+Esses atributos expressam memória curta e semanal. Na linha de data $t$, nenhum deles utiliza valor posterior a $t$. A defasagem de interrupções é particularmente importante para distinguir o alvo contemporâneo, que permanece como informação histórica na origem, do alvo futuro usado na função de perda.
+
+A maior defasagem é sete. Logo, nos primeiros sete dias da série não existe $z_{t-7}$. Essa indisponibilidade é estrutural: não deve ser interpolada, pois inventaria um passado anterior ao começo do recorte. Ao remover linhas com atributos incompletos, as datas de 01/01/2017 a 07/01/2017 são excluídas e 08/01/2017 torna-se a primeira linha elegível.
+
+\subsection{Média Móvel Exponencial e Inicialização Recursiva}
+
+Para precipitação, temperatura e rajada, foram calculadas EMAs com \textit{span} de 3, 7 e 14. A implementação usa \texttt{adjust=False}, equivalente à recorrência
+\begin{equation}
+    e_t=\alpha z_t+(1-\alpha)e_{t-1}, \qquad
+    \alpha=\frac{2}{s+1},
+\end{equation}
+com $e_0=z_0$. Para $s=14$, $\alpha=2/15\approx0{,}1333$. O valor atual recebe aproximadamente $13{,}33\%$ do peso e o restante é transportado da EMA anterior.
+
+O \textit{span} não é uma janela rígida. A EMA de 14 dias não exige 14 observações completas antes de produzir o primeiro valor; ela é inicializada na primeira observação e atualizada recursivamente. Portanto, essa variável não elimina 14 linhas. Sua designação ``14 dias'' controla a taxa de decaimento e a suavização, não a quantidade mínima de observações.
+
+Para ilustrar, suponha precipitações $z_0=0$, $z_1=15$ e $z_2=0\,\mathrm{mm}$ e \textit{span} 3, de modo que $\alpha=0{,}5$. A sequência é $e_0=0$, $e_1=7{,}5$ e $e_2=3{,}75$. O pulso de chuva permanece com peso decrescente mesmo depois de um dia seco. Para \textit{span} 14, a resposta inicial seria menor e o decaimento mais lento.
+
+\subsection{Desvio Padrão Móvel como Janela Rígida}
+
+O desvio padrão móvel possui comportamento diferente. Para cada uma das três variáveis meteorológicas, calcula-se
+\begin{equation}
+    s_t=\sqrt{\frac{1}{w-1}\sum_{i=0}^{w-1}
+    (z_{t-i}-\bar{z}_t)^2}, \qquad w=7,
+\end{equation}
+com a convenção amostral da biblioteca. Como não foi reduzido o número mínimo de observações, são necessários sete valores para obter o primeiro resultado. Assim, as seis primeiras linhas ficam ausentes devido ao desvio móvel; a defasagem de sete dias acrescenta uma sétima linha ausente e determina o corte efetivo.
+
+O desvio móvel não é um \textit{span}. Ele usa uma janela finita de sete observações com pesos iguais, enquanto a EMA usa toda a história disponível com pesos geometricamente decrescentes. A Tabela~\ref{tab:ema_std_lag} resume a diferença.
+
+\begin{table}[H]
+\centering
+\caption{Diferenças operacionais entre defasagem, EMA e desvio móvel}
+\label{tab:ema_std_lag}
+\small
+\begin{tabularx}{\textwidth}{p{2.8cm} X X p{2.6cm}}
+\toprule
+\textbf{Operação} & \textbf{Memória} & \textbf{Primeiro valor} & \textbf{Linhas iniciais ausentes} \\
+\midrule
+Lag 7 & Um valor exatamente sete dias antes & Apenas quando existe $t-7$ & 7 \\
+EMA 14 & Toda a história, com decaimento exponencial & Inicializada em $z_0$ & 0 \\
+Desvio móvel 7 & Sete valores com pesos iguais & Na sétima observação & 6 \\
+\bottomrule
+\end{tabularx}
+\small{Fonte: Elaborado pelos autores (2026).}
+\end{table}
+
+\subsection{Balanço Dimensional dos Atributos}
+
+A base diária contém o alvo e sete variáveis meteorológicas. A engenharia acrescenta cinco atributos de calendário, 16 defasagens, nove EMAs e três desvios móveis. O balanço é
+\begin{equation}
+    7+5+16+9+3=40\ \text{preditores},
+\end{equation}
+aos quais se soma a coluna \texttt{interrupcoes}, totalizando 41 variáveis por instante. O CSV possui ainda a coluna \texttt{data}; por isso, uma leitura tabular sem convertê-la em índice mostra 42 colunas físicas, embora apenas 41 integrem a matriz numérica.
+
+\begin{table}[H]
+\centering
+\caption{Balanço da construção do conjunto analítico}
+\label{tab:balanco_features}
+\small
+\begin{tabularx}{\textwidth}{X r r X}
+\toprule
+\textbf{Grupo} & \textbf{Séries} & \textbf{Colunas} & \textbf{Observação} \\
+\midrule
+Meteorologia diária & 7 & 7 & Inclui duas componentes direcionais \\
+Calendário & 5 & 5 & Três inteiras e duas cíclicas \\
+Defasagens & $4\times4$ & 16 & Lags 1, 2, 3 e 7 \\
+EMAs & $3\times3$ & 9 & Spans 3, 7 e 14 \\
+Desvios móveis & $3\times1$ & 3 & Janela rígida de sete dias \\
+Preditores & --- & 40 & Soma dos cinco grupos \\
+Alvo histórico por instante & 1 & 1 & Deslocado depois para formar $y_{t+h}$ \\
+\bottomrule
+\end{tabularx}
+\small{Fonte: Elaborado pelos autores (2026).}
+\end{table}
+
+\subsection{Exemplo Completo de uma Linha Analítica}
+
+Considere a linha de origem $t$. Ela contém a meteorologia agregada e $y_t$, as informações de calendário conhecidas para $t$, as quatro séries em $t-1$, $t-2$, $t-3$ e $t-7$, as tendências exponenciais calculadas até $t$ e os desvios dos sete valores encerrados em $t$. Para uma previsão de um dia, o par supervisionado é $(\mathbf{x}_t,y_{t+1})$; para 14 dias, é $(\mathbf{x}_t,y_{t+14})$.
+
+O fato de $y_t$ aparecer em $\mathbf{x}_t$ não constitui vazamento, pois ele é anterior ao alvo. Seria vazamento usar $y_{t+h}$, uma estatística calculada com valores posteriores a $t$ ou ajustar um transformador com o período de teste. A auditoria deve, portanto, considerar a data de disponibilidade, não apenas o nome da coluna.
+
+Na rede recorrente, uma amostra com origem $t$ empilha 14 dessas linhas:
+\begin{equation}
+    \mathbf{X}_t=
+    \begin{bmatrix}
+    \mathbf{x}_{t-13}\\
+    \mathbf{x}_{t-12}\\
+    \vdots\\
+    \mathbf{x}_{t}
+    \end{bmatrix}\in\mathbb{R}^{14\times41}.
+\end{equation}
+O alvo fica fora desse tensor e corresponde a $y_{t+h}$. Em um lote de 32 amostras, a entrada assume dimensão $32\times14\times41$.
+
+\subsection{Por que a Base Final Tem 3.066 Dias}
+
+A base consolidada possui 3.073 dias. A engenharia elimina exatamente sete linhas iniciais, resultando em
+\begin{equation}
+    3.073-7=3.066.
+\end{equation}
+A primeira data passa de 01/01/2017 para 08/01/2017 e a última permanece 31/05/2025. O motivo dominante é a defasagem de sete dias. O desvio móvel exige seis dias anteriores para completar sua primeira janela e, portanto, não aumenta esse corte para além de sete. A EMA de 14 dias não exige aquecimento rígido e não é responsável por perda adicional.
+
+Essa contagem foi conferida diretamente no artefato: a base consolidada possui forma $3.073\times10$ quando a data é contada como coluna, e a base final possui $3.066\times42$ no CSV. Depois que a data vira índice, restam 41 variáveis numéricas. Não há valores ausentes na saída.
+
+\subsection{Interpolação Histórica e Cenário de Operação}
+
+A interpolação bilateral foi utilizada para reconstruir uma série histórica destinada à comparação de modelos. Ela não é proposta como rotina de produção. Em operação, o valor posterior à origem ainda não existe; portanto, uma lacuna meteorológica no próprio dia deveria ser tratada por preenchimento causal, por uma fonte alternativa em tempo real ou por um modelo treinado para tolerar ausência.
+
+No conjunto estudado, a lacuna ocorre em 03/01/2018, inteiramente dentro do treinamento e muito antes do teste. O preenchimento não transporta valores de 2024--2025 para o período de ajuste. Ainda assim, a limitação é documentada porque a validade de uma técnica de reconstrução histórica não implica sua disponibilidade prospectiva.
+
+\subsection{Controle de Vazamento por Classe de Transformação}
+
+Cada transformação foi classificada segundo o risco temporal. Atributos de calendário são conhecidos antecipadamente; defasagens são causais por construção; EMAs e desvios são causais quando calculados em ordem e encerrados em $t$; o escalonamento requer ajuste exclusivo no treino; e a interpolação bilateral é admissível apenas na reconstrução histórica documentada.
+
+\begin{table}[H]
+\centering
+\caption{Auditoria temporal das transformações}
+\label{tab:auditoria_transformacoes}
+\small
+\begin{tabularx}{\textwidth}{p{3.5cm} p{3.0cm} X}
+\toprule
+\textbf{Transformação} & \textbf{Disponibilidade} & \textbf{Controle adotado} \\
+\midrule
+Calendário & Conhecida para qualquer data & Derivação direta do índice \\
+Defasagem & Somente valores anteriores & \texttt{shift(k)} com $k>0$ \\
+EMA & Valores até a data corrente & Cálculo ordenado e recorrente \\
+Desvio móvel & Janela encerrada na data corrente & Janela retrospectiva de sete dias \\
+Interpolação meteorológica & Usa vizinhos dos dois lados & Restrita à reconstrução histórica; lacuna apenas no treino \\
+Min--Max & Depende de mínimos e máximos & Ajuste exclusivo no subconjunto de treinamento \\
+Alvo futuro & Indisponível na origem & Mantido fora da entrada e deslocado por $h$ \\
+\bottomrule
+\end{tabularx}
+\small{Fonte: Elaborado pelos autores (2026).}
+\end{table}
+
+\subsection{Invariantes da Saída Analítica}
+
+Uma execução só é aceita se a saída estiver ordenada, sem datas duplicadas, sem lacunas maiores que um dia e sem valores ausentes. O número de linhas e colunas, as datas extremas e os nomes dos atributos também podem ser confrontados com o dicionário. Essas invariantes são mais fortes que uma inspeção visual isolada, porque transformam expectativas metodológicas em condições verificáveis.
+
+Não se exige que todas as colunas sejam estatisticamente independentes. EMAs, lags e valores contemporâneos carregam deliberadamente informação sobre o mesmo processo em escalas distintas. A matriz de correlação diagnostica redundâncias, mas o conjunto final preserva os 40 preditores para manter correspondência com os experimentos realizados.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    node distance=0.75cm,
+    box/.style={rectangle, draw, rounded corners, fill=blue!7,
+      text width=11.7cm, minimum height=0.8cm, align=center},
+    seta/.style={draw, -latex', thick}
+]
+\node[box] (a) {Base consolidada: 3.073 datas, alvo e meteorologia};
+\node[box, below=of a] (b) {Reindexação diária, remoção de \texttt{n\_registros} e interpolação meteorológica};
+\node[box, below=of b] (c) {Calendário: 5 atributos};
+\node[box, below=of c] (d) {Defasagens: 16 atributos};
+\node[box, below=of d] (e) {EMAs: 9 atributos; desvios móveis: 3 atributos};
+\node[box, below=of e] (f) {Remoção das sete linhas sem histórico completo};
+\node[box, below=of f, fill=green!10] (g) {Saída: 3.066 datas, 40 preditores mais o alvo, sem \textit{NaN}};
+\path[seta] (a)--(b); \path[seta] (b)--(c); \path[seta] (c)--(d);
+\path[seta] (d)--(e); \path[seta] (e)--(f); \path[seta] (f)--(g);
+\end{tikzpicture}
+\caption{Ordem executável da engenharia de atributos.}
+\small{Fonte: Elaborado pelos autores (2026).}
+\label{fig:ordem_engenharia}
+\end{figure}
