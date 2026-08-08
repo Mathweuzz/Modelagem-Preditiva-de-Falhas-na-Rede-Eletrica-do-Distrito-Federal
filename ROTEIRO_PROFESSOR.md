@@ -61,7 +61,7 @@ Diagramas de fluxo (pipeline de dados, arquitetura experimental) — todos **Tik
 | `cross_corr_vento_interrupcoes` | Cross-correlation rajada(t-lag) × interrupções | idem | idem |
 | `eda_scatter_ventos` | Scatter rajada × interrupções (cor=chuva) | `Fonte/src/models/script_exploration_pipeline.py` | idem |
 | `eda_boxplot_sazonalidade` | Boxplot mensal | idem | idem |
-| `eda_violin_anomalias` | Violin temperatura × tercis de severidade | `Fonte/src/04_eda_basica.py::plot_violin_anomalias` | idem |
+| `eda_violin_anomalias` | Violin temperatura × faixas descritivas do volume diário | `Fonte/src/04_eda_basica.py::plot_violin_anomalias` | idem |
 | `interrupcoes_vs_precipitacao_mensal` | Linha + barra precipitação mensal | `TerceiroPedido/scripts/t4_precipitacao_cores.py` | `aggregados_mensal_interrupcoes_precipitacao.csv` |
 | `interrupcoes_vs_precipitacao_semanal` | Linha + barra precipitação semanal | idem | `aggregados_semanal_interrupcoes_precipitacao.csv` |
 | `mensal_interrupcoes_vs_rajada_max` | Linha + barra rajada mensal | `TerceiroPedido/scripts/t9_vento_agregado_semana_mes.py` | `aggregados_mensal_interrupcoes_vento.csv` |

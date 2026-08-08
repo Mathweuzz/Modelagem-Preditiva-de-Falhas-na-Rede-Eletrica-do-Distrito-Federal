@@ -8,7 +8,7 @@ Gera os gráficos descritivos de alto nível usados no Cap. 4 da monografia:
   - distribuicao_interrupcoes.png      (histograma + KDE com média e mediana)
   - evolucao_anual_interrupcoes.png    (média ± desvio-padrão por ano)
   - correlacoes_escala_temporal.png    (Pearson em 3 escalas: diária / semanal / mensal)
-  - eda_violin_anomalias.png           (violinplot termodinâmica vs severidade da rede)
+  - eda_violin_anomalias.png           (temperatura vs faixas descritivas do alvo)
 
 Fonte de dados:
   ../data/base_diaria_interrupcoes_clima_vento.csv
@@ -24,6 +24,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import os
+
+from severity import classify_volume
 
 plt.style.use('seaborn-v0_8-whitegrid')
 plt.rcParams.update({
@@ -209,17 +211,17 @@ def plot_correlacoes_escala_temporal(df, save_path,
 
 
 def plot_violin_anomalias(df, save_path):
-    """Distribuição da temperatura por estrato de severidade da rede."""
-    print("Gerando violin de anomalias térmicas vs severidade...")
+    """Distribuição da temperatura pelas faixas descritivas do alvo."""
+    print("Gerando violin de temperatura vs volume de interrupções...")
     df2 = df[['interrupcoes', 'temperatura_media']].dropna().copy()
-    df2['Severidade'] = pd.qcut(df2['interrupcoes'], q=3,
-                                labels=['Baixa', 'Média', 'Severa'])
+    df2['Faixa de volume'] = classify_volume(df2['interrupcoes'])
 
     plt.figure(figsize=(10, 6))
-    sns.violinplot(x='Severidade', y='temperatura_media', data=df2,
-                   palette='husl', inner='quartile')
-    plt.title('Distribuição Térmica por Estrato de Severidade da Rede')
-    plt.xlabel('Classificação Diária da Rede (tercis de interrupções)')
+    sns.violinplot(x='Faixa de volume', y='temperatura_media',
+                   hue='Faixa de volume', data=df2, palette='husl',
+                   inner='quartile', legend=False)
+    plt.title('Distribuição Térmica por Faixa Descritiva do Alvo')
+    plt.xlabel('Volume diário de interrupções (recortes dos autores)')
     plt.ylabel('Temperatura Média Diária (°C)')
     plt.tight_layout()
     plt.savefig(save_path, dpi=300, bbox_inches='tight')

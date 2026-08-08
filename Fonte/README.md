@@ -37,12 +37,14 @@ Fonte/
 │   ├── 04_eda_basica.py                    # série completa, distribuição, etc.
 │   ├── 05_correlacoes_unificadas.py        # agregações e correlações canônicas
 │   ├── aggregation.py                      # regras físicas por variável
+│   ├── severity.py                         # faixas descritivas centralizadas
 │   └── models/
 │       ├── data_loader_dl.py              # janelamento + MinMax para PyTorch
 │       ├── baseline_xgboost.py            # XGBoost: treino + avaliação + gráficos
 │       ├── lstm_bidirecional.py           # Bi-LSTM: treino + avaliação + gráficos
 │       ├── gru_avancada.py                # Bi-GRU: treino + avaliação + gráficos
 │       ├── advanced_plots.py              # gráficos comparativos (KDE, heteroscedasticidade)
+│       ├── evaluate_severity.py            # MAE por faixa sobre alvo canônico
 │       └── script_exploration_pipeline.py # EDA exploratória rápida (3 figuras)
 │
 ├── results/                                # Artefatos gerados pelos scripts
@@ -120,6 +122,7 @@ python previsao_multihorizonte.py        # avaliação multi-horizonte (h=1,3,7,
 python plot_multihorizonte.py            # gráficos de desempenho por horizonte
 python plot_multihorizonte_temporal.py   # séries anuais e MAE mensal por horizonte
 python advanced_plots.py                 # gráficos comparativos (KDE, heteroscedasticidade)
+python evaluate_severity.py              # MAE por faixa do volume diário
 ```
 
 ## Reprodutibilidade
@@ -129,6 +132,7 @@ python advanced_plots.py                 # gráficos comparativos (KDE, heterosc
 - **XGBoost**: `random_state=42`. Reprodução determinística.
 - **LSTM/GRU (PyTorch)**: pequenas variações são esperadas entre execuções por causa do non-determinism interno do cuDNN/CUDA. As métricas reportadas no Capítulo 4 da monografia foram obtidas com o ambiente especificado no Apêndice (Reprodutibilidade).
 - **MAPE**: observações com valor real igual a zero são excluídas apenas dessa métrica; MAE, RMSE e R² continuam usando todas as observações.
+- **Faixas do alvo**: os limites `<200`, `200–400` e `>400` são recortes descritivos definidos pelos autores, calculados uma única vez sobre o alvo canônico inteiro. Não são categorias regulatórias oficiais da ANEEL.
 
 ## Métricas de referência (test set, 365 dias, h=1 direto)
 
