@@ -21,8 +21,8 @@ Fonte/
 │   ├── base_mensal_interrupcoes_clima_consumo.csv
 │   ├── dataset_engenharia_features.csv     # ← saída do script 03
 │   ├── manifesto_fontes_padronizadas.json  # nomes e SHA-256 das entradas
-│   ├── aggregados_*.csv                    # agregados semanais/mensais
-│   ├── correlacoes_*.csv
+│   ├── agregados_*_canonicos.csv           # agregados semanais/mensais finais
+│   ├── correlacoes_consolidadas.csv        # correlações canônicas
 │   ├── legado/                            # artefatos de versões anteriores (não usados pelos modelos finais)
 │   │   ├── metricas_dl_lstm_gru.csv
 │   │   ├── previsoes_dl_lstm_gru.csv
@@ -35,6 +35,8 @@ Fonte/
 │   ├── 02_correlacoes_nao_lineares.py     # Spearman/Kendall + cross-corr
 │   ├── 03_feature_engineering.py          # gera dataset_engenharia_features.csv
 │   ├── 04_eda_basica.py                    # série completa, distribuição, etc.
+│   ├── 05_correlacoes_unificadas.py        # agregações e correlações canônicas
+│   ├── aggregation.py                      # regras físicas por variável
 │   └── models/
 │       ├── data_loader_dl.py              # janelamento + MinMax para PyTorch
 │       ├── baseline_xgboost.py            # XGBoost: treino + avaliação + gráficos
@@ -73,6 +75,8 @@ O processamento possui três estágios:
    - Desvio-padrão móvel (rolling std) de 7 dias para chuva, temperatura e rajada
    - Drop de NaNs iniciais e interpolação linear de lacunas temporais. Total final: **3.066 dias × 40 features + alvo**.
 
+As agregações semanais e mensais usam soma para interrupções e precipitação, média para temperatura e velocidade média, máximo para velocidade máxima e rajada, e média circular para direção. A frequência semanal `W-MON` representa semanas encerradas na segunda-feira, abrangendo de terça-feira a segunda-feira.
+
 O script reproduz a estrutura e os valores do dataset; diferenças numéricas residuais de ponto flutuante são possíveis entre versões de bibliotecas.
 
 ---
@@ -103,6 +107,7 @@ cd Fonte/src
 python 01_eda_sazonalidade.py            # decomposição + ACF/PACF
 python 02_correlacoes_nao_lineares.py    # Spearman/Kendall + cross-corr
 python 04_eda_basica.py                  # série completa, distribuição, etc.
+python 05_correlacoes_unificadas.py       # agregações/correlações canônicas
 
 # 4. Modelos preditivos
 cd models
@@ -123,6 +128,7 @@ python advanced_plots.py                 # gráficos comparativos (KDE, heterosc
 - **Testes**: `Fonte/venv/bin/python -m unittest discover -s Fonte/tests -p "test_*.py" -v`, executado a partir da raiz.
 - **XGBoost**: `random_state=42`. Reprodução determinística.
 - **LSTM/GRU (PyTorch)**: pequenas variações são esperadas entre execuções por causa do non-determinism interno do cuDNN/CUDA. As métricas reportadas no Capítulo 4 da monografia foram obtidas com o ambiente especificado no Apêndice (Reprodutibilidade).
+- **MAPE**: observações com valor real igual a zero são excluídas apenas dessa métrica; MAE, RMSE e R² continuam usando todas as observações.
 
 ## Métricas de referência (test set, 365 dias, h=1 direto)
 
