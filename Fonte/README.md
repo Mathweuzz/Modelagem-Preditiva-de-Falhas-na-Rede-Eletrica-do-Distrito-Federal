@@ -20,6 +20,7 @@ Fonte/
 │   ├── base_diaria_interrupcoes_clima_mm.csv
 │   ├── base_mensal_interrupcoes_clima_consumo.csv
 │   ├── dataset_engenharia_features.csv     # ← saída do script 03
+│   ├── manifesto_fontes_padronizadas.json  # nomes e SHA-256 das entradas
 │   ├── aggregados_*.csv                    # agregados semanais/mensais
 │   ├── correlacoes_*.csv
 │   ├── legado/                            # artefatos de versões anteriores (não usados pelos modelos finais)
@@ -29,6 +30,7 @@ Fonte/
 │   └── vento_diario_brasilia.csv
 │
 ├── src/                                    # Pipeline principal
+│   ├── build_base_from_standardized.py     # fontes padronizadas → base diária
 │   ├── 01_eda_sazonalidade.py             # decomposição STL + ACF/PACF
 │   ├── 02_correlacoes_nao_lineares.py     # Spearman/Kendall + cross-corr
 │   ├── 03_feature_engineering.py          # gera dataset_engenharia_features.csv
@@ -52,16 +54,19 @@ Scripts adicionais que produzem figuras temáticas estão em `../SegundoPedido/S
 
 ---
 
-## Pipeline de dados (do bruto ao dataset final)
+## Pipeline de dados (das fontes padronizadas ao dataset final)
 
-A monografia descreve o fluxo completo no Capítulo 3 (Metodologia). De forma resumida, o processamento passou por três estágios:
+A monografia descreve o fluxo completo no Capítulo 3 (Metodologia). O construtor reproduz a base a partir de cópias oficiais previamente padronizadas. Ele não lê diretamente o formato original baixado dos portais: os arquivos do INMET, por exemplo, ainda exigem remoção do cabeçalho de metadados, conversão do separador e da codificação, normalização dos nomes das colunas e conversão da vírgula decimal.
+
+O processamento possui três estágios:
 
 1. **Coleta** (não automatizada neste pacote — fontes oficiais):
    - **INMET** — Instituto Nacional de Meteorologia: estação automática A001 (Brasília), com dados horários de temperatura, precipitação, vento médio, vento máximo e rajada máxima (2017-01-01 a 2025-05-31).
    - **ANEEL** — Agência Nacional de Energia Elétrica: relatórios de continuidade do PRODIST, indicadores de interrupção da concessionária Neoenergia Brasília.
    - **SAMP/CCEE** — consumo mensal de energia no DF.
-2. **Consolidação diária** (`SegundoPedido/SegundoPedido/scripts/t0_construir_clima_diario_brasilia.py` e correlatos): agregação horária → diária, alinhamento de calendário, imputação por interpolação temporal nos pontos faltantes, união com a contagem diária de interrupções.
+2. **Consolidação diária** (`Fonte/src/build_base_from_standardized.py`): seleção exclusiva da estação A001, validação da unicidade por data/hora, agregação horária → diária com estatística circular para a direção do vento e união com a contagem diária de interrupções únicas.
 3. **Engenharia de atributos** (`Fonte/src/03_feature_engineering.py`): a partir de `base_diaria_interrupcoes_clima_vento.csv`, gera `dataset_engenharia_features.csv` adicionando:
+   - Direção do vento: componentes unitárias `vento_dir_sin` e `vento_dir_cos`, renormalizadas após eventual interpolação
    - Calendário: `mes`, `dia_semana`, `dia_ano`, `mes_sin`, `mes_cos`
    - Defasagens (lags): 1, 2, 3 e 7 dias para `interrupcoes`, `precipitacao_total_mm`, `temperatura_media`, `vento_rajada_max_ms`
    - Médias móveis exponenciais (EMA): spans 3, 7 e 14 dias para chuva, temperatura e rajada
@@ -81,19 +86,25 @@ O script reproduz a estrutura e os valores do dataset; diferenças numéricas re
 
 ## Como executar
 
-A partir de `Fonte/`:
+A reconstrução exige o CSV consolidado da ANEEL e um diretório com os nove arquivos anuais padronizados da estação A001. A partir da raiz do repositório:
 
 ```bash
-# 1. EDA — Exploração inicial
-cd src
+# 1. Base diária reproduzível
+Fonte/venv/bin/python Fonte/src/build_base_from_standardized.py \
+  --interruptions /caminho/dados_completos_brasilia.csv \
+  --inmet-dir /caminho/dados_clima-inmet_limpos \
+  --output-dir Fonte/data
+
+# 2. Engenharia de atributos
+cd Fonte/src
+../venv/bin/python 03_feature_engineering.py
+
+# 3. EDA — Exploração inicial
 python 01_eda_sazonalidade.py            # decomposição + ACF/PACF
 python 02_correlacoes_nao_lineares.py    # Spearman/Kendall + cross-corr
 python 04_eda_basica.py                  # série completa, distribuição, etc.
 
-# 2. Engenharia de atributos (regenera o dataset; já vem pronto)
-python 03_feature_engineering.py
-
-# 3. Modelos preditivos
+# 4. Modelos preditivos
 cd models
 python script_exploration_pipeline.py    # 3 figuras EDA finais
 python baseline_xgboost.py               # XGBoost (~1 min CPU)
@@ -108,6 +119,8 @@ python advanced_plots.py                 # gráficos comparativos (KDE, heterosc
 
 ## Reprodutibilidade
 
+- **Integridade das entradas**: nomes e hashes SHA-256 em `data/manifesto_fontes_padronizadas.json`.
+- **Testes**: `Fonte/venv/bin/python -m unittest discover -s Fonte/tests -p "test_*.py" -v`, executado a partir da raiz.
 - **XGBoost**: `random_state=42`. Reprodução determinística.
 - **LSTM/GRU (PyTorch)**: pequenas variações são esperadas entre execuções por causa do non-determinism interno do cuDNN/CUDA. As métricas reportadas no Capítulo 4 da monografia foram obtidas com o ambiente especificado no Apêndice (Reprodutibilidade).
 

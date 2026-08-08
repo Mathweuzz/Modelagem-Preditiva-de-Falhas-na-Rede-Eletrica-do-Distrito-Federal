@@ -1,0 +1,65 @@
+{
+  "formato_entrada": "arquivos oficiais previamente padronizados",
+  "periodo": {
+    "inicio": "2017-01-01",
+    "fim": "2025-05-31"
+  },
+  "alvo": {
+    "definicao": "total diario de interrupcoes unicas da ANEEL",
+    "filtro_por_causa": false,
+    "deduplicacao": "NumOrdemInterrupcao"
+  },
+  "interrupcoes": {
+    "arquivo": "dados_completos_brasilia.csv",
+    "sha256": "9b68feaad48bdf50d7f8e645d576efc2ccdfecf4aa43672ece3dc771fab905be",
+    "linhas_entrada": 754599,
+    "eventos_unicos": 748542,
+    "dias": 3073,
+    "dias_sem_interrupcao": 0,
+    "media_diaria": 243.58672307191668,
+    "mediana_diaria": 219.0,
+    "maximo_diario": 1424
+  },
+  "inmet": [
+    {
+      "arquivo": "INMET_CO_DF_A001_BRASILIA_01-01-2017_A_31-12-2017.CSV",
+      "sha256": "c14412717556184a902fafe078c4cdd7a142544032e590347db67c9416fcf8f0"
+    },
+    {
+      "arquivo": "INMET_CO_DF_A001_BRASILIA_01-01-2018_A_31-12-2018.CSV",
+      "sha256": "3881b190afaf18158161ad461a8f779f5d9c676df26c9a33fe12933ed458ddf6"
+    },
+    {
+      "arquivo": "INMET_CO_DF_A001_BRASILIA_01-01-2019_A_31-12-2019.CSV",
+      "sha256": "ea5ffab33559911260a7549d5b1bee2c98b63f3b36c4d89c2dd36560464a57aa"
+    },
+    {
+      "arquivo": "INMET_CO_DF_A001_BRASILIA_01-01-2020_A_31-12-2020.CSV",
+      "sha256": "a52399f1a6ee668c646551b630d2027f45cd143faa9eb9443820f3d3cb3b3fae"
+    },
+    {
+      "arquivo": "INMET_CO_DF_A001_BRASILIA_01-01-2021_A_31-12-2021.CSV",
+      "sha256": "ddc4d2de1db04e2017f0138d647aed644d1cd88b685e2e21e5d5dfba6543dfe4"
+    },
+    {
+      "arquivo": "INMET_CO_DF_A001_BRASILIA_01-01-2022_A_31-12-2022.CSV",
+      "sha256": "31c8e921602f39af9c5f0212a8040988964bb85200f4972135b72023b8991155"
+    },
+    {
+      "arquivo": "INMET_CO_DF_A001_BRASILIA_01-01-2023_A_31-12-2023.CSV",
+      "sha256": "6b668e0c06dd17cc8b553b81749e707551cb3afffcefc3536be4ae14d1b15268"
+    },
+    {
+      "arquivo": "INMET_CO_DF_A001_BRASILIA_01-01-2024_A_31-12-2024.CSV",
+      "sha256": "d39a0c63e708631a6088c36a1d15c29d235e574662c9fb8ad7f73a67571f4025"
+    },
+    {
+      "arquivo": "INMET_CO_DF_A001_BRASILIA_01-01-2025_A_31-07-2025.CSV",
+      "sha256": "ffada5d30c9346f14d651711619a463bdf5749bfcf1c78e04b722d876777b7f4"
+    }
+  ],
+  "saidas": [
+    "base_diaria_interrupcoes_clima_vento.csv",
+    "vento_diario_brasilia.csv"
+  ]
+}
