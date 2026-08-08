@@ -464,7 +464,7 @@ Orientador: Prof. Jan Mendonça Corrêa}
   }
 \end{frame}
 
-\begin{frame}{O erro cresce nos dias mais críticos}{Heteroscedasticidade e severidade}
+\begin{frame}{O erro cresce nos dias de maior volume}{Heteroscedasticidade e magnitude do alvo}
   \begin{columns}[T,onlytextwidth]
     \begin{column}{0.57\textwidth}
       \includegraphics[width=\textwidth]{scatter_heteroscedasticity.png}
@@ -473,20 +473,22 @@ Orientador: Prof. Jan Mendonça Corrêa}
       \textbf{\large MAE do XGBoost}
       \vspace{0.6em}
 
-      \modelwinner{Normal ($<200$)}{30,1}{20,3\% dos dias}
-      \modelwinner{Moderada (200--400)}{38,9}{66,0\% dos dias}
-      \modelwinner{Severa ($>400$)}{135,9}{13,7\% dos dias}
+      \modelwinner{Baixo ($<200$)}{44,6}{20,0\% dos dias}
+      \modelwinner{Intermediário (200--400)}{50,6}{66,3\% dos dias}
+      \modelwinner{Alto ($>400$)}{136,0}{13,7\% dos dias}
 
       \vspace{0.6em}
       \small
       Previsões pontuais devem evoluir para intervalos de incerteza.
+
+      \scriptsize Recortes descritivos dos autores; não são categorias oficiais da ANEEL.
     \end{column}
   \end{columns}
 
   \source{Elaboração dos autores, Tabela 4.3 e Figura 4.27.}
   \note{%
     Apresentador: Mateus. Tempo-alvo: 1 minuto e 20 segundos.
-    Destacar que o erro quadruplica nos dias severos, exatamente os mais importantes operacionalmente.
+    Destacar que o erro cresce muito nos dias de maior volume, exatamente os mais importantes operacionalmente. Explicar que os limites são recortes descritivos dos autores.
     [Sources] Monografia, Seções 4.4.4 e 4.5.
   }
 \end{frame}

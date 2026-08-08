@@ -11,7 +11,7 @@ Os principais achados são:
 
     \item \textbf{Desempenhos próximos entre XGBoost e Bi-LSTM para $h=1$:} Sob protocolo unificado de previsão $h=1$, o XGBoost (MAE $= 61{,}1$, $R^2 = 0{,}409$) e a Bi-LSTM (MAE $= 62{,}7$, $R^2 = 0{,}420$) apresentaram desempenhos descritivamente próximos (diferença de 2,7\% em MAE), enquanto a Bi-GRU ficou em terceiro lugar ($R^2 = 0{,}156$). XGBoost e Bi-LSTM também registraram MAE inferior ao da persistência (68,6). Todos compartilharam as mesmas 41 variáveis por instante e o corte temporal, mas o XGBoost recebeu uma linha e as redes, janelas de 14 dias; logo, não se trata de uma representação idêntica.
 
-    \item \textbf{Redes recorrentes com maior densidade residual próxima de zero:} Em $h=1$, as curvas KDE da Bi-LSTM e da Bi-GRU apresentaram picos mais concentrados em torno de zero. Essa característica não implica menor MAE nos dias normais: na segmentação por severidade, o XGBoost obteve o menor MAE em todas as faixas.
+    \item \textbf{Redes recorrentes com maior densidade residual próxima de zero:} Em $h=1$, as curvas KDE da Bi-LSTM e da Bi-GRU apresentaram picos mais concentrados em torno de zero. Essa característica não implica menor MAE nos dias de menor volume: nos recortes descritivos dos autores, o XGBoost obteve o menor MAE nas faixas de baixo e alto volume, enquanto a Bi-LSTM foi ligeiramente melhor na intermediária.
 
     \item \textbf{Tendência de crescimento nas interrupções:} A média diária de interrupções cresceu 65,3\% entre 2017 (183,5) e 2025 (303,4). Esse crescimento é descritivo e não permite inferência causal com as variáveis disponíveis; sua explicação demanda dados adicionais sobre ativos, manutenção, expansão da rede e causas das ocorrências.
 

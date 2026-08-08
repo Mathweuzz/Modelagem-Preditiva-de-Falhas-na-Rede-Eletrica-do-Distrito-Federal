@@ -240,12 +240,12 @@ A Figura~\ref{fig:eda_scatter} apresenta conjuntamente a velocidade do vento, as
     \label{fig:eda_scatter}
 \end{figure}
 
-A Figura~\ref{fig:eda_violin} apresenta a distribuição da temperatura média diária agrupada por tercis de severidade das interrupções (baixa, média e severa). As medianas térmicas das três faixas situam-se em torno de 21--22\,°C e as larguras dos violinos são comparáveis, indicando que, em escala diária, a temperatura por si só não distingue de forma robusta dias de baixa e alta carga de falhas. Esse resultado refina a leitura do mecanismo termodinâmico discutido na Seção~\ref{sec:fisica_atmosferica}: a dilatação térmica dos condutores opera predominantemente de forma indireta --- via amplificação do consumo (correlação $r = 0{,}56$ temperatura--consumo) e em interação com vento e chuva --- e não como gatilho isolado em escala diária.
+A Figura~\ref{fig:eda_violin} apresenta a distribuição da temperatura média diária em três faixas fixas do alvo: menos de 200, de 200 a 400 e mais de 400 interrupções. Esses limites são recortes descritivos definidos pelos autores para comparar volumes diários; não constituem categorias regulatórias oficiais da ANEEL. As distribuições são amplamente sobrepostas, indicando que, em escala diária, a temperatura isolada não distingue de forma robusta dias de menor e maior volume de interrupções.
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.85\textwidth]{./img/eda_violin_anomalias.png}
-    \caption{Distribuição da temperatura média diária por tercis de severidade das interrupções.}
+    \caption{Distribuição da temperatura média diária por faixas descritivas do volume de interrupções.}
     \small{Fonte: Elaborado pelos autores (2026).}
     \label{fig:eda_violin}
 \end{figure}
@@ -340,12 +340,12 @@ Os diagramas de dispersão das Figuras~\ref{fig:scatter_xgb},~\ref{fig:scatter_l
 
 Os três modelos exibem um padrão comum de \textbf{compressão para a média}: para valores reais muito altos ($>600$ interrupções), as previsões tendem a ser substancialmente inferiores ao real, indicando que os modelos são conservadores em cenários extremos. Esse comportamento é esperado, uma vez que eventos extremos são raros no conjunto de treinamento e a função de perda MSE naturalmente favorece previsões próximas à média \cite{goodfellow2016deep}.
 
-\subsection{Segmentação do Erro por Faixa de Severidade}
+\subsection{Segmentação do Erro por Faixa de Volume do Alvo}
 
-Para quantificar a dependência do erro em relação à magnitude das interrupções, segmentou-se o conjunto de teste em três faixas de severidade e calculou-se o MAE de cada modelo em cada faixa, conforme a Tabela~\ref{tab:erro_faixa}.
+Para quantificar a dependência do erro em relação à magnitude das interrupções, segmentou-se o conjunto de teste nas mesmas três faixas descritivas e calculou-se o MAE de cada modelo em cada faixa, conforme a Tabela~\ref{tab:erro_faixa}. Os limites de 200 e 400 são escolhas analíticas dos autores e não uma classificação oficial da ANEEL. Uma única série inteira do alvo canônico foi usada para construir as máscaras, depois reutilizadas em todos os modelos.
 
 \begin{table}[H]
-\caption{MAE dos Modelos Segmentado por Faixa de Severidade das Interrupções}
+\caption{MAE dos Modelos Segmentado por Faixa de Volume das Interrupções}
 \label{tab:erro_faixa}
 \begin{center}
 \small
@@ -353,9 +353,9 @@ Para quantificar a dependência do erro em relação à magnitude das interrupç
 \toprule
 \textbf{Faixa} & \textbf{Dias (\%)} & \textbf{XGBoost} & \textbf{Bi-LSTM} & \textbf{Bi-GRU} \\
 \midrule
-Normal ($< 200$) & 20,3\% & 44,6 & 47,9 & 66,9 \\
-Moderada (200--400) & 66,0\% & 50,6 & 49,8 & 61,7 \\
-Severa ($> 400$) & 13,7\% & 136,0 & 146,8 & 140,1 \\
+Baixo volume ($< 200$) & 73 (20,0\%) & 44,6 & 47,9 & 66,9 \\
+Volume intermediário (200--400) & 242 (66,3\%) & 50,6 & 49,8 & 61,7 \\
+Alto volume ($> 400$) & 50 (13,7\%) & 136,0 & 146,8 & 140,1 \\
 \bottomrule
 \end{tabular}
 \normalsize
@@ -363,7 +363,7 @@ Severa ($> 400$) & 13,7\% & 136,0 & 146,8 & 140,1 \\
 \small{Fonte: Elaborado pelos autores (2026).}
 \end{table}
 
-Os resultados mostram que o erro de todos os modelos aumenta substancialmente nos dias de operação severa ($>400$ interrupções), nos quais o MAE do XGBoost é cerca de 3 vezes o observado na faixa normal (136,0 vs. 44,6). O XGBoost apresenta o menor MAE observado na faixa normal. Na faixa moderada (200--400 interrupções), que representa a maioria dos dias de teste (66,0\%), a Bi-LSTM é ligeiramente melhor do que os dois modelos: alcança MAE de 49,8 contra 66,0 do XGBoost e 61,7 da Bi-GRU. A concentração de 66,0\% dos dias na faixa moderada reflete o período de teste (junho/2024 a maio/2025), que abrange tanto a estação seca quanto a chuvosa do Cerrado.
+Os resultados mostram que o erro de todos os modelos aumenta substancialmente nos 50 dias de alto volume, nos quais o MAE do XGBoost é cerca de três vezes o observado na faixa de baixo volume (136,0 contra 44,6). O XGBoost apresenta o menor MAE nas faixas de baixo e alto volume. Na faixa intermediária, que reúne 242 dias (66,3\% do teste), a Bi-LSTM é ligeiramente melhor: alcança MAE de 49,8, contra 50,6 do XGBoost e 61,7 da Bi-GRU.
 
 \section{Análise da Distribuição Residual (KDE)}\label{sec:residuais}
 A fim de ratificar matematicamente as variações probabilísticas de cada arquitetura, abstraiu-se a Função de Densidade de Probabilidade (PDF) do Erro Residual ($e_t = y_t - \hat{y}_t$) de toda a partição do Bloco de Testes. A estimativa não-paramétrica \textit{Kernel Density Estimation} (KDE) foi computada com \textit{kernel} Gaussiano, conforme apresentado na Figura~\ref{fig:kde_residuos}.
@@ -376,7 +376,7 @@ A fim de ratificar matematicamente as variações probabilísticas de cada arqui
     \label{fig:kde_residuos}
 \end{figure}
 
-Observa-se que as redes recorrentes (Bi-LSTM e Bi-GRU) apresentam distribuições KDE com maior densidade próxima de zero, enquanto o XGBoost apresenta pico mais achatado e caudas mais controladas. A forma da densidade descreve a distribuição global dos resíduos, mas não demonstra menor MAE das redes nos dias normais. Ao contrário, a segmentação por severidade da Tabela~\ref{tab:erro_faixa} mostra que o XGBoost possui o menor MAE nas três faixas, inclusive na normal (30,1 contra 47,4 da Bi-LSTM e 66,4 da Bi-GRU).
+Observa-se que as redes recorrentes (Bi-LSTM e Bi-GRU) apresentam distribuições KDE com maior densidade próxima de zero, enquanto o XGBoost apresenta pico mais achatado e caudas mais controladas. A forma da densidade descreve a distribuição global dos resíduos, mas não demonstra menor MAE das redes nos dias de baixo volume. Nessa faixa, o XGBoost obteve MAE 44,6, contra 47,9 da Bi-LSTM e 66,9 da Bi-GRU; na faixa intermediária, a Bi-LSTM registrou o menor MAE.
 
 Para averiguar a premissa linear clássica da homocedasticidade (variância constante do erro), compilou-se o Diagrama de Dispersão Residual do modelo vencedor neural (Bi-LSTM) (Figura~\ref{fig:scatter_hetero}). É nítida a característica heterocedástica imposta pela natureza intermitente da rede elétrica: quanto maior a escala de interrupções reais num dado temporal agressivo, maior dilata-se o cone de dispersão preditiva.
 
