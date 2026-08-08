@@ -361,6 +361,34 @@ Se a falta custa muito mais que o excesso, $\tau^{\ast}$ se aproxima de um. Port
 
 Esse princípio também explica por que MAE e RMSE podem ordenar modelos de maneira diferente. O MAE aproxima uma decisão baseada na mediana e penaliza linearmente; o RMSE enfatiza erros grandes e se relaciona à média sob perda quadrática. Nenhuma métrica representa automaticamente o custo real de equipes, deslocamento, materiais, compensações e impacto social. A seleção operacional deve explicitar a função de decisão que se pretende apoiar.
 
+\subsection{Incerteza das Métricas, Ablação e Diagnóstico Residual}\label{sec:fund_robustez_metricas}
+
+Intervalos de previsão e intervalos para uma métrica respondem a perguntas diferentes. O primeiro procura quantificar a faixa plausível para um valor futuro $Y_{t+h}$; o segundo procura quantificar quanto uma medida agregada, como o MAE, variaria sob repetição amostral. Uma previsão pontual pode, portanto, ser acompanhada por uma avaliação de incerteza do desempenho mesmo quando o modelo não produz uma distribuição preditiva completa.
+
+Em dados independentes, o \textit{bootstrap} clássico reamostra observações individuais com reposição. Esse procedimento não é adequado quando erros vizinhos compartilham estrutura temporal, pois a reamostragem isolada destrói a dependência. O \textit{block bootstrap} reamostra blocos contíguos e preserva, dentro de cada bloco, parte da autocorrelação observada \cite{lahiri2003resampling}. Na versão circular, o fim da série é conectado ao início apenas para formar blocos de comprimento constante. Se $I_r$ representa os índices concatenados da réplica $r$, a réplica do MAE é
+\begin{equation}
+    \mathrm{MAE}^{*(r)}
+    =\frac{1}{n}\sum_{t\in I_r}|y_t-\widehat y_t|.
+\end{equation}
+Os percentis 2,5 e 97,5 das réplicas fornecem um intervalo percentil de 95\%. O tamanho do bloco controla o compromisso entre preservar dependência e manter variedade entre as réplicas; por isso, conclusões relevantes devem ser examinadas sob mais de um comprimento plausível.
+
+Para comparar dois modelos nas mesmas datas, é preferível reamostrar a diferença pareada das perdas. Definindo
+\begin{equation}
+    \Delta_{A-B}=\frac{1}{n}\sum_{t=1}^{n}
+    \left(|e_{A,t}|-|e_{B,t}|\right),
+    \label{eq:delta_mae_pareado}
+\end{equation}
+um valor negativo favorece $A$. A comparação pareada não deve ser substituída pela simples inspeção da sobreposição entre dois intervalos marginais. Se o intervalo de $\Delta_{A-B}$ contém zero, os dados não sustentam uma separação clara entre os MAEs sob aquele esquema de reamostragem.
+
+A \textbf{ablação} complementa a importância interna do modelo. Enquanto o ganho de uma árvore descreve reduções da função objetivo nas divisões efetivamente construídas, a ablação remove grupos inteiros e mede a alteração fora da amostra. Essa operação responde se um conjunto de variáveis acrescenta valor preditivo incremental condicionado aos demais. Para evitar transformar o teste em etapa de seleção, variantes descobertas por ablação devem ser tratadas como diagnóstico pós-hoc ou validadas posteriormente em um novo período.
+
+Por fim, resíduos ideais não devem conservar estrutura previsível que o modelo poderia ter explorado. A ACF residual localiza dependências por defasagem, e o teste portmanteau de Ljung--Box avalia conjuntamente as autocorrelações até $m$ \cite{ljung1978measure}:
+\begin{equation}
+    Q(m)=n(n+2)\sum_{k=1}^{m}\frac{\widehat\rho_k^2}{n-k}.
+    \label{eq:ljung_box}
+\end{equation}
+Sob a hipótese nula, as autocorrelações consideradas são conjuntamente nulas. A rejeição não identifica a causa da dependência remanescente, mas mostra que o erro ainda não se comporta como ruído branco. Viés médio próximo de zero também não basta para garantir adequação: erros positivos e negativos podem se compensar enquanto persistem autocorrelação, heteroscedasticidade ou caudas extensas.
+
 \section{Atenção e Transformers em Séries Temporais}\label{sec:transformers_series}
 
 Redes recorrentes atualizam um estado sequencialmente, comprimindo o histórico numa cadeia de representações. O mecanismo de atenção introduz um caminho diferente: para formar uma representação, o modelo calcula diretamente a relevância relativa de diversos elementos da entrada. Dados vetores de consultas $Q$, chaves $K$ e valores $V$, a atenção por produto escalar é

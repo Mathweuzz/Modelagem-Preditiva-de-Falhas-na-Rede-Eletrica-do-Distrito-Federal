@@ -194,7 +194,9 @@ Por fim, o MAPE expressa erro percentual médio:
 
 Somente o MAPE exclui alvos iguais a zero, porque a divisão seria indefinida. MAE, RMSE e $R^2$ usam todas as observações. Na base estudada não há dia sem interrupção, mas a função foi implementada de maneira geral e devolve resultado indefinido se todos os alvos forem zero.
 
-Nenhuma métrica isolada determina superioridade absoluta. O MAE é diretamente interpretável; o RMSE revela sensibilidade a picos; $R^2$ mede variância explicada em relação à média; e o MAPE pondera relativamente dias de menor volume. Diferenças pequenas devem ser discutidas considerando essas propriedades e a ausência de um teste inferencial de diferença entre modelos.
+Nenhuma métrica isolada determina superioridade absoluta. O MAE é diretamente interpretável; o RMSE revela sensibilidade a picos; $R^2$ mede variância explicada em relação à média; e o MAPE pondera relativamente dias de menor volume. Diferenças pequenas são discutidas considerando essas propriedades e os intervalos pareados descritos a seguir.
+
+\input{tex/3_Metodologia_05_Robustez}
 
 \subsection{Avaliação por Faixas de Volume}
 
@@ -229,6 +231,9 @@ Na avaliação principal, cada modelo grava suas previsões e métricas. Um arqu
 \texttt{predictions\_}\allowbreak\texttt{all.csv} & Auditar modelos, horizontes, origens, alvos e igualdade do vetor real \\
 \texttt{metrics\_multi}\allowbreak\texttt{horizon.csv} & Conferir o resumo das 12 combinações \\
 \texttt{metrics\_multi}\allowbreak\texttt{horizon\_monthly.csv} & Reproduzir a análise mensal \\
+\texttt{robustness\_}\allowbreak\texttt{model\_intervals.csv} & Conferir intervalos de MAE, RMSE e viés \\
+\texttt{ablation\_xgboost\_}\allowbreak\texttt{metrics.csv} & Reproduzir a comparação entre grupos de atributos \\
+\texttt{residual\_}\allowbreak\texttt{diagnostics.csv} & Verificar viés, ACF e Ljung--Box dos resíduos \\
 Curvas e gráficos & Representar saídas numéricas já registradas, sem nova estimação \\
 \bottomrule
 \end{tabularx}
@@ -243,7 +248,7 @@ A reprodutibilidade foi tratada como propriedade do fluxo completo, não apenas 
 
 O executor exige árvore Git limpa. Essa condição impede que uma promoção misture artefatos novos com modificações locais não identificadas. Em seguida, cria um diretório temporário no mesmo sistema de arquivos, condição necessária para a substituição atômica por renomeação.
 
-Na área temporária são executados, em ordem: reconstrução da base, engenharia de atributos, análises exploratórias, agregações canônicas, testes, persistência, XGBoost, Bi-LSTM, Bi-GRU, gráficos avançados, análise por volume, previsão multi-horizonte e gráficos correspondentes. As figuras finais são copiadas para a pasta da monografia ainda na área preparada.
+Na área temporária são executados, em ordem: reconstrução da base, engenharia de atributos, análises exploratórias, agregações canônicas, testes, persistência, XGBoost, Bi-LSTM, Bi-GRU, gráficos avançados, análise por volume, análises de robustez, previsão multi-horizonte e gráficos correspondentes. As figuras finais são copiadas para a pasta da monografia ainda na área preparada.
 
 Se faltar um arquivo obrigatório ou se ele estiver vazio, a promoção não ocorre. Se uma falha acontecer durante a substituição de diretórios, as versões oficiais anteriores são restauradas. A área temporária é preservada para diagnóstico em caso de erro. Esse desenho reduz o risco de um capítulo referenciar metade de uma execução nova e metade de uma execução anterior.
 
@@ -306,6 +311,7 @@ Meteorologia & Média circular na passagem pelo norte; remoção de duplicatas i
 Temporal & Datas-alvo separadas pelo horizonte correto; janelas terminam na origem; escalonador usa apenas treino; persistência reproduz as métricas documentadas. \\
 Modelos & Bi-LSTM e Bi-GRU usam o estado final das duas direções; MAPE exclui somente alvos zero e é indefinido quando todos são zero. \\
 Volume & Limites das três faixas sem ambiguidade; mesmo conjunto de datas; alvo canônico inteiro; colunas reais específicas não substituem a referência. \\
+Robustez & Blocos preservam observações consecutivas; reamostragem é reprodutível; grupos de atributos são disjuntos e cobrem as 41 entradas. \\
 Atomicidade & Área temporária começa sem saídas antigas; promoção bem-sucedida substitui todos os diretórios; falha parcial restaura todos; arquivos ausentes ou vazios são recusados; somente PNGs são sincronizados. \\
 \bottomrule
 \end{longtable}
@@ -366,7 +372,7 @@ O teste contém um ano civil contínuo em termos sazonais, mas não contém toda
 
 \subsection{Validade de Conclusão}
 
-As métricas são pontuais e não foram acompanhadas por intervalos de confiança ou testes pareados de diferença. Assim, pequenas diferenças numéricas não devem ser tratadas como prova estatística de superioridade. A comparação conjunta de MAE, RMSE, $R^2$, MAPE e persistência oferece evidência descritiva, não uma ordenação universal.
+As métricas pontuais foram acompanhadas por intervalos de \textit{block bootstrap} e contrastes pareados, mas o teste cobre somente 365 dias e as conclusões apresentam sensibilidade ao comprimento do bloco em parte das comparações. Assim, pequenas diferenças numéricas não devem ser tratadas como prova universal de superioridade. A ablação também é pós-hoc e não fornece um novo conjunto de teste para promover a variante de melhor MAE como modelo final.
 
 O XGBoost recebeu busca sistemática com validação temporal, enquanto as redes usam configuração empírica final. Essa assimetria faz parte do experimento e limita conclusões sobre a capacidade máxima das arquiteturas. Uma busca neural mais extensa poderia produzir resultados diferentes, mas também exigiria protocolo próprio de validação e custo computacional adicional.
 

@@ -2,14 +2,14 @@ Este capítulo discute os resultados obtidos à luz da literatura existente, int
 
 \section{Interpretação dos Resultados Preditivos}
 
-Os resultados apresentados no Capítulo~\ref{4_Resultados} revelaram um achado relevante sobre a comparabilidade entre paradigmas de aprendizado de máquina: sob protocolo unificado de previsão direta $h=1$ --- mesmas variáveis por instante, mesmo corte da data de origem e mesmas datas-alvo, mas representação tabular para o XGBoost e sequencial para as redes --- XGBoost, Bi-LSTM e Bi-GRU apresentam MAEs descritivamente próximos (61,47, 61,74 e 62,10). A liderança depende da métrica: XGBoost tem o menor MAE, Bi-LSTM o menor MAPE e Bi-GRU o menor RMSE e o maior $R^2$ (0,442).
+Os resultados apresentados no Capítulo~\ref{4_Resultados} revelaram um achado relevante sobre a comparabilidade entre paradigmas de aprendizado de máquina: sob protocolo unificado de previsão direta $h=1$ --- mesmas variáveis por instante, mesmo corte da data de origem e mesmas datas-alvo, mas representação tabular para o XGBoost e sequencial para as redes --- XGBoost, Bi-LSTM e Bi-GRU apresentam MAEs descritivamente próximos (61,47, 61,74 e 62,10). A liderança depende da métrica: XGBoost tem o menor MAE, Bi-LSTM o menor MAPE e Bi-GRU o menor RMSE e o maior $R^2$ (0,442). Os contrastes pareados de \textit{block bootstrap}, contudo, não separam os MAEs dos três modelos; a diferença pontual não equivale a evidência de superioridade.
 
 O resultado não sustenta a hipótese de superioridade sistemática das arquiteturas de \textit{Deep Learning} sobre modelos baseados em árvores neste conjunto de teste. A proximidade descritiva entre XGBoost e Bi-LSTM pode estar associada a três fatores complementares:
 
 \begin{enumerate}
-    \item \textbf{Engenharia de atributos temporais:} A construção manual de 40 \textit{features} --- incluindo defasagens de 1 a 7 dias, médias móveis exponenciais e codificações harmônicas --- forneceu ao XGBoost informação temporal explícita. Com a inclusão do alvo histórico, o modelo opera sobre 41 entradas tabulares, enquanto as redes recebem essas 41 variáveis em 14 instantes. Uma ablação seria necessária para quantificar quanto da proximidade observada decorre da engenharia de atributos.
+    \item \textbf{Engenharia de atributos temporais:} A construção manual de 40 \textit{features} --- incluindo defasagens de 1 a 7 dias, médias móveis exponenciais e codificações harmônicas --- forneceu ao XGBoost informação temporal explícita. A ablação mostrou, porém, que essa contribuição não é uniforme: histórico + calendário superou o conjunto completo no teste pós-hoc, enquanto o grupo climático não apresentou ganho incremental.
 
-    \item \textbf{Regularização robusta:} O XGBoost dispõe de múltiplos mecanismos de regularização nativos ($L_1$, $L_2$, Gamma, \texttt{max\_depth}, \texttt{subsample}), calibrados via \textit{Grid Search} com validação cruzada temporal. Essa parametrização finamente ajustada impede o \textit{overfitting} de forma mais controlável do que o Dropout e o \textit{Weight Decay} das redes neurais.
+    \item \textbf{Regularização e seleção temporal:} O XGBoost dispõe de mecanismos de regularização nativos ($L_1$, $L_2$, Gamma, \texttt{max\_depth}, \texttt{subsample}) e recebeu \textit{Grid Search} com validação temporal. As redes usaram Dropout e \textit{Weight Decay}, mas não receberam busca equivalente; essa assimetria limita atribuir as diferenças apenas às arquiteturas.
 
     \item \textbf{Tamanho limitado do conjunto de dados:} Com 2.700 linhas de origem de treinamento (XGBoost) e 2.687 sequências (RNNs) com 41 variáveis por instante, o volume de dados é modesto para redes recorrentes profundas. O XGBoost, por sua natureza \textit{ensemble} de árvores, é adequado a dados tabulares desse porte \cite{chen2016xgboost}.
 \end{enumerate}
@@ -42,7 +42,7 @@ Representação de entrada & 41 variáveis em uma linha & Mesmas 41 variáveis p
 \small{Fonte: Elaborado pelos autores (2026).}
 \end{table}
 
-Uma vantagem frequentemente subestimada do XGBoost é a \textbf{interpretabilidade}. Conforme evidenciado pela Figura~\ref{fig:importancia} (Capítulo~\ref{4_Resultados}), o modelo fornece nativamente a importância relativa de cada \textit{feature}, permitindo que engenheiros da Neoenergia identifiquem quais variáveis climáticas são mais determinantes para a previsão. Essa transparência é crítica em contextos regulados, onde decisões operacionais precisam ser justificadas perante a ANEEL \cite{rudin2019stop}.
+Uma vantagem frequentemente subestimada do XGBoost é a \textbf{auditabilidade de sua estrutura}. Conforme evidenciado pela Figura~\ref{fig:importancia} (Capítulo~\ref{4_Resultados}), o modelo fornece a importância por ganho das variáveis usadas nas árvores. Essa medida ajuda a detectar dependência excessiva de atributos, mas não identifica causalidade nem demonstra valor incremental de um grupo. Essa transparência relativa é útil em contextos regulados, desde que acompanhada por testes de ablação e validação fora da amostra \cite{rudin2019stop}.
 
 Em contrapartida, as redes recorrentes demonstraram uma propriedade relevante na distribuição residual (Seção~\ref{sec:residuais}): suas distribuições KDE apresentam maior densidade próxima de zero. Essa forma, isoladamente, não implica menor MAE em todas as faixas; a análise segmentada mostra que o XGBoost obteve o menor MAE no baixo volume, a Bi-LSTM no volume intermediário e a Bi-GRU no alto volume. Com dados adicionais e em cenários de maior complexidade temporal (resolução horária, por exemplo), permanece como hipótese de trabalho avaliar como essas diferenças se generalizam.
 
@@ -66,9 +66,27 @@ A decomposição mensal (Seção~\ref{sec:multihorizonte_mensal}) qualifica essa
 
 O gráfico de importância por ganho médio do XGBoost (Figura~\ref{fig:importancia}) mostra as variáveis que mais contribuíram para as predições do modelo. O número de interrupções do dia de origem (\texttt{interrupcoes}[$t$]) ocupa a primeira posição, refletindo que o estado imediato da rede é a informação mais preditiva para $h=1$. Na sequência aparecem \texttt{interrupcoes\_lag\_1}, \texttt{mes\_cos}, \texttt{interrupcoes\_lag\_2}, a EMA de sete dias da precipitação, \texttt{mes\_sin} e a precipitação defasada de um dia.
 
-Esse ranking é coerente com a forte autocorrelação temporal evidenciada na análise ACF (Seção~\ref{sec:autocorrelacao}): o estado recente da série é o melhor preditor de curto prazo. As codificações harmônicas (\texttt{mes\_sin}, \texttt{mes\_cos}) indicam que a posição no ciclo sazonal do Cerrado é relevante para o modelo. As EMAs climáticas complementam com a tendência de médio prazo das condições meteorológicas.
+Esse ranking é coerente com a forte autocorrelação temporal evidenciada na análise ACF (Seção~\ref{sec:autocorrelacao}): o estado recente da série é o melhor preditor de curto prazo. As codificações harmônicas (\texttt{mes\_sin}, \texttt{mes\_cos}) indicam que a posição no ciclo sazonal do Cerrado é relevante para o modelo. As EMAs climáticas foram usadas em divisões do modelo completo, mas a ablação mostra que essa utilização interna não se converteu em ganho incremental do grupo climático no período de teste.
 
 É importante ressaltar que o ganho mede a contribuição de cada variável para as predições do modelo --- não um efeito causal das variáveis sobre as interrupções. Correlação temporal entre clima e falhas foi demonstrada nas seções anteriores, mas não permite inferir causalidade isolada.
+
+\section{Papel Incremental do Clima na Previsão Diária}\label{sec:discussao_ablacao}
+
+O achado mais incisivo da ablação é a vantagem observada da variante \textbf{histórico + calendário}: MAE 54,26 contra 61,47 do XGBoost completo. Com blocos de sete e 14 dias, o intervalo pareado permaneceu abaixo de zero; com 30 dias, o limite superior alcançou 0,11. A evidência favorece a especificação parcimoniosa nas escalas semanal e quinzenal de reamostragem, mas perde separação estrita quando se preservam segmentos mensais inteiros.
+
+Esse resultado não contradiz a existência de associação entre condições meteorológicas e interrupções. Correlação descritiva e ganho preditivo incremental são propriedades diferentes. Chuva, vento e temperatura podem covariar com o alvo, enquanto o histórico recente das interrupções e o calendário já absorvem parte substancial da informação sazonal compartilhada. Quando atributos redundantes são acrescentados a uma amostra de 2.700 origens de treinamento, o modelo também recebe mais oportunidades de ajustar relações que não se repetem no ano de teste.
+
+Há pelo menos quatro explicações compatíveis com o padrão observado:
+\begin{enumerate}
+    \item \textbf{resolução espacial}: uma única estação meteorológica não representa tempestades localizadas em todo o Distrito Federal;
+    \item \textbf{agregação diária}: máximos, médias e totais diários ocultam duração, horário, trajetória e simultaneidade dos eventos;
+    \item \textbf{redundância temporal}: calendário, histórico do alvo e clima compartilham sazonalidade, dificultando isolar contribuição incremental;
+    \item \textbf{especificação controlada}: as variantes reutilizam hiperparâmetros selecionados para o modelo completo, sem otimização própria.
+\end{enumerate}
+
+A variante clima + calendário, sem histórico do alvo, obteve MAE 79,22 e $R^2=0{,}076$. Ela preserva algum sinal acima de uma previsão constante, mas não supera a persistência nem o modelo somente calendário. Isso mostra que as covariáveis meteorológicas disponíveis não sustentam, isoladamente, a precisão alcançada pelos modelos autorregressivos neste protocolo.
+
+Também seria incorreto declarar histórico + calendário como novo modelo vencedor definitivo. A variante foi comparada no mesmo teste usado para produzir o achado; escolhê-la e reportá-la como modelo final usaria o teste para seleção. O procedimento correto é congelar essa hipótese e avaliá-la em dados posteriores a maio de 2025 ou em validação temporal externa. Até essa confirmação, a ablação qualifica a interpretação do modelo oficial, mas não substitui os resultados comparativos originalmente definidos.
 
 
 \section{Comparação com a Literatura}
@@ -116,6 +134,8 @@ O presente trabalho possui limitações que devem ser explicitadas para contextu
     \item \textbf{Estação meteorológica única:} Os dados climáticos provêm de uma única estação (A001 --- Brasília), que pode não representar adequadamente as condições microclimáticas de todas as regiões administrativas do DF. A incorporação de múltiplas estações ou de dados de reanálise (ERA5) proporcionaria cobertura espacial mais abrangente.
 
     \item \textbf{Volume de dados para Deep Learning:} As 2.687 sequências de treinamento disponíveis para as redes neurais (2.700 linhas de origem para o XGBoost), embora suficientes para modelos tabulares, são modestas para redes recorrentes profundas. A disponibilidade de séries mais longas ou de dados de múltiplas concessionárias poderia favorecer as arquiteturas neurais.
+
+    \item \textbf{Ablação pós-hoc:} Os grupos de atributos foram comparados no mesmo período reservado para a avaliação principal. O resultado é diagnóstico e precisa ser confirmado em um novo intervalo antes de orientar seleção de modelo. Além disso, as variantes reutilizaram a configuração do XGBoost completo, sem busca específica.
 \end{enumerate}
 
 \section{Implicações Práticas para a Neoenergia Brasília}
@@ -123,11 +143,11 @@ O presente trabalho possui limitações que devem ser explicitadas para contextu
 Os resultados deste trabalho apresentam aplicabilidade direta para a gestão operacional da concessionária:
 
 \begin{itemize}
-    \item \textbf{Sistema de alerta precoce:} Um modelo XGBoost treinado com as 40 \textit{features} desenvolvidas neste trabalho poderia ser integrado aos sistemas SCADA (\textit{Supervisory Control and Data Acquisition}) da Neoenergia, emitindo alertas automáticos quando a previsão de interrupções para o dia seguinte superar um limiar pré-definido (por exemplo, o terceiro quartil histórico de 295 interrupções).
+    \item \textbf{Sistema de alerta precoce:} O protótipo permite testar alertas para o dia seguinte, mas uma implantação deve comparar prospectivamente o XGBoost completo e a variante histórico + calendário, integrar previsão meteorológica realmente disponível na origem e calibrar limiares segundo custos de falso alarme e evento perdido. O terceiro quartil histórico pode iniciar a análise, não definir sozinho uma regra operacional.
 
     \item \textbf{Pré-posicionamento de equipes:} Com uma previsão para o dia seguinte, emitida após o fechamento das observações do dia corrente, a concessionária poderia apoiar o planejamento de equipes de manutenção. Para emissão intradiária ou com antecedência fixa de 24 horas, seria necessário integrar previsões meteorológicas operacionais e definir uma hora de corte operacional.
 
-    \item \textbf{Gestão regulatória:} A capacidade de prever picos de interrupções permite à concessionária documentar proativamente os eventos climáticos causadores, fortalecendo as justificativas técnicas perante a ANEEL em processos de apuração de violação dos limites DEC e FEC.
+    \item \textbf{Gestão regulatória:} A capacidade de antecipar dias de maior volume pode apoiar o registro de condições meteorológicas e operacionais. A previsão, porém, não identifica a causa de cada ocorrência nem substitui a documentação técnica exigida em processos relativos a DEC e FEC.
 
     \item \textbf{Planejamento de investimentos:} As associações observadas para rajada, precipitação e sazonalidade podem apoiar a formulação de hipóteses para investimentos em infraestrutura resiliente. Decisões como substituição de redes aéreas ou intensificação da poda preventiva exigem validação adicional com causas das ocorrências, topologia da rede e condição dos ativos.
 \end{itemize}
@@ -184,7 +204,7 @@ Esse padrão heteroscedástico tem duas implicações metodológicas relevantes:
 \begin{enumerate}
     \item \textbf{Função de perda:} A função MSE utilizada como critério de otimização penaliza desproporcionalmente os erros em dias extremos (por ser quadrática), o que enviesa os modelos para minimizar os erros nos picos em detrimento da precisão nos dias normais. Funções de perda alternativas, como o \textit{Huber Loss} ou o \textit{Quantile Loss}, poderiam produzir modelos com distribuições residuais mais homogêneas.
 
-    \item \textbf{Previsão probabilística:} A variância não-constante do erro torna as previsões pontuais insuficientes para a tomada de decisão operacional. Um modelo que prevê ``250 interrupções amanhã'' sem informar a incerteza associada não permite à concessionária calibrar seu nível de preparação. Previsões probabilísticas (intervalos de confiança) são uma extensão natural deste trabalho.
+    \item \textbf{Previsão probabilística:} A variância não-constante do erro torna as previsões pontuais insuficientes para a tomada de decisão operacional. Os intervalos de \textit{bootstrap} acrescentados quantificam incerteza das métricas agregadas, não a incerteza de ``250 interrupções amanhã''. Intervalos preditivos calibrados continuam sendo uma extensão necessária.
 \end{enumerate}
 
 \section{Implicações da Tendência de Crescimento das Interrupções}
@@ -213,8 +233,8 @@ Embora o período do El Niño 2023 integre o conjunto de treinamento (anterior a
 
 \section{Reflexão sobre a Escolha Metodológica: Engenharia de Atributos e Modelagem Sequencial}
 
-Uma reflexão metodológica importante emerge da comparação entre o XGBoost e as redes recorrentes: \textbf{todos os modelos receberam as mesmas 41 variáveis por instante e compartilharam o corte temporal}. A diferença é que o XGBoost processa uma linha na origem, enquanto Bi-LSTM e Bi-GRU processam janelas sequenciais de 14 dias. A proximidade entre XGBoost e Bi-LSTM em $h=1$ mostra resultados semelhantes sob essas representações distintas, mas não demonstra que a rede substitua ou dispense a engenharia manual de atributos.
+Uma reflexão metodológica importante emerge da comparação entre o XGBoost e as redes recorrentes: \textbf{todos os modelos oficiais receberam as mesmas 41 variáveis por instante e compartilharam o corte temporal}. A diferença é que o XGBoost processa uma linha na origem, enquanto Bi-LSTM e Bi-GRU processam janelas sequenciais de 14 dias. A proximidade entre os modelos em $h=1$, agora acompanhada por contrastes pareados que contêm zero, mostra resultados estatisticamente inseparáveis em MAE sob essas representações distintas.
 
-O desempenho do XGBoost na avaliação \textit{one-step} é compatível com o uso de atributos de domínio em um conjunto de dados modesto (3.066 dias após a engenharia de atributos). Redes neurais profundas possuem potencial para extrair representações hierárquicas diretamente de dados menos processados \cite{goodfellow2016deep}; contudo, essa hipótese não foi testada neste trabalho, pois não se realizou uma comparação entre redes alimentadas por dados brutos e redes alimentadas pelas \textit{features} engenheiradas.
+O desempenho do XGBoost na avaliação \textit{one-step} é compatível com o uso de atributos de domínio em um conjunto de dados modesto (3.066 dias após a engenharia de atributos). A ablação mostra especificamente que histórico e calendário concentram o ganho, enquanto acrescentar todo o grupo climático não melhora o teste. Redes neurais profundas possuem potencial para extrair representações hierárquicas diretamente de dados menos processados \cite{goodfellow2016deep}; essa hipótese não foi testada, pois não se realizou ablação equivalente das entradas das redes.
 
-Essa evidência sugere que, para concessionárias brasileiras que desejem implementar modelos preditivos com dados históricos limitados ($<$10.000 dias), a abordagem recomendada é investir na engenharia de atributos informada por conhecimento de domínio (defasagens, médias móveis, codificações sazonais) e combinar modelos tabulares (XGBoost, LightGBM) com redes recorrentes, escolhendo a arquitetura conforme o horizonte de previsão operacional desejado.
+Essa evidência sugere que, para bases históricas limitadas, a parcimônia deve ser avaliada explicitamente. Defasagens do alvo e codificações sazonais podem oferecer mais generalização que um conjunto amplo de covariáveis correlacionadas. Variáveis meteorológicas não devem ser descartadas; devem ser melhoradas espacial e temporalmente e demonstrar ganho incremental em validação prospectiva antes de sustentar uma recomendação operacional.

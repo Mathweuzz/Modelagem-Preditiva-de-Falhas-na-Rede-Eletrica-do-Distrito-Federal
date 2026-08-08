@@ -53,6 +53,11 @@ REQUIRED_EDA_FILES = (
 )
 
 REQUIRED_ML_FILES = (
+    "ablation_xgboost.png",
+    "ablation_xgboost_differences.csv",
+    "ablation_xgboost_metrics.csv",
+    "ablation_xgboost_predictions.csv",
+    "bootstrap_block_sensitivity.csv",
     "feature_importance_xgboost.png",
     "kde_residuos_modelos.png",
     "learning_curve_gru_bidirecional.png",
@@ -76,6 +81,10 @@ REQUIRED_ML_FILES = (
     "previsao_multihorizonte_temporal_bigru.png",
     "previsao_multihorizonte_temporal_bilstm.png",
     "previsao_multihorizonte_temporal_xgboost.png",
+    "residual_acf_models.png",
+    "residual_diagnostics.csv",
+    "robustness_model_intervals.csv",
+    "robustness_pairwise_differences.csv",
     "scatter_heteroscedasticity.png",
     "scatter_pred_gru_bi.png",
     "scatter_pred_lstm_bi.png",
@@ -83,6 +92,7 @@ REQUIRED_ML_FILES = (
     "ts_pred_gru_bi.png",
     "ts_pred_lstm_bi.png",
     "ts_pred_xgboost.png",
+    "uncertainty_mae_block_bootstrap.png",
     "xgboost_best_params.json",
     "xgboost_cv_results.csv",
 )
@@ -257,6 +267,7 @@ def execute_pipeline(staged_project: Path, staged_fonte: Path, args: argparse.Na
     run(models / "gru_avancada.py", staged_project)
     run(models / "advanced_plots.py", staged_project)
     run(models / "evaluate_severity.py", staged_project)
+    run(models / "robustness_analysis.py", staged_project)
     run(models / "previsao_multihorizonte.py", staged_project)
     run(models / "plot_multihorizonte.py", staged_project)
     run(models / "plot_multihorizonte_temporal.py", staged_project)

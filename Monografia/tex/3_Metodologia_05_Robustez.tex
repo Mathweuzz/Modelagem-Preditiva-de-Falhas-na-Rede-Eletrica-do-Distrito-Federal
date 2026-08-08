@@ -1,0 +1,43 @@
+\subsection{Incerteza das Métricas por Reamostragem em Blocos}\label{sec:metodo_bootstrap}
+
+As métricas pontuais da avaliação principal foram complementadas por \textit{block bootstrap} circular, adequado a observações temporalmente dependentes \cite{lahiri2003resampling}. A unidade reamostrada não é um dia isolado, mas um bloco de dias consecutivos. Foram geradas 10.000 réplicas com semente 42. O comprimento principal foi fixado em sete dias para preservar a estrutura semanal indicada pela ACF e pelo calendário operacional.
+
+Em cada réplica, inícios de blocos são sorteados com reposição. Um bloco que ultrapassa o fim do conjunto de teste continua no início apenas para completar seu comprimento; a concatenação é truncada em 365 posições. Os mesmos índices são aplicados simultaneamente ao alvo e às previsões de todos os modelos. Essa sincronização preserva o pareamento por data e permite estimar intervalos percentis de 95\% para MAE, RMSE e viés médio.
+
+Para comparar alternativas $A$ e $B$, calcula-se em cada data a diferença entre erros absolutos,
+\begin{equation}
+    d_t^{A-B}=|y_t-\widehat y_{A,t}|-|y_t-\widehat y_{B,t}|,
+\end{equation}
+e reamostra-se a média de $d_t^{A-B}$. Valores negativos favorecem $A$. O intervalo pareado é a evidência usada para discutir separação entre MAEs; a eventual sobreposição entre intervalos marginais não é utilizada como teste. Como o comprimento do bloco é uma escolha analítica, os contrastes foram repetidos com 14 e 30 dias. Essa análise de sensibilidade verifica se a conclusão depende exclusivamente da escala semanal.
+
+Os intervalos construídos quantificam incerteza da \textbf{métrica no recorte de teste}; eles não são intervalos de previsão para um novo dia e não garantem cobertura operacional futura. Também não corrigem mudança de distribuição entre anos. Por isso, são interpretados em conjunto com o teste temporal contínuo e com as análises sazonais.
+
+\subsection{Ablação Controlada dos Grupos de Atributos}\label{sec:metodo_ablacao}
+
+A ablação foi aplicada ao XGBoost na avaliação principal $h=1$, mantendo as mesmas 2.700 origens de treinamento, as mesmas 365 datas-alvo de teste e a configuração selecionada anteriormente pelo \textit{Grid Search}. Não foi realizada nova busca por variante. Fixar o estimador e seus hiperparâmetros reduz o risco de confundir o efeito do conjunto de entradas com diferenças de orçamento de otimização.
+
+As 41 entradas foram particionadas em três grupos disjuntos. O histórico do alvo contém \texttt{interrupcoes}[$t$] e as quatro defasagens explícitas de 1, 2, 3 e 7 dias. O calendário contém mês, dia da semana, dia do ano e as duas codificações harmônicas mensais. O grupo climático contém as 31 variáveis meteorológicas restantes: medições da origem, defasagens, médias exponenciais, desvios móveis e direção circular.
+
+Foram ajustadas cinco variantes:
+\begin{enumerate}
+    \item \textbf{completa}, com as 41 entradas;
+    \item \textbf{histórico + calendário}, com 10 entradas;
+    \item \textbf{clima + calendário}, com 36 entradas e sem histórico do alvo;
+    \item \textbf{somente histórico}, com cinco entradas;
+    \item \textbf{somente calendário}, com cinco entradas.
+\end{enumerate}
+A persistência é mantida como sexta referência, embora não seja um XGBoost. As variantes são avaliadas por MAE, RMSE, $R^2$ e MAPE; os contrastes planejados reutilizam o \textit{block bootstrap}. Como a ablação foi acrescentada depois da definição do modelo oficial, seu melhor resultado é tratado como diagnóstico pós-hoc. Ele não substitui retroativamente a comparação principal nem autoriza selecionar uma nova configuração final no mesmo teste.
+
+Essa distinção é metodologicamente importante. A importância por ganho avalia como o modelo completo utilizou variáveis disponíveis; a ablação avalia se grupos inteiros acrescentaram generalização fora da amostra. Um atributo pode aparecer em divisões relevantes e, ainda assim, o grupo ao qual pertence não melhorar o desempenho quando comparado a uma especificação mais parcimoniosa.
+
+\subsection{Diagnóstico Temporal dos Resíduos}\label{sec:metodo_residuos_temporais}
+
+Para cada modelo oficial e para a persistência, definiu-se o resíduo como
+\begin{equation}
+    e_t=y_t-\widehat y_t.
+\end{equation}
+Logo, viés médio positivo indica subestimação média, e viés negativo indica superestimação média. Foram calculados média, mediana e desvio padrão dos resíduos, além das autocorrelações nas defasagens 1, 7 e 14.
+
+A ausência conjunta de autocorrelação foi examinada pelo teste de Ljung--Box \cite{ljung1978measure} em $m=7$ e $m=14$. A hipótese nula afirma que as autocorrelações até a defasagem examinada são simultaneamente nulas. Adotou-se $\alpha=0{,}05$ como referência descritiva. A rejeição indica dependência temporal remanescente, não identifica automaticamente um novo regressor nem prova especificação incorreta em sentido causal.
+
+Os correlogramas utilizam a faixa aproximada $\pm1{,}96/\sqrt{n}$ para orientar a inspeção visual de autocorrelações individuais. A decisão sobre ruído branco, porém, apoia-se no teste conjunto e deve considerar que os modelos de aprendizado de máquina não são modelos ARIMA com número simples de parâmetros estimados para descontar dos graus de liberdade. Por essa razão, os valores são empregados como diagnóstico comparativo, não como certificado definitivo de adequação.
