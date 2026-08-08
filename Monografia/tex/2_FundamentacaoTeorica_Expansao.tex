@@ -1,0 +1,541 @@
+\section{Interrupções como Processo de Contagem e Fenômeno Extremo}\label{sec:contagem_extremos}
+
+O número diário de interrupções possui uma natureza estatística distinta daquela observada em variáveis aproximadamente contínuas e simétricas. Trata-se de uma contagem não negativa, produzida pela superposição de falhas de diferentes origens, intensidades e extensões espaciais. Em dias ordinários, numerosas ocorrências localizadas podem ser resolvidas sem que o sistema se afaste muito de seu regime habitual. Em dias de tempestade, entretanto, vento, precipitação, descargas atmosféricas, vegetação e condição prévia dos ativos podem atuar simultaneamente, produzindo valores muito superiores aos usuais. Estudos recentes com registros de interrupções confirmam a recorrência de distribuições assimétricas, nas quais eventos de grande impacto são raros, mas respondem por parcela desproporcional do dano observado \cite{saki2025compound, zhao2024variational}.
+
+Essa característica torna insuficiente descrever a variável-alvo apenas por sua média. Duas séries podem apresentar a mesma média diária e, ainda assim, possuir riscos operacionais muito diferentes: uma pode oscilar pouco ao redor do valor central, enquanto outra combina muitos dias moderados com poucos picos extremos. Para uma concessionária, a segunda série exige maior capacidade de mobilização emergencial, mesmo que ambas sejam equivalentes segundo uma única medida de posição. Por isso, a fundamentação da previsão de interrupções deve considerar conjuntamente a frequência dos eventos, sua dispersão e o comportamento das caudas da distribuição.
+
+\subsection{Modelos de Contagem, Dispersão e Heterogeneidade}
+
+Um ponto de partida clássico para contagens é a distribuição de Poisson. Se $Y_t$ representa o número de interrupções no dia $t$, assume-se
+\begin{equation}
+    Y_t \mid \mathbf{x}_t \sim \operatorname{Poisson}(\mu_t),
+    \qquad
+    \Pr(Y_t=y)=\frac{e^{-\mu_t}\mu_t^y}{y!},
+    \label{eq:poisson_interrupcoes}
+\end{equation}
+em que $\mathbf{x}_t$ reúne as covariáveis disponíveis e $\mu_t>0$ é a intensidade condicional. Em um modelo linear generalizado, a ligação logarítmica assegura previsões positivas:
+\begin{equation}
+    \log(\mu_t)=\beta_0+\boldsymbol{\beta}^{\top}\mathbf{x}_t.
+    \label{eq:poisson_link}
+\end{equation}
+A hipótese restritiva da Poisson é a equidispersão, isto é, $\operatorname{Var}(Y_t\mid\mathbf{x}_t)=\operatorname{E}(Y_t\mid\mathbf{x}_t)=\mu_t$. Em registros reais de falhas, essa igualdade frequentemente não se sustenta. A coexistência de regimes meteorológicos, regiões com diferentes exposições e ativos em condições distintas gera variabilidade adicional, de modo que a variância condicional pode superar a média. Essa situação é denominada \textbf{sobredispersão}.
+
+A distribuição binomial negativa introduz um parâmetro de dispersão $\kappa$ e admite
+\begin{equation}
+    \operatorname{Var}(Y_t\mid\mathbf{x}_t)
+    =\mu_t+\frac{\mu_t^2}{\kappa},
+    \label{eq:binomial_negativa_var}
+\end{equation}
+recuperando o comportamento da Poisson quando $\kappa$ cresce. O termo quadrático permite que a incerteza aumente com o nível esperado da contagem, fenômeno compatível com a heteroscedasticidade normalmente encontrada em dados de interrupção. Arora e Ceferino aplicaram modelos de Poisson e binomial negativa à previsão de desligamentos associados a eventos extremos e destacaram tanto a adequação dessas distribuições a respostas discretas quanto a necessidade de controlar previsões fisicamente impossíveis, como números de consumidores afetados superiores ao total atendido \cite{arora2023probabilistic}.
+
+No presente domínio, a agregação diária do Distrito Federal produz valores positivos em todos os dias observados; portanto, modelos inflacionados de zeros não são necessários para representar diretamente essa série agregada. Em resoluções mais granulares, por alimentador, bairro ou intervalo horário, muitos pares espaço--tempo podem não registrar ocorrência alguma. Nessa situação, um mecanismo de duas etapas pode ser apropriado: primeiro estima-se a probabilidade de ocorrência; em seguida, condicionada à ocorrência, estima-se sua magnitude. A escolha da família probabilística depende, assim, não apenas do fenômeno físico, mas também da escala temporal e espacial em que ele é observado.
+
+XGBoost, LSTM e GRU não exigem que a variável-alvo siga explicitamente uma distribuição de Poisson ou binomial negativa quando treinados com perdas convencionais de regressão. Ainda assim, a natureza de contagem permanece relevante. Ela orienta a seleção de funções de perda, a análise de resíduos, a imposição de limites não negativos e a interpretação dos erros. Uma saída negativa, por exemplo, pode ser matematicamente produzida por uma camada linear, mas não possui significado físico como número de interrupções.
+
+\subsection{Caudas Pesadas, Raridade e Eventos Compostos}
+
+Eventos extremos ocupam poucos pontos da série, porém influenciam fortemente o treinamento e a avaliação. Seja $u$ um limiar elevado e defina-se o indicador $I_t=\mathbb{1}(Y_t>u)$. A proporção empírica
+\begin{equation}
+    \widehat{p}_u=\frac{1}{N}\sum_{t=1}^{N}\mathbb{1}(Y_t>u)
+    \label{eq:prob_excedencia}
+\end{equation}
+estima a frequência de excedências no período observado. Quando $u$ é alto, $\widehat{p}_u$ pode ser pequeno, deixando poucos exemplos para o aprendizado dos padrões que antecedem os piores dias. O problema não é apenas quantitativo. Os extremos também podem ser qualitativamente diferentes do regime comum: uma tempestade convectiva localizada, uma sequência de solo encharcado seguida de rajadas e uma onda de calor prolongada podem gerar volumes semelhantes por mecanismos distintos.
+
+Os chamados \textbf{eventos compostos} decorrem da combinação temporal ou espacial de múltiplos fatores. O efeito conjunto não precisa equivaler à soma dos efeitos isolados. Temperatura elevada pode aumentar demanda e estresse térmico; precipitação pode alterar condições do solo e da vegetação; rajadas podem impor carga mecânica sobre condutores e postes. Quando esses fatores coincidem, interações e limiares físicos podem elevar o risco de maneira não linear. Uma análise multianual publicada por Saki et al. em 2025 encontrou diferenças regionais substanciais no impacto combinado de calor, vento e precipitação, reforçando que relações aprendidas numa região não devem ser transferidas automaticamente para outra \cite{saki2025compound}.
+
+O desbalanceamento entre dias ordinários e extremos influencia a função de perda. A perda quadrática
+\begin{equation}
+    \mathcal{L}_{\mathrm{MSE}}
+    =\frac{1}{N}\sum_{t=1}^{N}(y_t-\hat{y}_t)^2
+\end{equation}
+atribui peso crescente aos grandes resíduos e, por isso, direciona o ajuste para os picos. Essa propriedade pode ser desejável quando grandes subestimações representam alto custo operacional, mas também pode fazer poucos eventos dominarem o gradiente. A perda de Huber oferece uma transição entre os comportamentos quadrático e absoluto:
+\begin{equation}
+L_{\delta}(e)=
+\begin{cases}
+\frac{1}{2}e^2, & |e|\leq\delta,\\
+\delta\left(|e|-\frac{1}{2}\delta\right), & |e|>\delta,
+\end{cases}
+\label{eq:huber}
+\end{equation}
+em que $e=y-\hat{y}$ e $\delta$ controla o ponto a partir do qual a penalização passa a crescer linearmente. Não existe uma perda universalmente superior: a escolha codifica a importância relativa atribuída aos erros comuns e aos erros extremos.
+
+Outra possibilidade é aumentar a representação dos regimes raros. Zhao et al. propuseram, em 2024, uma estrutura baseada em LSTM e autoencoder variacional para ampliar exemplos meteorológicos pouco frequentes e produzir previsões granulares de interrupções com vários dias de antecedência \cite{zhao2024variational}. Em 2025, Rastgoo et al. combinaram geração adversarial e uma arquitetura Informer para tratar o desbalanceamento associado a desligamentos extremos \cite{rastgoo2025extreme}. Dados sintéticos, contudo, não criam evidência física ausente: eles aproximam uma distribuição aprendida a partir dos registros disponíveis. Se os poucos extremos históricos forem pouco representativos, o gerador pode apenas reproduzir ou suavizar esse viés. Consequentemente, aumento de dados deve ser acompanhado por validação temporal em eventos reais que não participaram do ajuste.
+
+\begin{table}[H]
+\caption{Implicações estatísticas da natureza das interrupções}
+\label{tab:implicacoes_contagem}
+\centering
+\small
+\begin{tabular}{p{3.5cm} p{5.0cm} p{5.0cm}}
+\toprule
+\textbf{Característica} & \textbf{Consequência para o modelo} & \textbf{Resposta metodológica possível} \\
+\midrule
+Contagem não negativa & Previsões negativas não têm interpretação física & Ligação logarítmica, distribuição de contagem ou truncamento justificado \\
+Sobredispersão & A variância cresce mais rapidamente que a média & Binomial negativa, perdas robustas ou modelagem explícita da variância \\
+Cauda longa à direita & Poucos dias podem dominar MSE e RMSE & Avaliação segmentada, MAE, Huber e métricas de cauda \\
+Eventos raros & Há poucos exemplos dos regimes mais críticos & Ponderação, reamostragem e aumento de dados com validação fora da amostra \\
+Regimes heterogêneos & Uma relação média pode ocultar mecanismos distintos & Interações, modelos de mistura, variáveis espaciais e identificação de regimes \\
+\bottomrule
+\end{tabular}
+\normalsize
+\par\smallskip
+{\small Fonte: Elaborado pelos autores (2026), com base em \cite{arora2023probabilistic, zhao2024variational, rastgoo2025extreme}.\par}
+\end{table}
+
+\section{Confiabilidade, Risco e Resiliência de Redes de Distribuição}\label{sec:risco_resiliencia}
+
+Confiabilidade e resiliência são conceitos relacionados, mas não equivalentes. A confiabilidade descreve a capacidade de fornecer energia de modo contínuo sob as condições operacionais consideradas no planejamento, sendo tradicionalmente resumida por indicadores de frequência e duração. A resiliência enfatiza eventos de baixa frequência e alto impacto, abrangendo a capacidade do sistema de antecipar, absorver, adaptar-se e recuperar-se de perturbações severas. Um sistema pode apresentar bom desempenho médio e, ao mesmo tempo, ser vulnerável a uma combinação rara de ameaças.
+
+Na análise de risco climático, é útil separar quatro componentes conceituais:
+\begin{itemize}
+    \item \textbf{ameaça ou perigo}: intensidade e probabilidade do fenômeno externo, como rajadas, chuva intensa ou calor persistente;
+    \item \textbf{exposição}: ativos, consumidores e áreas que se encontram no alcance do fenômeno;
+    \item \textbf{vulnerabilidade}: propensão dos elementos expostos a sofrer dano, condicionada por idade, material, vegetação, topologia e manutenção;
+    \item \textbf{consequência}: impacto produzido pela falha, expresso em ocorrências, consumidores interrompidos, duração, custo ou perda de serviços essenciais.
+\end{itemize}
+Essa decomposição evita atribuir todo pico de interrupções à intensidade meteorológica. Duas regiões submetidas à mesma rajada podem apresentar resultados distintos porque possuem exposições e vulnerabilidades diferentes. De forma esquemática, o risco pode ser escrito como uma composição
+\begin{equation}
+    \mathcal{R}=f(\mathcal{H},\mathcal{E},\mathcal{V},\mathcal{C}),
+    \label{eq:risco_componentes}
+\end{equation}
+em que $\mathcal{H}$ representa a ameaça, $\mathcal{E}$ a exposição, $\mathcal{V}$ a vulnerabilidade e $\mathcal{C}$ as consequências. A função $f$ não precisa ser multiplicativa nem linear. Na prática, os modelos de aprendizado procuram aproximá-la a partir das covariáveis observadas.
+
+O conjunto de dados desta monografia representa bem parte da ameaça meteorológica e o histórico agregado de ocorrências, mas não contém a topologia detalhada, o inventário individual dos ativos nem a exposição de cada alimentador. Essa delimitação é importante: o modelo estima associações úteis para previsão no recorte disponível, sem identificar completamente a cadeia causal entre fenômeno, dano físico e interrupção registrada. Estudos que integram informações meteorológicas, socioeconômicas e de infraestrutura mostram que essas dimensões contextuais podem adicionar poder explicativo à previsão de desligamentos \cite{zhang2023deep}.
+
+\subsection{Curva de Desempenho e Capacidade de Recuperação}
+
+Considere uma função normalizada de desempenho $Q(t)\in[0,1]$, em que $Q(t)=1$ representa o nível de serviço anterior à perturbação. Um evento no instante $t_0$ pode provocar queda até um nível mínimo e recuperação posterior em $t_r$. A perda acumulada de desempenho no intervalo pode ser representada pela área
+\begin{equation}
+    L_R=\int_{t_0}^{t_r}\left[1-Q(t)\right]dt.
+    \label{eq:perda_resiliencia}
+\end{equation}
+Quanto menor $L_R$, maior a capacidade de preservar e restabelecer o serviço. Essa formulação evidencia que resiliência depende tanto da profundidade da degradação quanto de sua duração. Prever o número de interrupções contribui para a fase de antecipação: com antecedência suficiente, equipes, materiais e canais de atendimento podem ser posicionados antes do pico esperado. A previsão, contudo, não mede sozinha a recuperação, pois a duração depende também da localização das falhas, da acessibilidade e dos recursos mobilizados.
+
+Uma distinção adicional deve ser feita entre \textbf{ocorrências}, \textbf{consumidores afetados} e \textbf{duração}. Uma única falha em um elemento a montante pode interromper muitos consumidores, enquanto diversas falhas em ramais pequenos podem produzir contagem elevada com alcance agregado menor. Analogamente, o mesmo número de ocorrências pode corresponder a tempos de recomposição diferentes. Os indicadores DEC e FEC condensam dimensões de continuidade, mas não são substitutos diretos da contagem diária prevista. Cada variável responde a uma pergunta operacional específica.
+
+Ma et al. propuseram em 2025 um índice de vulnerabilidade fundamentado nas dimensões de intensidade, frequência e duração e empregaram XGBoost e SHAP para investigar aproximadamente 179 milhões de registros de interrupção em condados dos Estados Unidos \cite{ma2025vulnerability}. O estudo ilustra por que uma avaliação abrangente combina múltiplas dimensões, e não apenas a quantidade de eventos. Para esta monografia, a contagem diária permanece o alvo compatível com os dados reunidos; intensidade sobre consumidores e tempo de restauração constituem extensões distintas.
+
+\subsection{Modelos Puramente Empíricos e Modelos Híbridos}
+
+Modelos empíricos aprendem relações diretamente dos exemplos históricos. Sua principal vantagem é representar interações complexas sem exigir a descrição física completa de cada componente. A limitação é a extrapolação: fora da faixa observada, a resposta aprendida pode ser instável ou incompatível com restrições do sistema. Modelos mecanísticos, por sua vez, representam relações como carga de vento, fragilidade estrutural e propagação de falhas, mas exigem inventários e parâmetros difíceis de obter em escala operacional.
+
+Abordagens híbridas procuram combinar essas fontes de conhecimento. Hughes et al. integraram curvas físicas de fragilidade do conjunto poste--condutor a um modelo de aprendizado treinado com meteorologia, topografia, infraestrutura e desligamentos históricos, utilizando-o para comparar estratégias de reforço da rede sob restrição orçamentária \cite{hughes2024hardening}. Nesse tipo de arquitetura, a componente física restringe comportamentos implausíveis e a componente estatística captura padrões residuais e interações não especificadas.
+
+Para um modelo de interrupções, o conhecimento de domínio pode ser incorporado em diferentes níveis:
+\begin{enumerate}
+    \item na seleção de covariáveis, como rajada máxima, precipitação acumulada e defasagens;
+    \item na construção de atributos, como duração acima de limiares e interações entre vento e chuva;
+    \item na função de perda, atribuindo maior custo a subestimações críticas;
+    \item nas restrições da saída, garantindo não negatividade e limites associados à exposição;
+    \item na validação, separando eventos extremos e regimes sazonais.
+\end{enumerate}
+A engenharia de atributos utilizada neste trabalho representa a primeira dessas formas e parte da segunda. Não se trata de um modelo mecanístico completo, pois os atributos não simulam o dano individual dos ativos. A distinção preserva a interpretação correta do alcance experimental.
+
+\section{Não Estacionariedade, Mudança de Conceito e Validação Temporal}\label{sec:drift_validacao}
+
+Um modelo supervisionado aprende uma relação entre entradas $\mathbf{X}$ e alvo $Y$ a partir de uma distribuição conjunta $P(\mathbf{X},Y)$. Em séries temporais, essa distribuição pode variar com o tempo:
+\begin{equation}
+    P_{t_1}(\mathbf{X},Y)\neq P_{t_2}(\mathbf{X},Y).
+    \label{eq:drift_distribuicao}
+\end{equation}
+Essa violação da hipótese de dados identicamente distribuídos é denominada mudança de distribuição. Quando muda $P(\mathbf{X})$, mas a relação condicional $P(Y\mid\mathbf{X})$ permanece aproximadamente estável, fala-se em mudança de covariáveis. Quando a própria relação entre preditores e resposta se altera, ocorre \textbf{mudança de conceito} (\textit{concept drift}). Na rede elétrica, ambas são plausíveis: a frequência de regimes meteorológicos pode mudar, e a resposta do sistema a um mesmo regime também pode variar com obras, crescimento urbano, poda, automação ou envelhecimento dos ativos.
+
+A mudança pode ser abrupta, gradual, incremental ou recorrente. Uma reconfiguração da rede pode produzir alteração abrupta; o envelhecimento dos componentes tende a atuar de modo gradual; uma tendência climática pode deslocar lentamente as covariáveis; e as estações seca e chuvosa geram regimes recorrentes. Sazonalidade previsível não é sinônimo de \textit{drift}, mas a interação entre sazonalidade e mudanças estruturais pode fazer com que a estação chuvosa de anos recentes difira daquela observada no início da amostra.
+
+Udeh et al. ressaltam que desligamentos ocorrem tanto em condições ordinárias quanto durante tempestades e propõem uma separação probabilística de regimes para lidar com eventos severos não estacionários \cite{udeh2024probabilistic}. Kabir, Guikema e Quiring tratam os registros como fluxo de dados e combinam aprendizes por pesos dependentes das características e do desempenho recente, permitindo adaptação entre diferentes condições meteorológicas \cite{kabir2024datastreams}. Esses trabalhos mostram que atualizar um modelo não significa apenas acrescentar linhas ao treinamento: é necessário verificar se exemplos antigos e recentes continuam representando o mesmo mecanismo preditivo.
+
+\subsection{Validação que Respeita a Ordem Cronológica}
+
+Uma divisão aleatória mistura observações passadas e futuras nos conjuntos de treino e teste. Mesmo quando não há uma variável explicitamente vazada, o treinamento passa a conhecer regimes que, no instante simulado de previsão, ainda não teriam ocorrido. A estimativa de desempenho torna-se otimista, sobretudo quando há tendência ou mudança de conceito. A avaliação temporal preserva a ordem:
+\begin{equation}
+    \max\{t:(\mathbf{x}_t,y_t)\in\mathcal{D}_{\mathrm{treino}}\}
+    <
+    \min\{t:(\mathbf{x}_t,y_t)\in\mathcal{D}_{\mathrm{teste}}\}.
+    \label{eq:ordem_temporal}
+\end{equation}
+
+Uma única separação final mede o desempenho em um período específico, mas não mostra a variabilidade do modelo entre diferentes origens. Na validação por origem deslizante (\textit{rolling origin}), definem-se pontos de corte $c_1<\cdots<c_K$. Em cada dobra $k$, o ajuste utiliza apenas observações até $c_k$, e a validação utiliza um bloco posterior:
+\begin{equation}
+\mathcal{D}_{\mathrm{treino}}^{(k)}=\{t:t\leq c_k\},
+\qquad
+\mathcal{D}_{\mathrm{val}}^{(k)}=\{t:c_k<t\leq c_k+m\}.
+\label{eq:rolling_origin}
+\end{equation}
+A janela de treinamento pode ser expansiva, retendo todo o passado, ou móvel, descartando observações antigas. A primeira aproveita mais dados; a segunda reage mais rapidamente a mudanças, ao custo de reduzir a amostra. O tamanho adequado depende da velocidade presumida do \textit{drift} e da raridade dos eventos críticos.
+
+Todo pré-processamento aprendido deve respeitar os mesmos cortes. Mínimos e máximos de normalização, imputações, seleção de atributos e ajuste de hiperparâmetros devem usar somente o bloco de treinamento de cada dobra. A transformação do alvo por defasagens exige cuidado adicional: o pertencimento ao treino deve ser decidido pela \textbf{data-alvo}, e não apenas pela data da entrada. Se uma linha em $t$ prevê $y_{t+h}$, um corte em $c$ permite seu uso no treino somente quando $t+h\leq c$.
+
+\subsection{Monitoramento após a Implantação}
+
+O desempenho estimado antes da implantação não é permanente. Um fluxo operacional deve registrar entradas, previsões e realizações para acompanhar três grupos de indicadores:
+\begin{itemize}
+    \item \textbf{mudança nas entradas}: alteração da distribuição de temperatura, chuva, vento, consumo e variáveis temporais;
+    \item \textbf{mudança nos resíduos}: crescimento do MAE, viés sistemático, perda de cobertura de intervalos ou degradação concentrada em um regime;
+    \item \textbf{mudança de contexto}: obras, novos equipamentos, expansão de carga, alteração de procedimento e qualidade das fontes de dados.
+\end{itemize}
+
+Um viés móvel pode ser calculado numa janela de $w$ dias:
+\begin{equation}
+    \operatorname{Bias}_{t,w}
+    =\frac{1}{w}\sum_{i=t-w+1}^{t}(y_i-\hat{y}_i).
+    \label{eq:bias_movel}
+\end{equation}
+Valores persistentemente positivos indicam subestimação, enquanto valores negativos indicam superestimação. A decisão de retreinar pode combinar calendário, degradação estatística e ocorrência de mudança operacional relevante. Retreinamentos frequentes demais introduzem custo e instabilidade; retreinamentos raros mantêm um modelo obsoleto. Portanto, o monitoramento deve fazer parte do sistema preditivo, e não ser tratado como atividade posterior independente.
+
+\begin{table}[H]
+\caption{Principais formas de mudança temporal no contexto da distribuição elétrica}
+\label{tab:tipos_drift}
+\centering
+\small
+\begin{tabular}{p{3.0cm} p{5.2cm} p{5.3cm}}
+\toprule
+\textbf{Mudança} & \textbf{Exemplo no domínio} & \textbf{Implicação} \\
+\midrule
+Covariáveis & Alteração na frequência de chuva intensa ou ondas de calor & O modelo recebe entradas fora das proporções vistas no treino \\
+Conceito & Reforço de postes reduz falhas para a mesma rajada & A relação $P(Y\mid\mathbf{X})$ deixa de ser a mesma \\
+Abrupta & Reconfiguração de alimentadores ou troca de sistema de registro & Erros podem aumentar imediatamente após o evento \\
+Gradual & Envelhecimento de ativos e crescimento urbano & O viés pode crescer lentamente e passar despercebido \\
+Recorrente & Alternância entre estações seca e chuvosa & Modelos podem apresentar desempenho diferente por regime \\
+\bottomrule
+\end{tabular}
+\normalsize
+\par\smallskip
+{\small Fonte: Elaborado pelos autores (2026), com base em \cite{kabir2024datastreams, udeh2024probabilistic}.\par}
+\end{table}
+
+\section{Previsão Multi-Horizonte}\label{sec:fund_multi_horizonte}
+
+A previsão de um passo à frente estima $y_{t+1}$ com as informações disponíveis até $t$. Em muitas decisões, porém, a antecedência necessária é maior que um dia. Seja $H$ o horizonte máximo; a tarefa multi-horizonte produz o vetor
+\begin{equation}
+    \widehat{\mathbf{y}}_{t,H}
+    =\left[\hat{y}_{t+1\mid t},\hat{y}_{t+2\mid t},\ldots,
+    \hat{y}_{t+H\mid t}\right].
+    \label{eq:vetor_multihorizonte}
+\end{equation}
+O índice $t+h\mid t$ informa que o alvo pertence ao instante $t+h$, mas a previsão utiliza apenas conhecimento disponível na origem $t$. Essa notação torna explícita a fronteira informacional e ajuda a detectar vazamentos.
+
+Horizontes diferentes correspondem a decisões diferentes. Uma previsão para o dia seguinte pode orientar escala imediata de equipes; uma previsão para uma ou duas semanas pode apoiar planejamento de materiais, contratos e manutenção preventiva. À medida que $h$ cresce, aumenta a quantidade de acontecimentos ainda não observados entre a origem e o alvo. Consequentemente, a incerteza tende a aumentar, embora o erro empírico não precise crescer monotonicamente em toda amostra por causa de sazonalidade, regressão à média e dificuldade desigual dos períodos avaliados.
+
+\subsection{Estratégias Recursiva, Direta, Híbrida e Múltiplas Saídas}
+
+Na estratégia recursiva, ajusta-se um modelo de um passo $f$ e reutilizam-se suas próprias saídas:
+\begin{align}
+    \hat{y}_{t+1\mid t} &= f(\mathbf{x}_t),\\
+    \hat{y}_{t+2\mid t} &= f(\widetilde{\mathbf{x}}_{t+1}),\\
+    &\ \vdots\\
+    \hat{y}_{t+H\mid t} &= f(\widetilde{\mathbf{x}}_{t+H-1}),
+\end{align}
+em que $\widetilde{\mathbf{x}}$ inclui previsões anteriores no lugar de valores ainda desconhecidos. A vantagem é treinar um único modelo; a limitação é a propagação de erros. Uma subestimação no primeiro passo modifica a entrada seguinte e pode contaminar toda a trajetória.
+
+Na estratégia direta, ajusta-se uma função específica $f_h$ para cada antecedência:
+\begin{equation}
+    \hat{y}_{t+h\mid t}=f_h(\mathbf{x}_t),
+    \qquad h=1,\ldots,H.
+    \label{eq:estrategia_direta}
+\end{equation}
+Como cada modelo aprende diretamente o alvo de seu horizonte, não há realimentação de previsões. Em contrapartida, o custo de treinamento cresce e as saídas podem ser incoerentes entre si, pois $f_1,\ldots,f_H$ são ajustados separadamente. A análise multi-horizonte desta monografia utiliza essa estratégia nos horizontes selecionados, e não uma trajetória gerada recursivamente.
+
+A estratégia híbrida direta--recursiva permite que $f_h$ utilize saídas dos horizontes anteriores, procurando equilibrar especialização e dependência entre passos. Já a estratégia de múltiplas saídas (MIMO) estima todo o vetor de uma vez:
+\begin{equation}
+    \widehat{\mathbf{y}}_{t,H}=F(\mathbf{x}_t).
+\end{equation}
+Ela pode aprender a dependência entre horizontes e compartilhar representações, mas aumenta a dimensionalidade da saída e pode exigir mais dados. Não há dominância teórica universal entre as estratégias; a escolha depende do tamanho da amostra, da arquitetura, do custo computacional e da finalidade operacional.
+
+\begin{table}[H]
+\caption{Comparação entre estratégias de previsão multi-horizonte}
+\label{tab:estrategias_multihorizonte}
+\centering
+\small
+\begin{tabular}{p{2.6cm} p{3.5cm} p{3.9cm} p{3.9cm}}
+\toprule
+\textbf{Estratégia} & \textbf{Ajuste} & \textbf{Vantagem principal} & \textbf{Limitação principal} \\
+\midrule
+Recursiva & Um modelo reutilizado & Baixo custo e trajetória encadeada & Acúmulo de erro e diferença entre treino e inferência \\
+Direta & Um modelo por horizonte & Evita propagação de previsões & Maior custo e possível incoerência entre horizontes \\
+Direta--recursiva & Um modelo por horizonte com previsões anteriores & Combina especialização e dependência & Herda complexidade e parte da propagação de erro \\
+Múltiplas saídas & Um modelo vetorial & Aprende dependências entre horizontes & Saída mais complexa e maior demanda de dados \\
+\bottomrule
+\end{tabular}
+\normalsize
+\par\smallskip
+{\small Fonte: Elaborado pelos autores (2026), com base em \cite{taieb2012multistep, lim2021temporal}.\par}
+\end{table}
+
+\subsection{Covariáveis Futuras e Fronteira de Disponibilidade}
+
+Previsões multi-horizonte com variáveis exógenas exigem declarar o que será conhecido no momento de uso. Calendário é conhecido deterministicamente para qualquer $h$; observações meteorológicas futuras não são. Há três alternativas conceitualmente distintas: manter apenas covariáveis observadas até a origem, utilizar previsões meteorológicas que estariam disponíveis em $t$, ou assumir cenários futuros. Usar a meteorologia realizada de $t+1$ a $t+h$ durante o teste sem que ela estivesse disponível na origem produziria vantagem irrealista.
+
+Essa distinção pode ser formalizada separando $\mathbf{x}_t$ em covariáveis passadas $\mathbf{p}_t$, futuras conhecidas $\mathbf{k}_{t+h}$ e futuras estimadas $\widetilde{\mathbf{u}}_{t+h\mid t}$:
+\begin{equation}
+    \hat{y}_{t+h\mid t}
+    =f_h\left(\mathbf{p}_{\leq t},\mathbf{k}_{t+h},
+    \widetilde{\mathbf{u}}_{t+h\mid t}\right).
+    \label{eq:covariaveis_futuras}
+\end{equation}
+O símbolo de estimativa em $\widetilde{\mathbf{u}}$ é essencial: o desempenho final combina a incerteza do modelo de interrupções com a incerteza da previsão meteorológica. Uma avaliação retrospectiva que utiliza somente informações observadas até $t$ mede uma tarefa diferente daquela que incorpora previsões numéricas do tempo, ainda que ambas tenham o mesmo horizonte nominal.
+
+Por fim, erros de horizontes distintos não são independentes. Se uma tempestade é subestimada, vários alvos adjacentes podem apresentar resíduos com o mesmo sinal. Wang e Hyndman demonstram que erros ótimos de previsão $h$ passos à frente podem manter autocorrelação até a defasagem $h-1$ e utilizam essa estrutura para construir intervalos conformais multi-horizonte mais eficientes \cite{wang2024conformal}. Assim, avaliar cada horizonte separadamente é necessário, mas não descreve toda a dependência da trajetória prevista.
+
+\section{Previsão Probabilística e Quantificação da Incerteza}\label{sec:previsao_probabilistica}
+
+Uma previsão pontual resume uma distribuição condicional inteira em um único número. Dependendo da perda utilizada, esse número possui interpretações diferentes. Sob perda quadrática, o preditor ótimo é a média condicional $\operatorname{E}(Y\mid\mathbf{X})$; sob perda absoluta, é a mediana condicional. Nenhum dos dois informa, isoladamente, quão dispersos são os resultados plausíveis. Prever 250 interrupções com pequena variabilidade esperada é operacionalmente diferente de prever o mesmo valor num regime em que resultados entre 100 e 600 sejam plausíveis.
+
+A incerteza preditiva costuma ser decomposta em duas parcelas. A \textbf{incerteza aleatória} (ou irredutível) decorre da variabilidade do próprio fenômeno: duas tempestades com covariáveis semelhantes podem produzir danos diferentes. A \textbf{incerteza epistêmica} decorre do conhecimento limitado do modelo, da amostra finita e da ausência de covariáveis relevantes. Mais dados representativos podem reduzir a segunda parcela, mas não eliminam a primeira. Em interrupções agregadas, registros de topologia, condição dos ativos e localização das células de tempestade são exemplos de informação que poderia reduzir incerteza epistêmica.
+
+Arora e Ceferino mostram que modelos de interrupção podem produzir estimativas inadequadas de incerteza e até extrapolações incompatíveis com limites físicos, especialmente nas faixas de vento pouco representadas no treinamento \cite{arora2023probabilistic}. A consequência operacional é direta: recursos podem ser deslocados para áreas superestimadas enquanto regiões realmente críticas permanecem subatendidas. Quantificar incerteza não é, portanto, apenas acrescentar uma faixa visual ao gráfico; é representar o grau de confiança necessário para decisões sob risco.
+
+\subsection{Regressão Quantílica e Perda Pinball}
+
+O quantil condicional de nível $\tau\in(0,1)$ é definido por
+\begin{equation}
+    q_{\tau}(\mathbf{x})
+    =\inf\{y:F_{Y\mid\mathbf{X}=\mathbf{x}}(y)\geq\tau\}.
+    \label{eq:quantil_condicional}
+\end{equation}
+Em vez de estimar somente a média, um modelo pode produzir diversos quantis. Por exemplo, $q_{0,1}$, $q_{0,5}$ e $q_{0,9}$ descrevem um cenário inferior, a mediana e um cenário superior. O treinamento utiliza a perda pinball:
+\begin{equation}
+    \rho_{\tau}(u)
+    =
+    \begin{cases}
+        \tau u, & u\geq0,\\
+        (\tau-1)u, & u<0,
+    \end{cases}
+    \qquad u=y-\hat{q}_{\tau}.
+    \label{eq:pinball}
+\end{equation}
+Para $\tau=0{,}5$, a perda é proporcional ao erro absoluto e estima a mediana. Para $\tau=0{,}9$, subestimar recebe peso nove vezes maior que superestimar por uma mesma magnitude. Essa assimetria torna os quantis particularmente úteis quando o custo de falta de equipes é superior ao custo de uma mobilização preventiva excedente.
+
+Um intervalo central nominal de $100(1-\alpha)\%$ pode ser construído como
+\begin{equation}
+    \widehat{C}_{1-\alpha}(\mathbf{x})
+    =\left[\hat{q}_{\alpha/2}(\mathbf{x}),
+    \hat{q}_{1-\alpha/2}(\mathbf{x})\right].
+    \label{eq:intervalo_quantil}
+\end{equation}
+Sua qualidade possui duas dimensões. A \textbf{calibração} verifica se a frequência observada de cobertura se aproxima do nível nominal. A \textbf{nitidez} (\textit{sharpness}) favorece intervalos estreitos, desde que calibrados. Um intervalo muito amplo pode cobrir quase todos os valores e ainda ser pouco útil. A cobertura empírica é
+\begin{equation}
+    \widehat{\operatorname{Cov}}
+    =\frac{1}{N}\sum_{t=1}^{N}
+    \mathbb{1}\!\left(y_t\in[\hat{L}_t,\hat{U}_t]\right),
+    \label{eq:cobertura_empirica}
+\end{equation}
+enquanto a largura média é $N^{-1}\sum_t(\hat{U}_t-\hat{L}_t)$. Ambas devem ser reportadas em conjunto e, no problema multi-horizonte, separadamente por $h$.
+
+Quantis treinados independentemente podem se cruzar, produzindo $\hat{q}_{0,9}<\hat{q}_{0,5}$ em alguns exemplos. Restrições monotônicas, parametrizações ordenadas ou pós-processamento podem evitar essa incoerência. Outra questão é a não negatividade: limites inferiores abaixo de zero devem ser tratados de acordo com o suporte físico da variável, sem ocultar falhas de calibração do modelo.
+
+\subsection{Inferência Conformal para Séries Temporais}
+
+A predição conformal transforma os erros de um modelo base em conjuntos preditivos. Numa versão dividida simples, ajusta-se o modelo num bloco de treino e calcula-se, num bloco de calibração, o escore de não conformidade
+\begin{equation}
+    s_i=|y_i-\hat{y}_i|.
+\end{equation}
+Se $\hat{q}_{1-\alpha}$ é um quantil adequado dos escores, o intervalo para uma nova entrada é
+\begin{equation}
+    \widehat{C}_{1-\alpha}(\mathbf{x}_{\mathrm{novo}})
+    =\left[\hat{y}_{\mathrm{novo}}-\hat{q}_{1-\alpha},
+    \hat{y}_{\mathrm{novo}}+\hat{q}_{1-\alpha}\right].
+    \label{eq:split_conformal}
+\end{equation}
+O procedimento é agnóstico ao modelo: $\hat{y}$ pode vir de XGBoost, LSTM ou GRU. Em dados permutáveis, a escolha finita do quantil fornece uma garantia marginal de cobertura sem assumir uma forma paramétrica para os resíduos.
+
+Séries temporais não são permutáveis, porque observações e erros podem depender de seus antecedentes. Aplicar diretamente a calibração aleatória pode misturar regimes e produzir intervalos inadequados. Métodos conformais temporais preservam a ordem e atualizam os escores ou o nível efetivo de cobertura. Para múltiplos horizontes, Wang e Hyndman propõem um procedimento que incorpora a autocorrelação dos erros e mantém garantias de cobertura de longo prazo por horizonte \cite{wang2024conformal}. A largura pode aumentar com $h$, refletindo a maior incerteza, e a calibração deve ser monitorada ao longo do tempo para responder a mudanças de regime.
+
+Previsão probabilística não foi empregada na comparação experimental principal desta monografia, que produz estimativas pontuais. Sua formalização teórica esclarece, porém, duas limitações dos resultados: métricas médias não expressam o risco de cauda e uma mesma previsão pontual pode exigir decisões diferentes conforme a incerteza associada. Ela também estabelece uma extensão metodológica concreta, sem atribuir aos modelos atuais uma capacidade que não foi avaliada.
+
+\subsection{Da Distribuição Preditiva à Decisão}
+
+Uma previsão somente adquire valor operacional quando vinculada a uma ação. Seja $a$ uma quantidade de recursos preventivamente mobilizados e $Y$ a demanda futura. Uma função de custo simples pode penalizar falta e excesso de recursos:
+\begin{equation}
+    C(a,Y)=c_{\mathrm{falta}}(Y-a)_{+}
+    +c_{\mathrm{excesso}}(a-Y)_{+},
+    \label{eq:custo_assimetrico}
+\end{equation}
+em que $(z)_{+}=\max(z,0)$. A ação ótima minimiza a esperança condicional $\operatorname{E}[C(a,Y)\mid\mathbf{X}]$ e corresponde ao quantil
+\begin{equation}
+    \tau^{\ast}
+    =\frac{c_{\mathrm{falta}}}
+    {c_{\mathrm{falta}}+c_{\mathrm{excesso}}}.
+    \label{eq:quantil_decisao}
+\end{equation}
+Se a falta custa muito mais que o excesso, $\tau^{\ast}$ se aproxima de um. Portanto, a melhor previsão para uma decisão conservadora pode ser um quantil superior, e não a média. Os custos devem ser definidos pela organização e não inferidos apenas a partir do erro histórico.
+
+Esse princípio também explica por que MAE e RMSE podem ordenar modelos de maneira diferente. O MAE aproxima uma decisão baseada na mediana e penaliza linearmente; o RMSE enfatiza erros grandes e se relaciona à média sob perda quadrática. Nenhuma métrica representa automaticamente o custo real de equipes, deslocamento, materiais, compensações e impacto social. A seleção operacional deve explicitar a função de decisão que se pretende apoiar.
+
+\section{Atenção e Transformers em Séries Temporais}\label{sec:transformers_series}
+
+Redes recorrentes atualizam um estado sequencialmente, comprimindo o histórico numa cadeia de representações. O mecanismo de atenção introduz um caminho diferente: para formar uma representação, o modelo calcula diretamente a relevância relativa de diversos elementos da entrada. Dados vetores de consultas $Q$, chaves $K$ e valores $V$, a atenção por produto escalar é
+\begin{equation}
+    \operatorname{Attention}(Q,K,V)
+    =\operatorname{softmax}\!\left(\frac{QK^{\top}}{\sqrt{d_k}}\right)V,
+    \label{eq:scaled_attention}
+\end{equation}
+em que $d_k$ é a dimensão das chaves \cite{vaswani2017attention}. A divisão por $\sqrt{d_k}$ estabiliza a escala dos produtos internos. As linhas da matriz após o \textit{softmax} funcionam como pesos normalizados que combinam os valores.
+
+Na atenção com múltiplas cabeças, projeções diferentes permitem representar tipos distintos de dependência:
+\begin{align}
+    \operatorname{head}_j
+    &=\operatorname{Attention}(QW_j^Q,KW_j^K,VW_j^V),\\
+    \operatorname{MultiHead}(Q,K,V)
+    &=\operatorname{Concat}(\operatorname{head}_1,\ldots,
+    \operatorname{head}_m)W^O.
+\end{align}
+Uma cabeça pode enfatizar proximidade temporal, outra sazonalidade e outra relações entre variáveis. Essa interpretação é apenas uma possibilidade aprendida; não se deve assumir que cada cabeça corresponde espontaneamente a um mecanismo físico identificável.
+
+Como o cálculo de atenção não impõe ordem por si mesmo, Transformers tradicionais acrescentam codificações posicionais. Na formulação senoidal,
+\begin{align}
+PE_{(pos,2i)}&=\sin\left(pos/10000^{2i/d}\right),\\
+PE_{(pos,2i+1)}&=\cos\left(pos/10000^{2i/d}\right).
+\end{align}
+Em séries, a posição pode ser complementada por calendário, tempo decorrido, periodicidades e covariáveis conhecidas. Máscaras causais impedem que um token consulte posições futuras quando a tarefa exige previsão autorregressiva.
+
+\subsection{Tokenização de Séries e Dependência Multivariada}
+
+Transformers foram concebidos para sequências de símbolos, enquanto uma série temporal é numérica, multivariada e frequentemente ruidosa. A definição do token torna-se parte central do modelo. Uma opção é representar cada instante como token contendo todas as variáveis. Outra é agrupar intervalos consecutivos em \textit{patches}. O PatchTST segmenta cada série em blocos e processa os canais de modo independente, o que reduz o comprimento efetivo da sequência e permite trabalhar com históricos mais longos \cite{nie2023patchtst}. A técnica desloca o foco de pontos individuais para padrões locais dentro de cada bloco.
+
+O iTransformer inverte a organização usual: cada variável, representada por sua trajetória temporal, torna-se um token; a atenção aprende relações entre variáveis, enquanto projeções internas representam sua evolução no tempo \cite{liu2024itransformer}. Para interrupções e clima, essa ideia é conceitualmente atraente porque temperatura, precipitação, vento, consumo e histórico do alvo possuem escalas e dinâmicas distintas. Ainda assim, uma arquitetura mais expressiva não garante superioridade numa amostra de poucos milhares de dias. O número de parâmetros, a regularização e a diversidade de regimes observados limitam o que pode ser aprendido.
+
+O Temporal Fusion Transformer (TFT) combina recorrência local, atenção de longo alcance, seleção de variáveis e quantis para previsão multi-horizonte \cite{lim2021temporal}. Sua estrutura separa entradas estáticas, covariáveis conhecidas no futuro e variáveis observadas, distinção especialmente relevante no domínio meteorológico. O calendário é conhecido; previsões do tempo são estimadas; interrupções futuras permanecem desconhecidas. Organizar explicitamente essas classes ajuda a preservar a fronteira de disponibilidade discutida na Seção~\ref{sec:fund_multi_horizonte}.
+
+\begin{table}[H]
+\caption{Vieses indutivos de arquiteturas para séries temporais}
+\label{tab:arquiteturas_series}
+\centering
+\small
+\begin{tabular}{p{2.8cm} p{4.0cm} p{4.0cm} p{3.5cm}}
+\toprule
+\textbf{Arquitetura} & \textbf{Representação dominante} & \textbf{Ponto forte} & \textbf{Cuidado principal} \\
+\midrule
+XGBoost & Linhas tabulares com atributos construídos & Eficiência em amostras tabulares e não linearidade & Memória depende da engenharia de atributos \\
+LSTM/GRU & Estado recorrente sobre janela ordenada & Vieses temporais e compartilhamento sequencial & Caminho sequencial e compressão do histórico \\
+PatchTST & Blocos temporais por canal & Histórico longo com menos tokens & Escolha do tamanho do bloco e interação entre canais \\
+iTransformer & Trajetória de cada variável como token & Relações multivariadas explícitas & Demanda de dados e custo de ajuste \\
+TFT & Recorrência, atenção, seleção e quantis & Múltiplos horizontes e tipos de covariável & Arquitetura complexa e maior risco de sobreajuste \\
+\bottomrule
+\end{tabular}
+\normalsize
+\par\smallskip
+{\small Fonte: Elaborado pelos autores (2026), com base em \cite{lim2021temporal, nie2023patchtst, liu2024itransformer}.\par}
+\end{table}
+
+\subsection{Complexidade, Tamanho Amostral e Interpretação}
+
+Para uma sequência de comprimento $T$, a atenção densa forma uma matriz $T\times T$, com custo quadrático em $T$. Patches, atenção esparsa e decomposições foram propostos para reduzir esse custo. No caso de janelas curtas, a eficiência assintótica pode ser menos importante que o risco estatístico: um Transformer de alta capacidade pode ajustar particularidades da amostra sem generalizar para anos futuros.
+
+Pesos de atenção também não devem ser tratados automaticamente como explicações causais. Eles mostram como valores internos foram combinados numa passagem específica, mas podem mudar entre camadas e cabeças, e representações alternativas podem gerar a mesma saída. A interpretabilidade requer testar estabilidade, sensibilidade e coerência das explicações, preferencialmente em conjunto com métodos independentes e conhecimento de domínio.
+
+As arquiteturas Transformer não integram os experimentos desta monografia. Sua inclusão na fundamentação atende a dois propósitos: posicionar LSTM e GRU no desenvolvimento contemporâneo da previsão temporal e justificar uma extensão futura diretamente relacionada ao problema multi-horizonte. Uma comparação válida exigiria o mesmo corte temporal, as mesmas datas-alvo, orçamento de otimização comparável e análise de custo computacional.
+
+\section{Dependência Espacial, Topologia e Aprendizado em Grafos}\label{sec:grafos_rede}
+
+Uma rede de distribuição possui estrutura relacional: barras, subestações, transformadores e consumidores são conectados por linhas e dispositivos de proteção. Essa organização pode ser descrita por um grafo $G=(V,E)$, em que $V$ é o conjunto de nós e $E$ o conjunto de conexões. A matriz de adjacência $A$ registra as ligações, e a matriz $X\in\mathbb{R}^{|V|\times d}$ reúne atributos nodais, como tensão, carga, tipo de ativo, condição ou meteorologia local.
+
+Modelos tabulares agregados tratam cada dia como uma observação e não representam explicitamente quais elementos estão conectados. Essa simplificação é adequada quando a base disponível possui resolução apenas distrital, mas perde mecanismos importantes. Uma falha a montante pode afetar todos os nós descendentes; um religador pode isolar parte do circuito; eventos meteorológicos próximos podem atingir simultaneamente alimentadores vizinhos. Distância geográfica e distância elétrica também não são equivalentes: dois ativos próximos podem pertencer a circuitos diferentes, enquanto elementos afastados podem compartilhar dependência operacional.
+
+\subsection{Propagação de Mensagens em Redes Neurais de Grafos}
+
+Redes neurais de grafos atualizam a representação de cada nó agregando informação de seus vizinhos. Uma camada genérica de passagem de mensagens pode ser escrita como
+\begin{align}
+    \mathbf{m}_v^{(\ell)}
+    &=\operatorname{AGG}^{(\ell)}
+    \left(\left\{\mathbf{h}_u^{(\ell)}:u\in\mathcal{N}(v)\right\}\right),\\
+    \mathbf{h}_v^{(\ell+1)}
+    &=\operatorname{UPD}^{(\ell)}
+    \left(\mathbf{h}_v^{(\ell)},\mathbf{m}_v^{(\ell)}\right),
+    \label{eq:message_passing}
+\end{align}
+em que $\mathcal{N}(v)$ representa a vizinhança de $v$. Após $L$ camadas, cada nó incorpora informação de nós alcançáveis em até $L$ saltos. A previsão pode ser nodal, indicando risco por componente, ou global, agregando os estados para estimar o impacto sobre uma região.
+
+Uma convolução de grafo normalizada utiliza
+\begin{equation}
+    H^{(\ell+1)}
+    =\sigma\!\left(\widetilde{D}^{-1/2}
+    \widetilde{A}\widetilde{D}^{-1/2}
+    H^{(\ell)}W^{(\ell)}\right),
+    \label{eq:gcn}
+\end{equation}
+com $\widetilde{A}=A+I$ e $\widetilde{D}$ igual à matriz de graus correspondente \cite{kipf2017gcn}. A normalização evita que nós de alto grau dominem a agregação. Redes com atenção em grafos podem aprender pesos diferentes por vizinho, enquanto modelos espaço-temporais combinam passagem de mensagens com recorrência, convolução temporal ou atenção.
+
+Chen et al. aplicaram redes neurais topológicas de ordem superior à classificação de contingências em redes de distribuição, incorporando relações que ultrapassam pares de nós e avaliando cenários de observabilidade parcial \cite{chen2024hotnets}. O resultado ilustra uma diferença importante entre dados agregados e dados de rede: com topologia e sensores, o modelo pode aprender como uma configuração de falhas modifica o estado conectado do sistema, e não apenas correlacionar condições gerais com uma contagem total.
+
+\subsection{Integração entre Espaço, Tempo e Meteorologia}
+
+Uma formulação espaço-temporal associa a cada nó $v$ uma sequência $\mathbf{x}_{v,t-w+1:t}$. A saída pode estimar a probabilidade de falha, o número de consumidores afetados ou o tempo de restauração por região. A meteorologia pode ser interpolada de estações, radares ou modelos numéricos para os locais dos ativos. O grafo elétrico representa dependência operacional; um grafo geográfico adicional representa exposição comum. Modelos multigrafo podem combinar ambas.
+
+Essa granularidade impõe requisitos elevados de governança. Identificadores de ativos precisam ser consistentes, alterações topológicas devem ser versionadas, relógios de sensores precisam estar sincronizados e falhas de comunicação não podem ser confundidas com falhas elétricas. A ausência de dados num nó pode ter significado operacional, e não ser simplesmente um valor aleatório ausente.
+
+Para o Distrito Federal, a adoção de grafos exigiria pelo menos: cadastro de alimentadores e dispositivos, vínculo entre ocorrências e elementos da rede, consumidores ou carga a jusante, estado de chaves ao longo do tempo e meteorologia espacialmente resolvida. Esses dados não estão presentes na base agregada utilizada nesta monografia. Por isso, GNNs constituem uma extensão coerente, mas não uma substituição diretamente executável com os arquivos atuais.
+
+\section{Explicabilidade, Confiabilidade e Apoio à Decisão}\label{sec:xai_confiabilidade}
+
+Modelos preditivos em infraestrutura crítica precisam ser avaliados não apenas pela acurácia, mas também pela confiabilidade de seu uso. Explicar uma previsão pode ajudar a detectar dependência excessiva de uma variável, conferir se o comportamento é compatível com conhecimento técnico e comunicar o resultado a operadores. Explicabilidade, contudo, não transforma associação em causalidade e não garante que o modelo continuará correto fora da amostra.
+
+É útil separar explicações \textbf{globais} e \textbf{locais}. Explicações globais resumem o comportamento médio do modelo, como ganho acumulado do XGBoost ou importância por permutação. Explicações locais descrevem uma previsão específica, por exemplo quanto a precipitação recente e a defasagem do alvo contribuíram para o valor estimado de determinado dia. Uma variável pode possuir grande importância global e quase nenhuma contribuição numa instância particular.
+
+\subsection{Valores de Shapley e SHAP}
+
+Os valores de Shapley distribuem a diferença entre a previsão de uma instância e um valor de referência entre as variáveis. Para a variável $j$, a contribuição é
+\begin{equation}
+\phi_j=
+\sum_{S\subseteq F\setminus\{j\}}
+\frac{|S|!(M-|S|-1)!}{M!}
+\left[f_{S\cup\{j\}}(\mathbf{x}_{S\cup\{j\}})
+-f_S(\mathbf{x}_S)\right],
+\label{eq:shapley}
+\end{equation}
+em que $F$ é o conjunto de $M$ atributos e $S$ percorre subconjuntos que não contêm $j$ \cite{lundberg2017unified}. O SHAP fornece aproximações computacionais e, para árvores, algoritmos eficientes. A decomposição local assume a forma
+\begin{equation}
+    f(\mathbf{x})=\phi_0+\sum_{j=1}^{M}\phi_j,
+\end{equation}
+com $\phi_0$ representando a saída de referência.
+
+Quando atributos são correlacionados, a atribuição pode ser instável. Interrupções atuais, suas defasagens e médias exponenciais compartilham informação; temperatura média, máxima e mínima também. Dividir crédito entre variáveis correlacionadas não identifica qual delas é causal nem qual seria segura para intervenção. A interpretação deve considerar grupos de atributos, estabilidade entre dobras temporais e o mecanismo de geração dos dados.
+
+Importância por ganho do XGBoost responde a outra pergunta: quanto as divisões associadas a uma variável reduziram a função objetivo dentro das árvores. Ela pode favorecer atributos com muitas oportunidades de divisão e não mostra o sentido do efeito em cada previsão. SHAP e ganho são complementares, não intercambiáveis. Ma et al. combinaram XGBoost e SHAP na construção de um índice de vulnerabilidade de sistemas elétricos, exemplificando o uso de explicações em escala espacial para apoiar priorização \cite{ma2025vulnerability}.
+
+\subsection{Explicação, Auditoria e Causalidade}
+
+Uma explicação é mais útil quando responde a uma finalidade definida. Para auditoria técnica, interessa descobrir se o modelo usa informação indisponível ou espúria. Para operação, interessa identificar os fatores que elevaram o risco naquele dia. Para planejamento, interessa saber quais características persistentes distinguem áreas vulneráveis. A mesma visualização não atende necessariamente aos três objetivos.
+
+A seguinte sequência reduz interpretações indevidas:
+\begin{enumerate}
+    \item verificar se o atributo estava disponível na origem da previsão;
+    \item comparar explicações em períodos e dobras temporais diferentes;
+    \item examinar atributos correlacionados em conjunto;
+    \item testar sensibilidade a perturbações plausíveis, sem criar combinações fisicamente impossíveis;
+    \item confrontar o padrão com conhecimento de engenharia;
+    \item apresentar a conclusão como associação preditiva, salvo quando houver desenho causal apropriado.
+\end{enumerate}
+
+Rudin argumenta que, em decisões de alto impacto, modelos interpretáveis devem ser considerados quando oferecem desempenho adequado, em vez de tratar qualquer caixa-preta como inevitável \cite{rudin2019stop}. No presente problema, isso não implica abandonar redes neurais, mas comparar o ganho de acurácia com o custo de complexidade, manutenção e explicação. A proximidade de desempenho entre arquiteturas torna essa avaliação especialmente relevante.
+
+\subsection{Confiabilidade Operacional e Humano no Circuito}
+
+Um sistema de apoio não deve converter automaticamente uma previsão em ação irreversível. Operadores podem possuir informações não representadas na base, como manutenção em andamento, alerta localizado ou indisponibilidade de uma equipe. A arquitetura recomendada mantém o humano no circuito: o modelo produz estimativa, incerteza e explicações; regras operacionais transformam esses elementos em níveis de alerta; o responsável confirma ou ajusta a resposta; e o resultado é registrado para auditoria.
+
+Limiares de alerta precisam ser definidos com custos e capacidade real. Um esquema ilustrativo pode utilizar níveis crescente de preparação, mas os valores não devem ser escolhidos apenas por percentis históricos. É necessário avaliar taxa de falsos alarmes, eventos críticos perdidos, antecedência útil e saturação de recursos. Um limiar que aciona equipes diariamente perde credibilidade; um limiar excessivamente alto pode nunca antecipar os eventos relevantes.
+
+O monitoramento deve incluir também a qualidade do dado. Uma previsão pode falhar porque o padrão mudou, porque uma estação meteorológica parou de reportar ou porque o esquema de uma fonte foi alterado. Registrar versão do modelo, intervalo de treinamento, origem de cada dado e instante da previsão permite reconstruir a decisão. Em ambientes regulados, essa rastreabilidade é parte da confiabilidade do sistema.
+
+\begin{table}[H]
+\caption{Camadas de uma utilização responsável das previsões}
+\label{tab:camadas_decisao}
+\centering
+\small
+\begin{tabular}{p{3.2cm} p{5.0cm} p{5.3cm}}
+\toprule
+\textbf{Camada} & \textbf{Pergunta principal} & \textbf{Evidência necessária} \\
+\midrule
+Dados & As entradas estão completas, atuais e disponíveis? & Validação de esquema, cobertura temporal e rastreabilidade \\
+Modelo & A estimativa generaliza para períodos futuros? & Teste temporal, baselines e análise por regime \\
+Incerteza & O intervalo cobre na frequência esperada? & Cobertura e largura por horizonte e estação \\
+Explicação & Quais atributos sustentam a previsão? & Importância global, explicação local e estabilidade \\
+Decisão & Qual ação minimiza o custo esperado? & Custos de falta/excesso, capacidade e níveis de serviço \\
+Monitoramento & O sistema continua válido após implantação? & Resíduos, mudança de distribuição e registro de intervenções \\
+\bottomrule
+\end{tabular}
+\normalsize
+\par\smallskip
+{\small Fonte: Elaborado pelos autores (2026), com base em \cite{rudin2019stop, lundberg2017unified, kabir2024datastreams}.\par}
+\end{table}
+
+Em síntese, a previsão de interrupções é um problema simultaneamente temporal, probabilístico, espacial e decisório. Os modelos comparados nesta monografia cobrem uma parte bem delimitada desse espaço: previsão pontual diária, baseada em histórico agregado e covariáveis climáticas e energéticas, sob separação temporal. As extensões discutidas neste capítulo mostram como incorporar incerteza, adaptação, topologia e explicação sem confundi-las com capacidades já demonstradas. Essa delimitação fortalece a leitura dos resultados e estabelece caminhos verificáveis para trabalhos posteriores.
