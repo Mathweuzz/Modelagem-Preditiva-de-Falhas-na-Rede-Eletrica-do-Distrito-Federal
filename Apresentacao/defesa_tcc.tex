@@ -108,18 +108,37 @@ Orientador: Prof. Jan Mendonça Corrêa}
 
 \begin{frame}{Interrupções cresceram 65,3\% desde 2017}{Contexto operacional}
   \begin{columns}[T,onlytextwidth]
-    \begin{column}{0.72\textwidth}
+    \begin{column}{0.68\textwidth}
+      \vspace{0.2em}
       \includegraphics[width=\textwidth]{evolucao_anual_interrupcoes.png}
     \end{column}
-    \begin{column}{0.25\textwidth}
-      \vspace{1.0em}
-      \keynumber{183,5}{interrupções/dia em 2017}
-      \vspace{1.0em}
-      \keynumber{303,4}{interrupções/dia em 2025}
-      \vspace{1.0em}
-      \keynumber{1.424}{pior dia observado}
-      \vspace{0.6em}
-      {\scriptsize 2025 contém dados de janeiro a maio.}
+    \begin{column}{0.29\textwidth}
+      \vspace{0.1em}
+      \begin{beamercolorbox}[rounded=true,sep=0.55em,wd=\linewidth]{block body}
+        \centering
+        {\color{UnBBlue}\bfseries\fontsize{23}{25}\selectfont 183,5\par}
+        \vspace{0.2em}
+        {\small interrupções/dia\\em 2017}
+      \end{beamercolorbox}
+
+      \vspace{0.35em}
+      \begin{beamercolorbox}[rounded=true,sep=0.55em,wd=\linewidth]{block body}
+        \centering
+        {\color{UnBBlue}\bfseries\fontsize{23}{25}\selectfont 303,4\par}
+        \vspace{0.2em}
+        {\small interrupções/dia\\em 2025}
+      \end{beamercolorbox}
+
+      \vspace{0.35em}
+      \begin{beamercolorbox}[rounded=true,sep=0.55em,wd=\linewidth]{block body}
+        \centering
+        {\color{UnBBlue}\bfseries\fontsize{23}{25}\selectfont 1.424\par}
+        \vspace{0.2em}
+        {\small pior dia observado}
+      \end{beamercolorbox}
+
+      \vspace{0.2em}
+      {\centering\scriptsize 2025 contém dados de janeiro a maio.\par}
     \end{column}
   \end{columns}
 
@@ -286,9 +305,9 @@ Orientador: Prof. Jan Mendonça Corrêa}
     \begin{column}{0.48\textwidth}
       \textbf{\large Memória recente}
       \begin{itemize}
-        \item Defasagens de 1 a 7 dias.
+        \item Defasagens de 1, 2, 3 e 7 dias.
         \item EMAs de 3, 7 e 14 dias.
-        \item Desvio padrão móvel de 7 dias.
+        \item Desvios padrão móveis de 7 dias.
         \item Janela sequencial de 14 dias nas RNNs.
       \end{itemize}
     \end{column}
@@ -814,6 +833,28 @@ Orientador: Prof. Jan Mendonça Corrêa}
 % ------------------------------------------------------------------
 
 \appendix
+
+\begin{frame}[noframenumbering]{O alvo foi reconstruído de forma auditável}{Reserva: definição e rastreabilidade}
+  \small
+  \begin{itemize}
+    \item \textbf{Unidade contada:} identificadores únicos de interrupção com início registrado em cada dia.
+    \item \textbf{Construção do alvo:} deduplicação por ordem de interrupção e exclusão apenas de registros sem data de início válida.
+    \item \textbf{Sem filtragem por causa:} o fator gerador existe na base, mas não foi usado para selecionar ocorrências.
+    \item \textbf{Sem interpolação do alvo:} lacunas meteorológicas pontuais podem ser tratadas antes da engenharia de atributos, mas a variável-resposta não é estimada artificialmente.
+    \item \textbf{Escala final:} 3.073 dias brutos; 3.066 observações válidas após a criação de atributos que exigem histórico.
+  \end{itemize}
+
+  \vspace{0.6em}
+  \begin{block}{Por que isso importa?}
+    Essa definição evita inflar a contagem por duplicatas e deixa explícito que estamos prevendo volume diário observado, e não duração, DEC, FEC ou consumidores afetados.
+  \end{block}
+
+  \source{Monografia, Seções 1.2, 3.4, 3.5 e 3.14.}
+  \note{%
+    Slide de reserva.
+    [Sources] Monografia, Seções 1.2, 3.4, 3.5 e 3.14.
+  }
+\end{frame}
 
 \begin{frame}[noframenumbering]{Os resíduos ainda preservam dependência temporal}{Reserva: diagnóstico residual}
   \centering

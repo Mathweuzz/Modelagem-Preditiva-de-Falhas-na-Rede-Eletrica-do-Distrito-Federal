@@ -20,7 +20,7 @@ Para alcançar este objetivo, foram propostos os seguintes objetivos específico
 \begin{enumerate}
     \item Construir uma base de dados integrada a partir de fontes governamentais abertas (INMET e ANEEL), compreendendo mais de 3.000 dias de observações climáticas e de ocorrências elétricas;
     \item Realizar agregações em diferentes escalas temporais (diária, semanal e mensal) para identificar padrões sazonais de interrupções associados ao clima;
-    \item Aplicar técnicas de engenharia de atributos temporais (\textit{Feature Engineering}), incluindo médias móveis exponenciais (EMA), defasagens (\textit{Lags}) e codificações harmônicas, para representar memória recente, padrões semanais e sazonalidade anual;
+    \item Aplicar técnicas de engenharia de atributos temporais (\textit{Feature Engineering}), incluindo médias móveis exponenciais (EMA), defasagens (\textit{Lags}), médias móveis exponenciais e codificações harmônicas, para representar memória recente, padrões semanais e sazonalidade anual;
     \item Desenvolver e avaliar um modelo de referência baseado em \textit{eXtreme Gradient Boosting} (XGBoost), parametrizado via \textit{Grid Search} com validação cruzada temporal;
     \item Implementar e treinar arquiteturas de Redes Neurais Recorrentes Bidirecionais (Bi-LSTM e Bi-GRU) em PyTorch, comparando seu desempenho preditivo contra o modelo de referência;
     \item Conduzir análises de correlação (Pearson, Spearman) entre a ocorrência de falhas na rede, variáveis meteorológicas e a demanda de consumo energético em múltiplas escalas temporais;
@@ -29,7 +29,7 @@ Para alcançar este objetivo, foram propostos os seguintes objetivos específico
 
 \section{Delimitação do Escopo}\label{sec:delimitacao}
 
-Este trabalho delimita-se à análise de interrupções na rede de \textbf{distribuição} de energia elétrica do Distrito Federal, não abrangendo falhas no sistema de transmissão (operado pelo ONS) nem ocorrências relacionadas à geração de energia. O alvo inclui todos os identificadores únicos de interrupção com data de início válida no período, sem filtragem por causa. Portanto, as associações com variáveis meteorológicas são analisadas em nível agregado e não permitem classificar cada ocorrência como causada pelo clima.
+Este trabalho delimita-se à análise de interrupções na rede de \textbf{distribuição} de energia elétrica do Distrito Federal, não abrangendo ocorrências nos segmentos de transmissão ou geração de energia. O alvo inclui todos os identificadores únicos de interrupção com data de início válida no período, sem filtragem por causa. Portanto, as associações com variáveis meteorológicas são analisadas em nível agregado e não permitem classificar cada ocorrência como causada pelo clima.
 
 A resolução temporal adotada é diária, o que implica que os modelos preveem a quantidade total de interrupções num dado dia, sem discriminação por região administrativa ou horário específico. A resolução geográfica é restrita à área de concessão da Neoenergia Brasília, correspondente integralmente ao Distrito Federal, com dados climáticos oriundos da estação meteorológica automática A001 do INMET localizada em Brasília.
 
@@ -38,7 +38,7 @@ A resolução temporal adotada é diária, o que implica que os modelos preveem 
 As principais contribuições deste trabalho de conclusão de curso são:
 \begin{enumerate}
     \item \textbf{Base de dados integrada}: construção de uma base diária com 3.073 dias de dados meteorológicos do INMET e ocorrências elétricas da ANEEL; os dados mensais do SAMP são mantidos em uma camada complementar destinada exclusivamente à análise exploratória;
-    \item \textbf{Engenharia de atributos temporais}: desenvolvimento de um \textit{pipeline} com 40 preditores, incluindo variáveis meteorológicas, atributos de calendário, defasagens de 1 a 7 dias, médias móveis exponenciais e desvios móveis, representando memória recente e sazonalidade;
+    \item \textbf{Engenharia de atributos temporais}: desenvolvimento de um \textit{pipeline} com 40 preditores, incluindo variáveis meteorológicas, atributos de calendário, defasagens de 1, 2, 3 e 7 dias, médias móveis exponenciais e desvios padrão móveis de 7 dias, representando memória recente e sazonalidade;
     \item \textbf{Estudo comparativo rigoroso}: avaliação empírica sistemática de XGBoost, Bi-LSTM e Bi-GRU sob separação cronológica estrita, com datas-alvo comuns, métricas padronizadas (MAE, RMSE, $R^2$ e MAPE) e comparação com a referência de persistência;
     \item \textbf{Contextualização do El Niño 2023}: análise descritiva da coincidência temporal entre o período do evento ENSO de 2023--2024, variáveis meteorológicas e picos de interrupções, sem inferência de causalidade e sem avaliação preditiva específica desse recorte;
     \item \textbf{Análise multi-horizonte}: avaliação direta do erro preditivo em horizontes de 1, 3, 7 e 14 dias, caracterizando como a ordenação das métricas e os \textit{trade-offs} entre arquiteturas variam com a antecedência;

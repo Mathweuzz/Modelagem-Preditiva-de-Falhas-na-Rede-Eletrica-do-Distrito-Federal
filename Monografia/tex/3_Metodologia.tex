@@ -253,7 +253,7 @@ A variável \texttt{mês} foi codificada em coordenadas polares via funções ha
 As variáveis \texttt{dia\_semana} e \texttt{dia\_ano} foram mantidas como inteiros, sendo que o XGBoost (baseado em árvores de decisão) é capaz de capturar padrões não-lineares sem necessidade de codificação adicional \cite{chen2016xgboost}.
 
 \subsection{Matriz Extensiva de Engenharia de Atributos (Feature Engineering)}
-O processo de engenharia de atributos expandiu as sete variáveis preditoras de base integradas ao alvo diário para um conjunto de \textbf{40 \textit{features} de entrada} mais a variável alvo, totalizando 41 colunas no \textit{dataset} final. As categorias de atributos incluem: variáveis base meteorológicas e eólicas, codificações temporais (inteiras e cíclicas), defasagens de 1 a 7 dias, médias móveis exponenciais (EMA) de 3, 7 e 14 dias, e desvios padrão em janela deslizante de 7 dias.
+O processo de engenharia de atributos expandiu as sete variáveis preditoras de base integradas ao alvo diário para um conjunto de \textbf{40 \textit{features} de entrada} mais a variável alvo, totalizando 41 colunas no \textit{dataset} final. As categorias de atributos incluem: variáveis base meteorológicas e eólicas, codificações temporais (inteiras e cíclicas), defasagens de 1, 2, 3 e 7 dias, médias móveis exponenciais (EMA) de 3, 7 e 14 dias, e desvios padrão em janela deslizante de 7 dias.
 
 A Tabela~\ref{tab:longtable_features} apresenta o dicionário completo de todos os atributos, conforme extraídos do arquivo \texttt{dataset\_engenharia\_features.csv} utilizado na modelagem.
 
@@ -501,7 +501,7 @@ Para o XGBoost, os hiperparâmetros foram otimizados via \textit{Grid Search} co
     \item \textbf{Perda Mínima de Divisão (\texttt{gamma}):} Testado em $\{0;\, 0{,}1\}$. Regularização que exige ganho mínimo para cada divisão adicional.
 \end{enumerate}
 
-A configuração ótima encontrada pela busca em grade foi: $\eta=0{,}03$, \texttt{max\_depth}$=4$, \texttt{n\_estimators}$=300$, \texttt{subsample}$=0{,}7$, \texttt{colsample\_bytree}$=0{,}8$, \texttt{min\_child\_weight}$=1$, \texttt{gamma}$=0$.
+A configuração ótima encontrada pela busca em grade foi: $\eta=0{,}03$, \texttt{max\_depth}$=4$, \texttt{n\_estimators}$=300$, \texttt{subsample}$=0{,}8$, \texttt{colsample\_bytree}$=0{,}8$, \texttt{min\_child\_weight}$=1$, \texttt{gamma}$=0{,}1$.
 
 \section{Análise Descritiva do Conjunto de Dados}\label{sec:descritiva}
 

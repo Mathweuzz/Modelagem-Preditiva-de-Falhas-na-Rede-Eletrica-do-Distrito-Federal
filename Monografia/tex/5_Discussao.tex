@@ -7,7 +7,7 @@ Os resultados apresentados no Capítulo~\ref{4_Resultados} revelaram um achado r
 O resultado não sustenta a hipótese de superioridade sistemática das arquiteturas de \textit{Deep Learning} sobre modelos baseados em árvores neste conjunto de teste. A proximidade descritiva entre XGBoost e Bi-LSTM pode estar associada a três fatores complementares:
 
 \begin{enumerate}
-    \item \textbf{Engenharia de atributos temporais:} A construção manual de 40 \textit{features}, incluindo defasagens de 1 a 7 dias, médias móveis exponenciais e codificações harmônicas, forneceu ao XGBoost informação temporal explícita. A ablação mostrou, porém, que essa contribuição não é uniforme: histórico + calendário superou o conjunto completo no teste pós-hoc, enquanto o grupo climático não apresentou ganho incremental.
+    \item \textbf{Engenharia de atributos temporais:} A construção manual de 40 \textit{features}, incluindo defasagens de 1, 2, 3 e 7 dias, médias móveis exponenciais e codificações harmônicas, forneceu ao XGBoost informação temporal explícita. A ablação mostrou, porém, que essa contribuição não é uniforme: histórico + calendário superou o conjunto completo no teste pós-hoc, enquanto o grupo climático não apresentou ganho incremental.
 
     \item \textbf{Regularização e seleção temporal:} O XGBoost dispõe de mecanismos de regularização nativos ($L_1$, $L_2$, Gamma, \texttt{max\_depth}, \texttt{subsample}) e recebeu \textit{Grid Search} com validação temporal. As redes usaram Dropout e \textit{Weight Decay}, mas não receberam busca equivalente; essa assimetria limita atribuir as diferenças apenas às arquiteturas.
 

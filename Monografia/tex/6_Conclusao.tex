@@ -33,7 +33,7 @@ Em relação aos objetivos específicos propostos na Seção~\ref{sec:objetivos}
 
     \item \textbf{Agregações em múltiplas escalas:} Realizaram-se análises em escala diária, semanal e mensal. Para os principais sinais climáticos, as magnitudes das correlações foram maiores nas escalas agregadas, que também facilitaram a identificação de padrões sazonais. \textit{Objetivo cumprido.}
 
-    \item \textbf{Engenharia de atributos temporais:} Desenvolveu-se um \textit{pipeline} de 40 \textit{features} derivadas incluindo defasagens de 1 a 7 dias, EMAs de 3, 7 e 14 dias, desvios padrão em janela de 7 dias e codificações harmônicas cíclicas. \textit{Objetivo cumprido.}
+    \item \textbf{Engenharia de atributos temporais:} Desenvolveu-se um \textit{pipeline} de 40 \textit{features} derivadas incluindo defasagens de 1, 2, 3 e 7 dias, EMAs de 3, 7 e 14 dias, desvios padrão em janela de 7 dias e codificações harmônicas cíclicas. \textit{Objetivo cumprido.}
 
     \item \textbf{Modelo de referência XGBoost:} Implementou-se o XGBoost com \textit{Grid Search} temporal (\texttt{TimeSeriesSplit}, 5 \textit{folds}, 7 hiperparâmetros), encontrando configuração ótima com \texttt{max\_depth}$=4$, $\eta=0{,}03$, \texttt{n\_estimators}$=300$, \texttt{subsample}$=0{,}8$ e \texttt{colsample\_bytree}$=0{,}8$, alcançando MAE $= 61{,}47$ e $R^2 = 0{,}409$ no protocolo comum de $h=1$. \textit{Objetivo cumprido.}
 
