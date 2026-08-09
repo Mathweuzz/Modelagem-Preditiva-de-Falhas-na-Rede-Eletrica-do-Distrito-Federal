@@ -79,27 +79,32 @@ Orientador: Prof. Jan Mendonça Corrêa}
 \section{Problema e objetivo}
 
 \begin{frame}{Podemos antecipar as interrupções?}{Pergunta de pesquisa}
-  \vspace{0.5em}
+  \vspace{0.45em}
   \begin{block}{}
     \centering
     \Large
-    Dados públicos de clima e operação conseguem prever quantas interrupções ocorrerão nos próximos dias?
+    Dados públicos conseguem prever a contagem diária de interrupções na rede de distribuição do DF?
   \end{block}
 
-  \vspace{0.7em}
+  \vspace{0.6em}
   \begin{itemize}
-    \item \textbf{Alvo:} número diário de interrupções no Distrito Federal.
-    \item \textbf{Comparação:} XGBoost, Bi-LSTM e Bi-GRU.
-    \item \textbf{Horizontes:} 1, 3, 7 e 14 dias à frente.
+    \item \textbf{Alvo:} identificadores únicos de interrupção com início registrado em cada dia.
+    \item \textbf{Escopo:} todas as causas com data válida; sem filtragem climática por fator gerador.
+    \item \textbf{Comparação:} XGBoost, Bi-LSTM e Bi-GRU em 1, 3, 7 e 14 dias à frente.
   \end{itemize}
 
-  \source{Monografia, Capítulo 1.}
-  \note{%
+  \begin{block}{Delimitação importante}
+    O alvo não é DEC, FEC, duração, consumidores afetados nem causa da interrupção.
+  \end{block}
+
+  \source{Monografia, Seções 1.2 e 1.3.}
+  \note{% 
     Apresentador: Giovanni. Tempo-alvo: 1 minuto.
-    Abrir com a pergunta central e explicar que o trabalho combina previsão diária e análise multi-horizonte.
-    [Sources] Monografia, Seções 1.1 e 1.2.
+    Abrir com a pergunta central e definir o alvo com cuidado: contagem diária de identificadores únicos de interrupção. Reforçar que não há filtragem climática por fator gerador.
+    [Sources] Monografia, Seções 1.2 e 1.3.
   }
 \end{frame}
+
 
 \begin{frame}{Interrupções cresceram 65,3\% desde 2017}{Contexto operacional}
   \begin{columns}[T,onlytextwidth]
@@ -153,7 +158,7 @@ Orientador: Prof. Jan Mendonça Corrêa}
     A previsão não elimina a incerteza, mas transforma histórico e clima em antecedência operacional.
   \end{block}
 
-  \source{Monografia, Seções 1.1 e 5.6.}
+  \source{Monografia, Seções 1.1 e 5.9.}
   \note{%
     Apresentador: Giovanni. Tempo-alvo: 1 minuto.
     Conectar o problema técnico à decisão operacional.
@@ -161,25 +166,39 @@ Orientador: Prof. Jan Mendonça Corrêa}
   }
 \end{frame}
 
-\begin{frame}{O trabalho entrega quatro contribuições}{Contribuições}
-  \begin{enumerate}
-    \item \textbf{Base diária integrada}\\
-      3.073 dias de clima e interrupções; consumo mensal do SAMP usado apenas na análise exploratória.
-    \item \textbf{Memória temporal explícita}\\
-      40 atributos derivados com defasagens, médias móveis, variabilidade e sazonalidade.
-    \item \textbf{Protocolo temporal comum}\\
-      365 dias em $h=1$ e 352 datas-alvo comuns na análise multi-horizonte.
-    \item \textbf{Escolha por horizonte}\\
-      Desempenho comparado em previsões diretas de 1, 3, 7 e 14 dias.
-  \end{enumerate}
+\begin{frame}{O trabalho entrega seis contribuições}{Contribuições}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.48\textwidth}
+      \begin{enumerate}
+        \item \textbf{Base diária integrada}\\
+        3.073 dias de clima e interrupções; SAMP apenas na análise mensal.
+        \item \textbf{Alvo auditável}\\
+        Contagem diária por identificador único, sem duplicar ordens de interrupção.
+        \item \textbf{Memória temporal}\\
+        40 preditores com lags, EMAs, desvios móveis e sazonalidade.
+      \end{enumerate}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{enumerate}
+        \setcounter{enumi}{3}
+        \item \textbf{Comparação temporal}\\
+        Mesmas datas-alvo e separação cronológica estrita.
+        \item \textbf{Robustez}\\
+        Bootstrap em blocos, contrastes pareados, ablação e diagnóstico residual.
+        \item \textbf{Reprodutibilidade}\\
+        Pipeline com artefatos e validações automatizadas.
+      \end{enumerate}
+    \end{column}
+  \end{columns}
 
   \source{Monografia, Seção 1.4.}
-  \note{%
-    Apresentador: Giovanni. Tempo-alvo: 1 minuto e 10 segundos.
-    Apresentar as contribuições como respostas concretas à pergunta de pesquisa.
+  \note{% 
+    Apresentador: Giovanni. Tempo-alvo: 1 minuto e 20 segundos.
+    Apresentar as contribuições como respostas concretas à pergunta de pesquisa. Dar destaque às novas contribuições: robustez estatística e reprodutibilidade.
     [Sources] Monografia, Seção 1.4.
   }
 \end{frame}
+
 
 \section{Dados e metodologia}
 
@@ -187,8 +206,8 @@ Orientador: Prof. Jan Mendonça Corrêa}
   \begin{columns}[T,onlytextwidth]
     \begin{column}{0.61\textwidth}
       \begin{description}
-        \item[INMET] temperatura, precipitação, velocidade, rajada e direção do vento.
-        \item[ANEEL] registros de interrupções e fatores geradores.
+        \item[INMET] temperatura, precipitação, vento médio/máximo, rajada e direção circular.
+        \item[ANEEL] registros individuais e identificadores únicos de interrupção.
         \item[SAMP] consumo mensal de energia, usado somente na análise exploratória.
       \end{description}
     \end{column}
@@ -203,16 +222,17 @@ Orientador: Prof. Jan Mendonça Corrêa}
 
   \vspace{0.5em}
   \begin{block}{Delimitação}
-    Distribuição de energia no DF, resolução diária e dados meteorológicos da estação A001 de Brasília.
+    Distribuição de energia no DF, resolução diária, estação A001 de Brasília e alvo sem filtragem por causa.
   \end{block}
 
-  \source{INMET, ANEEL e SAMP; Monografia, Seções 1.3 e 3.2.}
-  \note{%
+  \source{INMET, ANEEL e SAMP; Monografia, Seções 1.3 e 3.4.}
+  \note{% 
     Apresentador: Giovanni. Tempo-alvo: 1 minuto e 20 segundos.
-    Explicar a origem de cada variável e a delimitação geográfica.
-    [Sources] Monografia, Seções 1.3 e 3.2; portais públicos do INMET e da ANEEL.
+    Explicar a origem de cada variável e a delimitação geográfica. Reforçar que o consumo não entra no treinamento dos modelos.
+    [Sources] Monografia, Seções 1.3, 3.4 e 3.7.
   }
 \end{frame}
+
 
 \begin{frame}{O pipeline integra dados e gera previsões}{Processamento}
   \centering
@@ -232,7 +252,7 @@ Orientador: Prof. Jan Mendonça Corrêa}
   ]
     \node[box] (sources) {INMET\\ANEEL};
     \node[box, right=of sources] (daily) {Agregação\\diária};
-    \node[box, right=of daily] (merge) {Integração e\\interpolação};
+    \node[box, right=of daily] (merge) {Deduplicação e\\integração};
     \node[box, right=of merge] (features) {40 atributos\\temporais};
     \node[box, right=of features] (models) {XGBoost\\Bi-LSTM\\Bi-GRU};
     \node[final, right=of models] (forecast) {Previsão\\$h=1,3,7,14$};
@@ -244,20 +264,22 @@ Orientador: Prof. Jan Mendonça Corrêa}
     \draw[arrow] (models) -- (forecast);
   \end{tikzpicture}
 
-  \vspace{1.2em}
+  \vspace{1.1em}
   \begin{itemize}
-    \item Somatório para chuva/interrupções; médias para temperatura e vento, com direção circular.
-    \item Interpolação linear apenas em lacunas curtas; extremos reais foram preservados.
-    \item O consumo do SAMP foi integrado somente à análise exploratória mensal.
+    \item Somatório para chuva e interrupções; médias para temperatura e vento.
+    \item Direção do vento tratada como variável circular: seno e cosseno.
+    \item Alvo não interpolado; lacunas meteorológicas tratadas antes da engenharia de atributos.
+    \item Extremos reais foram preservados, pois são justamente os cenários críticos.
   \end{itemize}
 
-  \source{Monografia, Seções 3.4 e 3.5.}
-  \note{%
+  \source{Monografia, Seções 3.4, 3.6 e 3.7.}
+  \note{% 
     Apresentador: Giovanni. Tempo-alvo: 1 minuto e 20 segundos.
-    Percorrer o fluxo da esquerda para a direita. Explicar por que os outliers não foram removidos.
-    [Sources] Monografia, Seções 3.4 e 3.5.
+    Percorrer o fluxo da esquerda para a direita. Explicar que a mudança central é a reconstrução auditável do alvo, sem filtrar fatores geradores.
+    [Sources] Monografia, Seções 3.4, 3.6 e 3.7.
   }
 \end{frame}
+
 
 \begin{frame}{Atributos codificam memória e sazonalidade}{40 atributos derivados}
   \begin{columns}[T,onlytextwidth]
@@ -273,10 +295,10 @@ Orientador: Prof. Jan Mendonça Corrêa}
     \begin{column}{0.48\textwidth}
       \textbf{\large Contexto do sistema}
       \begin{itemize}
-        \item Temperatura, chuva e cinco variáveis de vento.
+        \item Temperatura, chuva, vento e rajada.
+        \item Direção do vento por seno/cosseno.
         \item Histórico de interrupções disponível em $t$.
-        \item Dia da semana e posição no ano.
-        \item Codificação seno/cosseno do mês.
+        \item Dia da semana e sazonalidade anual.
       \end{itemize}
     \end{column}
   \end{columns}
@@ -286,13 +308,14 @@ Orientador: Prof. Jan Mendonça Corrêa}
     Mesmas variáveis por instante e mesmo corte; XGBoost usa uma linha e as RNNs, uma janela de 14 dias.
   \end{block}
 
-  \source{Monografia, Seções 3.4, 3.7 e 3.10.}
-  \note{%
+  \source{Monografia, Seções 3.6, 3.7 e 3.10.}
+  \note{% 
     Apresentador: Giovanni. Tempo-alvo: 1 minuto e 10 segundos.
-    Distinguir features tabulares do lookback sequencial.
-    [Sources] Monografia, Seções 3.4, 3.7, 3.9 e 3.10.
+    Distinguir features tabulares do lookback sequencial. Explicar a direção circular sem entrar demais na matemática.
+    [Sources] Monografia, Seções 3.6, 3.7 e 3.10.
   }
 \end{frame}
+
 
 \begin{frame}{O teste preserva a ordem do tempo}{Protocolo sem vazamento de dados}
   \centering
@@ -304,48 +327,50 @@ Orientador: Prof. Jan Mendonça Corrêa}
     \node at (5.05,0.72) {\textbf{Treinamento}};
     \node at (11.75,0.72) {\textbf{Teste}};
     \node[font=\scriptsize] at (5.05,-0.35) {08/01/2017 -- 31/05/2024};
-    \node[font=\scriptsize] at (11.75,-0.35) {14/06/2024 -- 31/05/2025};
-    \node[font=\scriptsize,align=center] at (5.05,1.55) {$\approx$ 2.700 dias\\5 divisões: só XGBoost};
-    \node[font=\scriptsize,align=center] at (11.75,1.55) {352 datas-alvo\\iguais por horizonte};
+    \node[font=\scriptsize,align=center] at (11.75,-0.35) {$h=1$: 01/06/2024 -- 31/05/2025\\multi-horizonte: 14/06/2024 -- 31/05/2025};
+    \node[font=\scriptsize,align=center] at (5.05,1.55) {treino até 31/05/2024\\validação temporal no XGBoost};
+    \node[font=\scriptsize,align=center] at (12.35,1.55) {teste fora da amostra\\365 alvos ($h=1$); 352 no multi};
   \end{tikzpicture}
 
   \vspace{1.2em}
   \begin{itemize}
     \item XGBoost: \texttt{TimeSeriesSplit} no treino; RNNs: 150 épocas fixas, sem validação interna.
-    \item Normalização ajustada com dados até 31/05/2024.
+    \item Normalização ajustada apenas no conjunto de treinamento.
     \item Modelos diretos independentes; nenhuma previsão intermediária é reutilizada.
   \end{itemize}
 
-  \source{Monografia, Seções 3.6, 3.7 e 3.10.}
-  \note{%
+  \source{Monografia, Seções 3.9, 3.10 e 3.14.}
+  \note{% 
     Apresentador: Giovanni. Tempo-alvo: 1 minuto e 30 segundos.
-    Este é o principal ponto de rigor metodológico: o futuro nunca entra no treino.
-    [Sources] Monografia, Seções 3.6, 3.7 e 3.10.
+    Este é o principal ponto de rigor metodológico: o futuro nunca entra no treino. Separar h=1 de multi-horizonte para evitar confusão com 365 e 352 alvos.
+    [Sources] Monografia, Seções 3.9, 3.10 e 3.14.
   }
 \end{frame}
+
 
 \begin{frame}{Três modelos, três estratégias}{Arquiteturas comparadas}
   \begin{description}
     \item[XGBoost] Árvores sequenciais sobre atributos tabulares.\\
-      \small 300 árvores, profundidade 4 e busca em grade com validação temporal.
+      \small Hiperparâmetros selecionados por busca em grade com validação temporal.
     \item[Bi-LSTM] Memória recorrente com estado de célula.\\
-      \small 2 camadas, 64 unidades, janela de 14 dias e dropout 0,4.
+      \small 2 camadas, 64 unidades por direção, janela de 14 dias e dropout 0,4.
     \item[Bi-GRU] Memória recorrente mais compacta.\\
-      \small 2 camadas, 64 unidades, janela de 14 dias e dropout 0,4.
+      \small 2 camadas, 64 unidades por direção, janela de 14 dias e dropout 0,4.
   \end{description}
 
   \vspace{0.8em}
   \begin{block}{Comparação}
-    MAE, RMSE, $R^2$ e MAPE sobre os mesmos 365 dias de teste.
+    MAE, RMSE, $R^2$ e MAPE sobre os mesmos 365 dias de teste em $h=1$.
   \end{block}
 
-  \source{Monografia, Seção 3.9.}
-  \note{%
+  \source{Monografia, Seções 3.10, 3.12 e 3.14.}
+  \note{% 
     Apresentador: Giovanni. Tempo-alvo: 1 minuto e 20 segundos.
-    Explicar a diferença entre engenharia explícita do XGBoost e memória aprendida pelas RNNs.
-    [Sources] Monografia, Seção 3.9.
+    Explicar a diferença entre engenharia explícita do XGBoost e memória aprendida pelas RNNs. Evitar decorar hiperparâmetros específicos no slide.
+    [Sources] Monografia, Seções 3.10, 3.12 e 3.14.
   }
 \end{frame}
+
 
 \section{Resultados exploratórios}
 
@@ -389,7 +414,7 @@ Orientador: Prof. Jan Mendonça Corrêa}
   }
 \end{frame}
 
-\begin{frame}{A agregação revela melhor o sinal climático}{Correlação com interrupções}
+\begin{frame}{As associações aparecem mais nas escalas agregadas}{Correlação com interrupções}
   \begin{columns}[T,onlytextwidth]
     \begin{column}{0.70\textwidth}
       \includegraphics[width=\textwidth]{correlacoes_escala_temporal.png}
@@ -406,17 +431,23 @@ Orientador: Prof. Jan Mendonça Corrêa}
     \end{column}
   \end{columns}
 
-  \source{INMET e ANEEL; elaboração dos autores, Figura 4.8.}
-  \note{%
+  \vspace{-0.2em}
+  \begin{block}{}
+    Correlação não implica causalidade e não garante ganho incremental na previsão diária.
+  \end{block}
+
+  \source{INMET e ANEEL; elaboração dos autores, Figura 4.8 e Tabela 4.1.}
+  \note{% 
     Apresentador: Mateus. Tempo-alvo: 1 minuto e 30 segundos.
     Explicar que a agregação suaviza variações e enfatiza tendências compartilhadas. Reforçar que correlação não prova causalidade nem efeito cumulativo.
     [Sources] Monografia, Seção 4.3 e Tabela 4.1.
   }
 \end{frame}
 
+
 \section{Desempenho preditivo}
 
-\begin{frame}{Os três modelos superam a persistência}{Resultados para $h=1$}
+\begin{frame}{Os três modelos ficam praticamente empatados}{Resultados para $h=1$}
   \begin{columns}[T,onlytextwidth]
     \begin{column}{0.62\textwidth}
       \resizebox{\linewidth}{!}{%
@@ -435,19 +466,65 @@ Orientador: Prof. Jan Mendonça Corrêa}
     \begin{column}{0.34\textwidth}
       \vspace{0.2em}
       \keynumber{0,63}{amplitude do MAE entre os três modelos}
-      \vspace{1.0em}
-      \textbf{Interpretação}\\
+      \vspace{0.8em}
+      \textbf{Leitura}\\
       XGBoost lidera em MAE; Bi-LSTM em MAPE; Bi-GRU em RMSE e $R^2$.
+      \vspace{0.5em}
+      \small Todos têm MAE observado menor que a persistência.
     \end{column}
   \end{columns}
 
-  \source{Elaboração dos autores; 365 dias de teste.}
-  \note{%
+  \source{Elaboração dos autores; 365 dias de teste; Monografia, Tabela 4.2.}
+  \note{% 
     Apresentador: Mateus. Tempo-alvo: 1 minuto e 30 segundos.
-    Evitar declarar vencedor absoluto: XGBoost tem menor MAE; Bi-LSTM, menor MAPE; Bi-GRU, menor RMSE e maior R2. Explicar que as variáveis por instante são comuns, mas as representações diferem.
-    [Sources] Monografia, Tabela 4.2; arquivos de métricas do repositório.
+    Evitar declarar vencedor absoluto: XGBoost tem menor MAE; Bi-LSTM, menor MAPE; Bi-GRU, menor RMSE e maior R2. Explicar que os MAEs são muito próximos.
+    [Sources] Monografia, Tabela 4.2.
   }
 \end{frame}
+
+\begin{frame}{Sem vencedor estatístico em $h=1$}{Bootstrap em blocos semanais}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.47\textwidth}
+      \scriptsize
+      \begin{tabular}{lrr}
+        \toprule
+        \textbf{Modelo} & \textbf{MAE} & \textbf{IC95\%} \\
+        \midrule
+        XGBoost & 61,47 & [49,97; 74,64] \\
+        Bi-LSTM & 61,74 & [51,69; 73,42] \\
+        Bi-GRU & 62,10 & [52,10; 73,66] \\
+        Persistência & 68,59 & [56,80; 82,48] \\
+        \bottomrule
+      \end{tabular}
+    \end{column}
+    \begin{column}{0.49\textwidth}
+      \scriptsize
+      \begin{tabular}{lrr}
+        \toprule
+        \textbf{Contraste} & \textbf{$\Delta$ MAE} & \textbf{IC95\%} \\
+        \midrule
+        XGB -- LSTM & -0,26 & [-8,11; 7,82] \\
+        XGB -- GRU & -0,63 & [-8,75; 7,81] \\
+        LSTM -- GRU & -0,37 & [-4,96; 4,14] \\
+        \bottomrule
+      \end{tabular}
+    \end{column}
+  \end{columns}
+
+  \vspace{0.9em}
+  \begin{block}{Conclusão estatística}
+    Em $h=1$, os MAEs observados são próximos e os contrastes pareados incluem zero; portanto, não há vencedor estatisticamente separado pelo MAE.
+  \end{block}
+
+  \source{Monografia, Seção 4.7.1 e Tabelas 4.4--4.5.}
+  \note{% 
+    Apresentador: Mateus. Tempo-alvo: 1 minuto e 20 segundos.
+    Explicar que o bootstrap preserva dependência semanal ao reamostrar blocos. O ponto principal é não vender uma superioridade que o intervalo não sustenta.
+    [Sources] Monografia, Seção 4.7.1 e Tabelas 4.4--4.5.
+  }
+\end{frame}
+
+
 
 \begin{frame}{Os modelos suavizam os maiores picos}{XGBoost no conjunto de teste}
   \centering
@@ -505,8 +582,8 @@ Orientador: Prof. Jan Mendonça Corrêa}
       \begin{itemize}
         \item Interrupções em $t$.
         \item Lag de 1 dia.
-        \item Sazonalidade mensal.
-        \item EMA de precipitação.
+        \item Sazonalidade.
+        \item Variáveis climáticas selecionadas.
       \end{itemize}
 
       \small
@@ -514,13 +591,55 @@ Orientador: Prof. Jan Mendonça Corrêa}
     \end{column}
   \end{columns}
 
-  \source{Elaboração dos autores, Figura 4.29.}
-  \note{%
+  \source{Elaboração dos autores, Figura 4.32.}
+  \note{% 
     Apresentador: Mateus. Tempo-alvo: 1 minuto e 15 segundos.
-    Mostrar como o estado recente da rede, a estação do ano e a chuva acumulada formam a previsão.
-    [Sources] Monografia, Seção 4.8 e Figura 4.29.
+    Mostrar como o estado recente da rede domina a previsão do XGBoost. Preparar a transição para a ablação, que testa grupos de atributos.
+    [Sources] Monografia, Seção 4.10 e Figura 4.32.
   }
 \end{frame}
+
+\begin{frame}{Clima não trouxe ganho incremental em $h=1$}{Ablação pós-hoc do XGBoost}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.55\textwidth}
+      \centering
+      \begin{tabular}{lr}
+        \toprule
+        \textbf{Entradas} & \textbf{MAE} \\
+        \midrule
+        Histórico + calendário & \textbf{54,26} \\
+        Somente histórico & 61,17 \\
+        Modelo completo & 61,47 \\
+        Persistência & 68,59 \\
+        Somente calendário & 75,32 \\
+        Clima + calendário & 79,22 \\
+        \bottomrule
+      \end{tabular}
+    \end{column}
+    \begin{column}{0.40\textwidth}
+      \textbf{Leitura correta}
+      \begin{itemize}
+        \item O histórico recente concentra o sinal de curto prazo.
+        \item Correlação climática não virou ganho incremental no teste.
+        \item O melhor subconjunto precisa de validação prospectiva.
+      \end{itemize}
+    \end{column}
+  \end{columns}
+
+  \vspace{0.6em}
+  \begin{block}{}
+    Isso não prova que o clima é irrelevante; mostra apenas que, neste protocolo, ele não melhorou o XGBoost depois de incluído o histórico.
+  \end{block}
+
+  \source{Monografia, Seção 4.7.2 e Tabela 4.6.}
+  \note{% 
+    Apresentador: Mateus. Tempo-alvo: 1 minuto e 30 segundos.
+    Este é um dos resultados novos mais importantes. Separar associação climática de utilidade incremental na previsão diária. Não vender o modelo de 54,26 como modelo final, porque é ablação pós-hoc.
+    [Sources] Monografia, Seção 4.7.2 e Tabela 4.6.
+  }
+\end{frame}
+
+
 
 \begin{frame}{A hierarquia muda com o horizonte}{MAE em previsão direta}
   \begin{columns}[T,onlytextwidth]
@@ -540,7 +659,7 @@ Orientador: Prof. Jan Mendonça Corrêa}
   \note{%
     Apresentador: Mateus. Tempo-alvo: 1 minuto e 40 segundos.
     Este é o principal resultado comparativo. Explicar que cada ponto vem de um modelo treinado diretamente para aquele horizonte e que os três ficam abaixo da persistência em MAE nos horizontes 3, 7 e 14.
-    [Sources] Monografia, Seção 4.10 e Figura 4.34; arquivo de métricas multi-horizonte.
+    [Sources] Monografia, Seção 4.12 e Figura 4.37; arquivo de métricas multi-horizonte.
   }
 \end{frame}
 
@@ -552,11 +671,11 @@ Orientador: Prof. Jan Mendonça Corrêa}
   \small
   Setembro e outubro de 2024 formam a janela mais crítica; junho e julho permanecem entre os meses mais estáveis.
 
-  \source{Elaboração dos autores, Figura 4.38.}
+  \source{Elaboração dos autores, Figura 4.41.}
   \note{%
     Apresentador: Mateus. Tempo-alvo: 1 minuto e 15 segundos.
     Explicar que a liderança anual varia ao longo dos meses e que os maiores erros coincidem com a transição para a estação chuvosa.
-    [Sources] Monografia, Seção 4.10.1 e Figura 4.38; métricas mensais multi-horizonte.
+    [Sources] Monografia, Seção 4.12.1 e Figura 4.41; métricas mensais multi-horizonte.
   }
 \end{frame}
 
@@ -583,11 +702,11 @@ Orientador: Prof. Jan Mendonça Corrêa}
     Combinar modelos por horizonte e retrainar periodicamente para acompanhar mudanças na série.
   \end{block}
 
-  \source{Monografia, Seção 5.2.}
+  \source{Monografia, Seções 5.3 e 5.4.}
   \note{%
     Apresentador: Mateus. Tempo-alvo: 1 minuto e 20 segundos.
     Traduzir o gráfico anterior em decisão. Ressaltar que a escolha depende do horizonte e do custo computacional.
-    [Sources] Monografia, Seções 5.2 e 5.7.
+    [Sources] Monografia, Seções 5.3, 5.4 e 5.10.
   }
 \end{frame}
 
@@ -606,25 +725,26 @@ Orientador: Prof. Jan Mendonça Corrêa}
     \begin{column}{0.48\textwidth}
       \textbf{\large Modelagem}
       \begin{itemize}
-        \item Apenas 2.687 sequências para as RNNs.
-        \item Sem efeitos espaciais explícitos no modelo.
-        \item Previsões pontuais sem intervalo de incerteza.
+        \item Redes sem validação temporal interna.
+        \item Resíduos ainda autocorrelacionados.
+        \item Previsões pontuais sem intervalo preditivo operacional.
       \end{itemize}
     \end{column}
   \end{columns}
 
   \vspace{0.8em}
   \begin{block}{Próximos passos}
-    Dados horários e espaciais, múltiplas estações, NDVI/LiDAR, índices ENSO e previsão probabilística.
+    Validar prospectivamente a ablação, incorporar dados espaciais e climáticos mais ricos e estimar incerteza preditiva.
   \end{block}
 
-  \source{Monografia, Seção 5.5 e Capítulo 6.}
-  \note{%
+  \source{Monografia, Seções 5.8, 5.13 e 6.4.}
+  \note{% 
     Apresentador: Mateus. Tempo-alvo: 1 minuto e 20 segundos.
-    Mostrar domínio crítico do trabalho: não extrapolar causalidade nem generalização nacional.
+    Mostrar domínio crítico do trabalho: não extrapolar causalidade nem generalização nacional. Enfatizar que há incerteza das métricas, mas ainda não intervalo preditivo para cada dia.
     [Sources] Monografia, Limitações e Trabalhos Futuros.
   }
 \end{frame}
+
 
 \begin{frame}{A implantação pode começar como alerta}{Caminho para manutenção preditiva}
   \begin{enumerate}
@@ -639,7 +759,7 @@ Orientador: Prof. Jan Mendonça Corrêa}
     O modelo atua como sistema de alerta: informa a previsão e o horizonte, enquanto a decisão permanece com a operação.
   \end{block}
 
-  \source{Monografia, Seções 5.6 e 6.4.}
+  \source{Monografia, Seções 5.9 e 6.4.}
   \note{%
     Apresentador: Mateus. Tempo-alvo: 1 minuto.
     Apresentar um caminho incremental, sem prometer automação autônoma da operação.
@@ -651,24 +771,26 @@ Orientador: Prof. Jan Mendonça Corrêa}
 
 \begin{frame}{A melhor arquitetura depende do horizonte}{Conclusões}
   \begin{enumerate}
-    \item O clima e o histórico recente contêm \textbf{sinal preditivo relevante}.
-    \item Em $h=1$, os \textbf{três modelos} apresentam MAEs próximos.
-    \item Em $h=3$, $h=7$ e $h=14$, a \textbf{Bi-GRU registra o menor MAE observado}.
-    \item Eventos extremos continuam sendo o principal desafio de previsão.
+    \item Há associação entre clima e interrupções, sobretudo em escalas agregadas, sem inferência causal.
+    \item Em $h=1$, os três modelos têm MAEs próximos e não são separados pelo bootstrap.
+    \item Histórico + calendário domina a previsão curta; clima não trouxe ganho incremental no teste.
+    \item Em $h=3$, $h=7$ e $h=14$, a Bi-GRU registra o menor MAE observado.
+    \item Extremos e autocorrelação residual continuam sendo os principais desafios.
   \end{enumerate}
 
-  \vspace{0.8em}
+  \vspace{0.6em}
   \begin{block}{Resposta à pergunta de pesquisa}
-    Sim, é possível antecipar interrupções com dados públicos, desde que o modelo seja escolhido pelo horizonte e a incerteza seja considerada.
+    Sim, é possível antecipar interrupções com dados públicos, mas a escolha do modelo depende do horizonte, da métrica e da validação prospectiva.
   \end{block}
 
   \source{Monografia, Capítulo 6.}
-  \note{%
-    Apresentador: Mateus. Tempo-alvo: 1 minuto e 20 segundos.
-    Retomar a pergunta do início e responder de forma direta.
+  \note{% 
+    Apresentador: Mateus. Tempo-alvo: 1 minuto e 25 segundos.
+    Retomar a pergunta do início e responder de forma direta, sem vender causalidade nem superioridade estatística onde o bootstrap não sustenta.
     [Sources] Monografia, Capítulo 6.
   }
 \end{frame}
+
 
 {\1
 \begin{frame}[plain,noframenumbering]
@@ -692,6 +814,32 @@ Orientador: Prof. Jan Mendonça Corrêa}
 % ------------------------------------------------------------------
 
 \appendix
+
+\begin{frame}[noframenumbering]{Os resíduos ainda preservam dependência temporal}{Reserva: diagnóstico residual}
+  \centering
+  \begin{tabular}{lrrr}
+    \toprule
+    \textbf{Modelo} & \textbf{Viés médio} & \textbf{$\rho_1$ dos resíduos} & \textbf{Ljung--Box até 14 dias} \\
+    \midrule
+    XGBoost & 0,26 & 0,238 & $p < 10^{-7}$ \\
+    Bi-LSTM & 5,36 & 0,304 & $p < 10^{-7}$ \\
+    Bi-GRU & -7,94 & 0,362 & $p < 10^{-7}$ \\
+    Persistência & -0,03 & -0,247 & $p < 10^{-7}$ \\
+    \bottomrule
+  \end{tabular}
+
+  \vspace{1em}
+  \begin{block}{Leitura}
+    Os modelos não apresentam viés médio claramente diferente de zero, mas ainda deixam estrutura temporal nos erros.
+  \end{block}
+
+  \source{Monografia, Seção 4.7.3 e Tabela 4.7.}
+  \note{% 
+    Slide de reserva.
+    [Sources] Monografia, Seção 4.7.3 e Tabela 4.7.
+  }
+\end{frame}
+
 
 \begin{frame}[noframenumbering]{Métricas mudam a ordenação}{Reserva: métricas multi-horizonte}
   \centering
@@ -717,7 +865,7 @@ Orientador: Prof. Jan Mendonça Corrêa}
   \source{Arquivo de métricas multi-horizonte do repositório.}
   \note{%
     Slide de reserva.
-    [Sources] Monografia, Tabela 4.4; arquivo de métricas multi-horizonte.
+    [Sources] Monografia, Tabela 4.8; arquivo de métricas multi-horizonte.
   }
 \end{frame}
 
@@ -742,7 +890,7 @@ Orientador: Prof. Jan Mendonça Corrêa}
     Em $h=1$, o ganho operacional do XGBoost é sua simplicidade; nos horizontes longos avaliados, o menor MAE observado das RNNs pode justificar validação operacional adicional.
   \end{block}
 
-  \source{Estimativas dos experimentos; Monografia, Seção 5.7.}
+  \source{Estimativas dos experimentos; Monografia, Seção 5.10.}
   \note{%
     Slide de reserva.
     [Sources] Monografia, Tabela 5.3.
@@ -770,10 +918,10 @@ Orientador: Prof. Jan Mendonça Corrêa}
   \centering
   \includegraphics[height=0.72\textheight]{previsao_multihorizonte_temporal_xgboost.png}
 
-  \source{Elaboração dos autores, Figura 4.35.}
+  \source{Elaboração dos autores, Figura 4.38.}
   \note{%
     Slide de reserva.
-    [Sources] Monografia, Seção 4.10.1 e Figura 4.35.
+    [Sources] Monografia, Seção 4.12.1 e Figura 4.38.
   }
 \end{frame}
 
@@ -781,10 +929,10 @@ Orientador: Prof. Jan Mendonça Corrêa}
   \centering
   \includegraphics[height=0.72\textheight]{previsao_multihorizonte_temporal_bilstm.png}
 
-  \source{Elaboração dos autores, Figura 4.36.}
+  \source{Elaboração dos autores, Figura 4.39.}
   \note{%
     Slide de reserva.
-    [Sources] Monografia, Seção 4.10.1 e Figura 4.36.
+    [Sources] Monografia, Seção 4.12.1 e Figura 4.39.
   }
 \end{frame}
 
@@ -792,10 +940,10 @@ Orientador: Prof. Jan Mendonça Corrêa}
   \centering
   \includegraphics[height=0.72\textheight]{previsao_multihorizonte_temporal_bigru.png}
 
-  \source{Elaboração dos autores, Figura 4.37.}
+  \source{Elaboração dos autores, Figura 4.40.}
   \note{%
     Slide de reserva.
-    [Sources] Monografia, Seção 4.10.1 e Figura 4.37.
+    [Sources] Monografia, Seção 4.12.1 e Figura 4.40.
   }
 \end{frame}
 

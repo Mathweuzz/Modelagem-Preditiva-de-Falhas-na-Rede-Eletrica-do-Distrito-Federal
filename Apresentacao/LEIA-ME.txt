@@ -20,13 +20,17 @@ Alternativa:
   pdflatex defesa_tcc.tex
 
 Planejamento:
-- A apresentação principal foi dimensionada para aproximadamente 28–30 minutos.
+- A apresentação principal foi dimensionada para aproximadamente 30–33 minutos.
 - Giovanni apresenta da abertura até “A série revela tendência e sazonalidade”.
 - Mateus assume em “A série mantém memória além de 14 dias” e segue até a conclusão.
-- As quatro últimas páginas são slides de reserva para a arguição.
+- As oito últimas páginas são slides de reserva para a arguição.
 - O arquivo .tex contém notas ocultas com apresentador, tempo-alvo e pontos de fala.
 
 Referência de duração:
 - O regulamento de TCC publicado pelo CIC/UnB usa aproximadamente 30 minutos para
   a apresentação oral. Confirmem o limite final com o orientador e a banca.
   https://cic.unb.br/images/uploads/2021/04/regulamento_tcc_bcc.pdf
+
+Atualização desta versão:
+- Conteúdo ajustado para a nova monografia: alvo sem filtragem por causa, direção circular do vento, novos resultados de h=1, bootstrap, ablação, diagnóstico residual e multi-horizonte atualizado.
+- Foram adicionados dois slides principais de robustez/ablação e um slide de reserva de diagnóstico residual.
