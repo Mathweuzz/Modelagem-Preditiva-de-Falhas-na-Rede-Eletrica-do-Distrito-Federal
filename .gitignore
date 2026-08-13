@@ -45,6 +45,8 @@ Thumbs.db
 # Arquivos temporários/locais
 TCC_codigo_fonte_dados.zip
 Monografia/monografia_novo_pc.pdf
+# Saída técnica gerada por monografia.tex; a versão final segue o padrão BDM/UnB.
+Monografia/monografia.pdf
 Fonte/results/interface/
 Fonte/results/archive/
 /.pipeline-*/

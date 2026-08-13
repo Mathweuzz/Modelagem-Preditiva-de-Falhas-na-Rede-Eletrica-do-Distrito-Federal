@@ -81,7 +81,8 @@ TCC/
 │   ├── tex/                 # Capítulos 1 a 6 + apêndices
 │   ├── img/                 # Figuras geradas em Python
 │   ├── monografia.tex       # Entrypoint (classe UnB-CIC)
-│   └── monografia.pdf       # PDF final compilado
+│   └── 2026_GiovanniMinariZanetti_MateusGomesDeAraujo_tcc.pdf
+│                            # Versão final no padrão da BDM/UnB
 │
 ├── Fonte/                   # Código-fonte e dados
 │   ├── data/                # CSVs processados

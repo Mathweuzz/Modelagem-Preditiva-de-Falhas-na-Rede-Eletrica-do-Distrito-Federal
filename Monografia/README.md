@@ -1,5 +1,21 @@
 # UnB-CIC #
 
+## PDF final deste trabalho
+
+O arquivo-fonte permanece como `monografia.tex`. Para compilar a monografia e
+atualizar automaticamente a versão final no padrão BDM/UnB, execute nesta
+pasta:
+
+```bash
+make final
+```
+
+O resultado destinado à entrega será:
+
+```text
+2026_GiovanniMinariZanetti_MateusGomesDeAraujo_tcc.pdf
+```
+
 Modelo padrão de formatação de documentos acadêmicos do [Departamento de Ciência da Computação](https://www.cic.unb.br) da [Universidade de Brasília](https://www.unb.br). Este modelo existe para **padronizar** a formatação dos documentos, portanto **evite** modificar a classe ou usar configurações/pacotes diferentes dos definidos.
 
 
