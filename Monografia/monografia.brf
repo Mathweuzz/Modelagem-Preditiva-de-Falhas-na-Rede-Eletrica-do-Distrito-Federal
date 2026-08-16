@@ -4,139 +4,141 @@
 \backcite {aneel2026interrupcoes}{{1}{1}{chapter.10}}
 \backcite {gomes2020impact}{{2}{1.1}{section.11}}
 \backcite {zhang2023deep, smith2021hybrid}{{2}{1.1}{section.11}}
-\backcite {box2015time}{{5}{1.6}{section.30}}
-\backcite {hyndman2018forecasting}{{5}{1.6}{section.30}}
-\backcite {roque2017weather}{{5}{1.6}{section.30}}
-\backcite {saha2019machine}{{5}{1.6}{section.30}}
-\backcite {silva2021xgboost, breiman2001random}{{5}{1.6}{section.30}}
-\backcite {chen2016xgboost}{{5}{1.6}{section.30}}
-\backcite {goodfellow2016deep, lecun2015deep}{{5}{1.6}{section.30}}
-\backcite {wang2018deep, cho2014learning}{{6}{1.6}{section.30}}
-\backcite {hochreiter1997long}{{6}{1.6}{section.30}}
-\backcite {schuster1997bidirectional}{{6}{1.6}{section.30}}
-\backcite {graves2005framewise}{{6}{1.6}{section.30}}
-\backcite {ho2016deep}{{6}{1.6}{section.30}}
-\backcite {gomes2020impact}{{6}{1.6}{section.30}}
-\backcite {cho2014learning}{{6}{1.6}{section.30}}
-\backcite {chen2016xgboost}{{6}{1.6}{section.30}}
-\backcite {zhang2023deep}{{6}{1.6.1}{subsection.31}}
-\backcite {murphy2022extreme}{{6}{1.6.1}{subsection.31}}
-\backcite {silva2024enso}{{6}{1.6.1}{subsection.31}}
-\backcite {smith2021hybrid}{{7}{1.6.1}{subsection.31}}
-\backcite {inpe2023painel}{{7}{1.6.1}{subsection.31}}
-\backcite {roque2017weather}{{7}{1.1}{table.33}}
-\backcite {saha2019machine}{{7}{1.1}{table.33}}
-\backcite {smith2021hybrid}{{7}{1.1}{table.33}}
-\backcite {zhang2023deep}{{7}{1.1}{table.33}}
-\backcite {silva2021xgboost}{{7}{1.1}{table.33}}
-\backcite {aneel2023prodist}{{8}{2.1}{section.35}}
-\backcite {aneel2023prodist}{{9}{2.1.1}{subsection.36}}
-\backcite {box2015time}{{9}{2.2}{section.39}}
-\backcite {hyndman2018forecasting}{{10}{2.2}{Item.42}}
-\backcite {shumway2017time}{{10}{2.2.1}{subsection.43}}
-\backcite {ropelewski1987global}{{11}{2.3.3}{subsection.50}}
-\backcite {inpe2023painel}{{12}{2.3.3}{subsection.50}}
-\backcite {saha2019machine}{{12}{2.4.2}{subsection.54}}
-\backcite {chen2016xgboost}{{13}{2.5}{section.55}}
-\backcite {friedman2001greedy}{{13}{2.5}{section.55}}
-\backcite {chen2016xgboost}{{14}{2.5.1}{subsection.60}}
-\backcite {goodfellow2016deep}{{14}{2.6}{section.62}}
-\backcite {lecun2015deep}{{14}{2.6}{section.62}}
-\backcite {rumelhart1986learning}{{15}{2.6}{equation.63}}
-\backcite {goodfellow2016deep, nair2010rectified}{{15}{2.6.1}{subsection.64}}
-\backcite {goodfellow2016deep}{{15}{2.6.1}{equation.67}}
-\backcite {mitchell1997machine}{{15}{2.7}{section.68}}
-\backcite {pascanu2013difficulty}{{16}{2.7}{equation.70}}
-\backcite {hochreiter1997long}{{16}{2.7.1}{subsection.71}}
-\backcite {hochreiter1997long}{{17}{2.1}{figure.83}}
-\backcite {schuster1997bidirectional}{{17}{2.7.2}{subsection.84}}
-\backcite {graves2005framewise}{{17}{2.7.2}{subsection.84}}
-\backcite {lim2021temporal}{{18}{2.7.2}{equation.85}}
-\backcite {cho2014learning}{{18}{2.7.3}{subsection.86}}
-\backcite {cho2014learning, brownlee2018machine}{{18}{2.7.3}{subsection.86}}
-\backcite {cho2014learning}{{19}{2.1}{table.96}}
-\backcite {hochreiter1997long}{{19}{2.1}{table.96}}
-\backcite {goodfellow2016deep, srivastava2014dropout}{{19}{2.8}{section.97}}
-\backcite {srivastava2014dropout}{{20}{2.8.1}{subsection.98}}
-\backcite {goodfellow2016deep}{{20}{2.8.2}{subsection.100}}
-\backcite {loshchilov2019decoupled}{{20}{2.8.2}{equation.101}}
-\backcite {pascanu2013difficulty}{{20}{2.8.3}{subsection.102}}
-\backcite {pascanu2013difficulty}{{20}{2.8.3}{equation.103}}
-\backcite {goodfellow2016deep}{{21}{2.8.4}{subsection.104}}
-\backcite {bishop2006pattern}{{21}{2.9}{section.106}}
-\backcite {hastie2009elements}{{21}{2.9.1}{equation.108}}
-\backcite {pedregosa2011scikit}{{21}{2.9.1}{equation.108}}
-\backcite {goodfellow2016deep}{{22}{2.10}{section.109}}
-\backcite {hyndman2018forecasting}{{22}{2.10}{section.109}}
-\backcite {box2015time}{{22}{2.10.1}{equation.111}}
-\backcite {goodfellow2016deep}{{22}{2.10.2}{equation.113}}
-\backcite {hyndman2018forecasting}{{22}{2.10.3}{equation.115}}
-\backcite {box2015time}{{23}{2.10.4}{equation.117}}
-\backcite {saki2025compound, zhao2024variational}{{23}{2.11}{section.118}}
-\backcite {arora2023probabilistic}{{24}{2.11.1}{equation.122}}
-\backcite {saki2025compound}{{25}{2.11.2}{equation.124}}
-\backcite {zhao2024variational}{{26}{2.11.2}{equation.126}}
-\backcite {rastgoo2025extreme}{{26}{2.11.2}{equation.126}}
-\backcite {arora2023probabilistic, zhao2024variational, rastgoo2025extreme}{{26}{2.2}{table.128}}
-\backcite {zhang2023deep}{{27}{2.12}{equation.130}}
-\backcite {ma2025vulnerability}{{28}{2.12.1}{equation.132}}
-\backcite {hughes2024hardening}{{29}{2.12.2}{subsection.133}}
-\backcite {udeh2024probabilistic}{{30}{2.13}{equation.140}}
-\backcite {kabir2024datastreams}{{30}{2.13}{equation.140}}
-\backcite {kabir2024datastreams, udeh2024probabilistic}{{32}{2.3}{table.147}}
-\backcite {taieb2012multistep, lim2021temporal}{{34}{2.4}{table.158}}
-\backcite {wang2024conformal}{{35}{2.14.2}{equation.160}}
-\backcite {arora2023probabilistic}{{35}{2.15}{section.161}}
-\backcite {wang2024conformal}{{37}{2.15.2}{equation.169}}
-\backcite {lahiri2003resampling}{{38}{2.15.4}{subsection.173}}
-\backcite {ljung1978measure}{{39}{2.15.4}{equation.175}}
-\backcite {vaswani2017attention}{{39}{2.16}{equation.178}}
-\backcite {nie2023patchtst}{{40}{2.16.1}{subsection.183}}
-\backcite {liu2024itransformer}{{40}{2.16.1}{subsection.183}}
-\backcite {lim2021temporal}{{40}{2.16.1}{subsection.183}}
-\backcite {lim2021temporal, nie2023patchtst, liu2024itransformer}{{41}{2.5}{table.185}}
-\backcite {kipf2017gcn}{{42}{2.17.1}{equation.191}}
-\backcite {chen2024hotnets}{{43}{2.17.1}{equation.191}}
-\backcite {lundberg2017unified}{{44}{2.18.1}{equation.195}}
-\backcite {ma2025vulnerability}{{44}{2.18.1}{equation.196}}
-\backcite {rudin2019stop}{{45}{2.18.2}{Item.203}}
-\backcite {rudin2019stop, lundberg2017unified, kabir2024datastreams}{{46}{2.6}{table.206}}
-\backcite {mckinney2010data}{{55}{3.3.1}{subsection.228}}
-\backcite {aneel2023prodist}{{56}{3.3.2}{table.231}}
-\backcite {mckinney2010data}{{64}{3.5.1}{subsection.256}}
-\backcite {harris2020array}{{64}{3.5.1}{subsection.256}}
-\backcite {pedregosa2011scikit}{{64}{3.5.2}{subsection.257}}
-\backcite {paszke2019pytorch}{{64}{3.5.3}{subsection.258}}
-\backcite {chen2016xgboost}{{64}{3.5.4}{subsection.259}}
-\backcite {goodfellow2016deep}{{69}{3.6.5}{subsection.290}}
-\backcite {chen2016xgboost}{{69}{3.6.5}{equation.291}}
-\backcite {hastie2009elements}{{73}{3.6.8}{subsection.297}}
-\backcite {chen2016xgboost}{{81}{3}{Item.329}}
-\backcite {hastie2009elements}{{81}{3.9}{section.330}}
-\backcite {hyndman2018forecasting}{{82}{3.9.2}{subsection.334}}
-\backcite {loshchilov2019decoupled}{{83}{3.10.2}{subsection.339}}
-\backcite {goodfellow2016deep}{{83}{3.10.2}{equation.340}}
-\backcite {lahiri2003resampling}{{94}{3.14.9}{subsection.385}}
-\backcite {ljung1978measure}{{96}{3.14.11}{equation.394}}
-\backcite {hyndman2018forecasting}{{105}{4.1.1}{subsection.422}}
-\backcite {box2015time}{{107}{4.2}{section.428}}
-\backcite {hastie2009elements}{{117}{4.4}{figure.466}}
-\backcite {chen2016xgboost, hochreiter1997long, cho2014learning}{{120}{4.5}{section.473}}
-\backcite {goodfellow2016deep}{{126}{4.5.3}{figure.490}}
-\backcite {inpe2023painel}{{135}{4.8}{section.517}}
-\backcite {chen2016xgboost}{{150}{3}{Item.556}}
-\backcite {lahiri2003resampling}{{151}{5.2}{section.557}}
-\backcite {rudin2019stop}{{151}{5.3}{table.560}}
-\backcite {zhang2023deep}{{155}{5.2}{table.570}}
-\backcite {smith2021hybrid}{{155}{5.2}{table.570}}
-\backcite {saha2019machine}{{155}{5.2}{table.570}}
-\backcite {silva2021xgboost}{{155}{5.2}{table.570}}
-\backcite {roque2017weather}{{155}{5.2}{table.570}}
-\backcite {zhang2023deep}{{155}{5.7}{table.570}}
-\backcite {smith2021hybrid}{{155}{5.7}{table.570}}
-\backcite {saha2019machine}{{155}{5.7}{table.570}}
-\backcite {ljung1978measure}{{160}{5.13}{section.591}}
-\backcite {wang2024conformal}{{160}{5.13}{section.591}}
-\backcite {inpe2023painel}{{162}{5.15}{section.596}}
-\backcite {goodfellow2016deep}{{163}{5.16}{section.597}}
-\backcite {lim2021temporal}{{167}{2}{Item.619}}
+\backcite {box2015time}{{5}{1.6}{section.31}}
+\backcite {hyndman2018forecasting}{{5}{1.6}{section.31}}
+\backcite {roque2017weather}{{5}{1.6}{section.31}}
+\backcite {saha2019machine}{{5}{1.6}{section.31}}
+\backcite {silva2021xgboost, breiman2001random}{{5}{1.6}{section.31}}
+\backcite {chen2016xgboost}{{6}{1.6}{section.31}}
+\backcite {goodfellow2016deep, lecun2015deep}{{6}{1.6}{section.31}}
+\backcite {wang2018deep, cho2014learning}{{6}{1.6}{section.31}}
+\backcite {hochreiter1997long}{{6}{1.6}{section.31}}
+\backcite {schuster1997bidirectional}{{6}{1.6}{section.31}}
+\backcite {graves2005framewise}{{6}{1.6}{section.31}}
+\backcite {ho2016deep}{{6}{1.6}{section.31}}
+\backcite {gomes2020impact}{{6}{1.6}{section.31}}
+\backcite {cho2014learning}{{6}{1.6}{section.31}}
+\backcite {chen2016xgboost}{{6}{1.6}{section.31}}
+\backcite {zhang2023deep}{{6}{1.6.1}{subsection.32}}
+\backcite {murphy2022extreme}{{6}{1.6.1}{subsection.32}}
+\backcite {silva2024enso}{{7}{1.6.1}{subsection.32}}
+\backcite {smith2021hybrid}{{7}{1.6.1}{subsection.32}}
+\backcite {inpe2023painel}{{7}{1.6.1}{subsection.32}}
+\backcite {roque2017weather}{{7}{1.1}{table.34}}
+\backcite {saha2019machine}{{7}{1.1}{table.34}}
+\backcite {smith2021hybrid}{{7}{1.1}{table.34}}
+\backcite {zhang2023deep}{{7}{1.1}{table.34}}
+\backcite {silva2021xgboost}{{7}{1.1}{table.34}}
+\backcite {aneel2023prodist}{{9}{2.1}{section.36}}
+\backcite {aneel2023prodist}{{10}{2.1.1}{subsection.37}}
+\backcite {box2015time}{{10}{2.2}{section.40}}
+\backcite {hyndman2018forecasting}{{11}{2.2}{Item.43}}
+\backcite {shumway2017time}{{11}{2.2.1}{subsection.44}}
+\backcite {ropelewski1987global}{{12}{2.3.3}{subsection.51}}
+\backcite {inpe2023painel}{{13}{2.3.3}{subsection.51}}
+\backcite {saha2019machine}{{13}{2.4.2}{subsection.55}}
+\backcite {chen2016xgboost}{{14}{2.5}{section.56}}
+\backcite {friedman2001greedy}{{14}{2.5}{section.56}}
+\backcite {chen2016xgboost}{{15}{2.5.1}{subsection.61}}
+\backcite {goodfellow2016deep}{{15}{2.6}{section.63}}
+\backcite {lecun2015deep}{{15}{2.6}{section.63}}
+\backcite {rumelhart1986learning}{{16}{2.6}{equation.64}}
+\backcite {goodfellow2016deep, nair2010rectified}{{16}{2.6.1}{subsection.65}}
+\backcite {goodfellow2016deep}{{16}{2.6.1}{equation.68}}
+\backcite {mitchell1997machine}{{16}{2.7}{section.69}}
+\backcite {pascanu2013difficulty}{{17}{2.7}{equation.71}}
+\backcite {hochreiter1997long}{{17}{2.7.1}{subsection.72}}
+\backcite {hochreiter1997long}{{18}{2.1}{figure.84}}
+\backcite {schuster1997bidirectional}{{18}{2.7.2}{subsection.85}}
+\backcite {graves2005framewise}{{18}{2.7.2}{subsection.85}}
+\backcite {lim2021temporal}{{19}{2.7.2}{equation.86}}
+\backcite {cho2014learning}{{19}{2.7.3}{subsection.87}}
+\backcite {cho2014learning, brownlee2018machine}{{19}{2.7.3}{subsection.87}}
+\backcite {cho2014learning}{{20}{2.1}{table.97}}
+\backcite {hochreiter1997long}{{20}{2.1}{table.97}}
+\backcite {goodfellow2016deep, srivastava2014dropout}{{20}{2.8}{section.98}}
+\backcite {srivastava2014dropout}{{21}{2.8.1}{subsection.99}}
+\backcite {goodfellow2016deep}{{21}{2.8.2}{subsection.101}}
+\backcite {loshchilov2019decoupled}{{21}{2.8.2}{equation.102}}
+\backcite {pascanu2013difficulty}{{21}{2.8.3}{subsection.103}}
+\backcite {pascanu2013difficulty}{{21}{2.8.3}{equation.104}}
+\backcite {goodfellow2016deep}{{22}{2.8.4}{subsection.105}}
+\backcite {bishop2006pattern}{{22}{2.9}{section.107}}
+\backcite {hastie2009elements}{{22}{2.9.1}{equation.109}}
+\backcite {pedregosa2011scikit}{{22}{2.9.1}{equation.109}}
+\backcite {goodfellow2016deep}{{23}{2.10}{section.110}}
+\backcite {hyndman2018forecasting}{{23}{2.10}{section.110}}
+\backcite {box2015time}{{23}{2.10.1}{equation.112}}
+\backcite {goodfellow2016deep}{{23}{2.10.2}{equation.114}}
+\backcite {hyndman2018forecasting}{{23}{2.10.3}{equation.116}}
+\backcite {box2015time}{{24}{2.10.4}{equation.118}}
+\backcite {saki2025compound, zhao2024variational}{{24}{2.11}{section.119}}
+\backcite {arora2023probabilistic}{{25}{2.11.1}{equation.123}}
+\backcite {saki2025compound}{{26}{2.11.2}{equation.125}}
+\backcite {zhao2024variational}{{27}{2.11.2}{equation.127}}
+\backcite {rastgoo2025extreme}{{27}{2.11.2}{equation.127}}
+\backcite {arora2023probabilistic, zhao2024variational, rastgoo2025extreme}{{27}{2.2}{table.129}}
+\backcite {zhang2023deep}{{28}{2.12}{equation.131}}
+\backcite {ma2025vulnerability}{{29}{2.12.1}{equation.133}}
+\backcite {hughes2024hardening}{{30}{2.12.2}{subsection.134}}
+\backcite {udeh2024probabilistic}{{31}{2.13}{equation.141}}
+\backcite {kabir2024datastreams}{{31}{2.13}{equation.141}}
+\backcite {kabir2024datastreams, udeh2024probabilistic}{{33}{2.3}{table.148}}
+\backcite {taieb2012multistep, lim2021temporal}{{35}{2.4}{table.159}}
+\backcite {wang2024conformal}{{36}{2.14.2}{equation.161}}
+\backcite {arora2023probabilistic}{{36}{2.15}{section.162}}
+\backcite {wang2024conformal}{{38}{2.15.2}{equation.170}}
+\backcite {lahiri2003resampling}{{39}{2.15.4}{subsection.174}}
+\backcite {ljung1978measure}{{40}{2.15.4}{equation.176}}
+\backcite {vaswani2017attention}{{40}{2.16}{equation.179}}
+\backcite {nie2023patchtst}{{41}{2.16.1}{subsection.184}}
+\backcite {liu2024itransformer}{{41}{2.16.1}{subsection.184}}
+\backcite {lim2021temporal}{{41}{2.16.1}{subsection.184}}
+\backcite {lim2021temporal, nie2023patchtst, liu2024itransformer}{{42}{2.5}{table.186}}
+\backcite {kipf2017gcn}{{43}{2.17.1}{equation.192}}
+\backcite {chen2024hotnets}{{44}{2.17.1}{equation.192}}
+\backcite {lundberg2017unified}{{45}{2.18.1}{equation.196}}
+\backcite {ma2025vulnerability}{{45}{2.18.1}{equation.197}}
+\backcite {rudin2019stop}{{46}{2.18.2}{Item.204}}
+\backcite {rudin2019stop, lundberg2017unified, kabir2024datastreams}{{47}{2.6}{table.207}}
+\backcite {mckinney2010data}{{56}{3.3.1}{subsection.229}}
+\backcite {aneel2023prodist}{{57}{3.3.2}{table.232}}
+\backcite {mckinney2010data}{{65}{3.5.1}{subsection.257}}
+\backcite {harris2020array}{{65}{3.5.1}{subsection.257}}
+\backcite {pedregosa2011scikit}{{65}{3.5.2}{subsection.258}}
+\backcite {paszke2019pytorch}{{65}{3.5.3}{subsection.259}}
+\backcite {chen2016xgboost}{{65}{3.5.4}{subsection.260}}
+\backcite {goodfellow2016deep}{{70}{3.6.5}{subsection.291}}
+\backcite {chen2016xgboost}{{70}{3.6.5}{equation.292}}
+\backcite {hastie2009elements}{{74}{3.6.8}{subsection.298}}
+\backcite {chen2016xgboost}{{82}{3}{Item.330}}
+\backcite {hastie2009elements}{{82}{3.9}{section.331}}
+\backcite {hyndman2018forecasting}{{83}{3.9.2}{subsection.335}}
+\backcite {loshchilov2019decoupled}{{84}{3.10.2}{subsection.340}}
+\backcite {goodfellow2016deep}{{84}{3.10.2}{equation.341}}
+\backcite {lahiri2003resampling}{{95}{3.14.9}{subsection.386}}
+\backcite {ljung1978measure}{{97}{3.14.11}{equation.395}}
+\backcite {streamlit2026}{{103}{3.16}{section.411}}
+\backcite {seabold2010statsmodels}{{104}{3.16.3}{subsection.414}}
+\backcite {hyndman2018forecasting}{{108}{4.1.1}{subsection.428}}
+\backcite {box2015time}{{110}{4.2}{section.434}}
+\backcite {hastie2009elements}{{120}{4.4}{figure.472}}
+\backcite {chen2016xgboost, hochreiter1997long, cho2014learning}{{123}{4.5}{section.479}}
+\backcite {goodfellow2016deep}{{129}{4.5.3}{figure.496}}
+\backcite {inpe2023painel}{{138}{4.8}{section.523}}
+\backcite {chen2016xgboost}{{156}{3}{Item.571}}
+\backcite {lahiri2003resampling}{{157}{5.2}{section.572}}
+\backcite {rudin2019stop}{{157}{5.3}{table.575}}
+\backcite {zhang2023deep}{{161}{5.2}{table.585}}
+\backcite {smith2021hybrid}{{161}{5.2}{table.585}}
+\backcite {saha2019machine}{{161}{5.2}{table.585}}
+\backcite {silva2021xgboost}{{161}{5.2}{table.585}}
+\backcite {roque2017weather}{{161}{5.2}{table.585}}
+\backcite {zhang2023deep}{{161}{5.7}{table.585}}
+\backcite {smith2021hybrid}{{161}{5.7}{table.585}}
+\backcite {saha2019machine}{{161}{5.7}{table.585}}
+\backcite {ljung1978measure}{{166}{5.14}{section.607}}
+\backcite {wang2024conformal}{{167}{5.14}{section.607}}
+\backcite {inpe2023painel}{{168}{5.16}{section.612}}
+\backcite {goodfellow2016deep}{{169}{5.17}{section.613}}
+\backcite {lim2021temporal}{{174}{2}{Item.635}}

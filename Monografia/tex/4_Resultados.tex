@@ -583,6 +583,52 @@ Mai/25 & Bi-LSTM (29,1) & XGBoost (31,0) & Bi-LSTM (30,4) & Bi-GRU (29,1) \\
 \small{Fonte: Elaborado pelos autores (2026). Valores entre parênteses: MAE mensal. $^{*}$Junho de 2024 considera 17 datas-alvo, de 14 a 30 de junho.}
 \end{table}
 
+\section{Interface Interativa Desenvolvida}\label{sec:resultados_interface}
+
+A interface descrita na Seção~\ref{sec:metodologia_interface} reúne, em uma aplicação local, a inspeção da base, a consulta dos resultados oficiais, a configuração de novos experimentos e a execução das rotinas cadastradas. As telas apresentadas nesta seção demonstram o produto de software desenvolvido; elas não constituem novos experimentos nem alteram as métricas analisadas anteriormente.
+
+A tela inicial, apresentada na Figura~\ref{fig:interface_visao_geral}, resume a cobertura de 2017 a 2025, as 3.066 observações da base pós-engenharia de atributos e as 41 colunas disponíveis, incluindo o alvo histórico. A série diária pode ser examinada antes da escolha de qualquer modelo.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.94\textwidth]{img/interface_visao_geral.png}
+    \caption{Visão geral da base na interface interativa.}
+    \small{Fonte: Elaborado pelos autores (2026).}
+    \label{fig:interface_visao_geral}
+\end{figure}
+
+A página de previsão direta, mostrada na Figura~\ref{fig:interface_previsao_direta}, apresenta o protocolo de um dia à frente e carrega os resultados oficiais dos 365 dias de teste. Além dos indicadores resumidos, o usuário pode consultar a tabela de métricas e comparar as séries real e prevista sem recalcular os modelos.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.94\textwidth]{img/interface_previsao_direta.png}
+    \caption{Consulta dos resultados oficiais da previsão direta de um dia à frente.}
+    \small{Fonte: Elaborado pelos autores (2026).}
+    \label{fig:interface_previsao_direta}
+\end{figure}
+
+A área de treinamento, ilustrada na Figura~\ref{fig:interface_treinamento}, permite selecionar a tarefa direta ou multi-horizonte, delimitar períodos cronológicos e escolher os modelos. As verificações descritas na metodologia são executadas antes do treinamento e impedem sobreposição entre treino e avaliação ou uma lacuna insuficiente para o maior horizonte.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.94\textwidth]{img/interface_treinamento.png}
+    \caption{Configuração de um experimento temporal pela interface.}
+    \small{Fonte: Elaborado pelos autores (2026).}
+    \label{fig:interface_treinamento}
+\end{figure}
+
+A comparação multi-horizonte da Figura~\ref{fig:interface_multihorizonte} reutiliza os artefatos oficiais para alternar entre MAE, RMSE, $R^2$ e MAPE, selecionar horizontes e examinar o desempenho mensal. Essa visualização torna a variação da ordenação dos modelos acessível sem reduzir a análise a uma única métrica.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.94\textwidth]{img/interface_multihorizonte.png}
+    \caption{Comparação interativa dos resultados por modelo e horizonte.}
+    \small{Fonte: Elaborado pelos autores (2026).}
+    \label{fig:interface_multihorizonte}
+\end{figure}
+
+As execuções iniciadas na aplicação geram arquivos próprios de configuração, métricas e previsões. Esse isolamento preserva os números apresentados nesta monografia e permite que a interface seja usada para demonstrações e novos testes locais sem confundir resultados exploratórios com a avaliação oficial.
+
 \section{Síntese dos Resultados}\label{sec:sintese_resultados}
 
 A Tabela~\ref{tab:sintese} consolida os principais achados empíricos deste capítulo, organizados por dimensão de análise.

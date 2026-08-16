@@ -130,6 +130,14 @@ A Tabela~\ref{tab:comparacao_literatura} contextualiza os resultados deste traba
 
 Os $R^2$ de 0,409 (XGBoost), 0,408 (Bi-LSTM) e 0,442 (Bi-GRU) caracterizam a capacidade explicativa alcançada neste conjunto de dados, mas não permitem posicionar os modelos em uma ordenação direta de estado da arte. Os trabalhos da literatura variam em alvo, escala, resolução temporal, variáveis disponíveis, tamanho da amostra e região geográfica. Wang et al. utilizam dados socioeconômicos e de infraestrutura adicionais \cite{zhang2023deep}; Yang et al. incorporam dados de vegetação de alta resolução \cite{smith2021hybrid}; Fang et al. empregam otimização por enxame de partículas para seleção de hiperparâmetros \cite{saha2019machine}. A contribuição deste trabalho é, portanto, metodológica e aplicada: estudar o contexto do Distrito Federal e comparar modelos tabulares e redes recorrentes bidirecionais sob datas-alvo, cortes temporais e variáveis por instante controlados, explicitando também a incerteza e os limites dessa comparação.
 
+\section{Papel da Interface na Reprodutibilidade}\label{sec:discussao_interface}
+
+A interface reduz a barreira operacional para consultar a base, comparar modelos e iniciar tarefas do projeto. Sua principal contribuição não é melhorar as métricas, mas tornar mais visíveis as escolhas do experimento e os artefatos produzidos. A separação entre resultados oficiais e execuções interativas é especialmente relevante: uma nova configuração pode ser testada sem substituir as previsões que fundamentam as tabelas e conclusões desta monografia.
+
+Essa facilidade de uso não transforma o protótipo em sistema operacional da distribuidora. A aplicação depende da base processada localmente, não incorpora atualização automática de dados nem previsões meteorológicas emitidas no momento da decisão e não foi submetida a validação prospectiva. Também não possui autenticação, monitoramento contínuo ou integração com sistemas da concessionária. A presença de botões para treinamento e comparação não elimina a necessidade de examinar datas, variáveis, hipóteses e incerteza. Portanto, seu uso adequado é acadêmico, demonstrativo e de apoio à reprodução dos experimentos.
+
+A opção ARIMAX disponível na interface tem caráter experimental. Como ela emprega covariáveis observadas na origem e não participou da avaliação oficial comum, não há fundamento neste estudo para compará-la numericamente aos três modelos centrais ou recomendar sua adoção. Sua permanência na aplicação oferece uma extensão exploratória claramente identificada, sem ampliar retroativamente o escopo empírico das conclusões.
+
 \section{Limitações do Estudo}\label{sec:limitacoes}
 
 O presente trabalho possui limitações que devem ser explicitadas para contextualizar adequadamente os resultados e orientar trabalhos futuros:

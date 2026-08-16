@@ -1,0 +1,27 @@
+\section{Desenvolvimento da Interface Interativa}\label{sec:metodologia_interface}
+
+Como complemento ao fluxo reprodutível, foi desenvolvida uma interface local em Streamlit 1.60.0 \cite{streamlit2026}. Seu objetivo é permitir a inspeção dos dados e dos resultados, a configuração de experimentos e a execução controlada das rotinas do projeto sem exigir a digitação de comandos no terminal. A interface não modifica o alvo, as variáveis, os modelos nem o protocolo temporal descritos nas seções anteriores. Ela atua como uma camada de apresentação e de orquestração sobre os mesmos dados processados, módulos de modelagem e artefatos tabulares empregados na pesquisa.
+
+\subsection{Organização Funcional}
+
+A aplicação foi organizada em seis páginas. A página de visão geral apresenta a cobertura temporal da base, o número de observações, as variáveis disponíveis e a evolução diária das interrupções. A página de previsão direta reúne as métricas e as séries reais e previstas da avaliação principal de um dia à frente. A área de treinamento permite escolher modelos, datas e horizontes e, para as redes, o número de épocas e o tamanho da janela histórica. A página multi-horizonte compara as métricas globais e mensais dos resultados oficiais para 1, 3, 7 e 14 dias. A área de análises oferece acesso a tarefas previamente cadastradas do fluxo reprodutível. Por fim, a página sobre o projeto documenta o escopo e os limites de uso da aplicação.
+
+A camada visual foi implementada em \path{Fonte/interface/app.py}. As operações de leitura, validação, treinamento, avaliação e persistência foram concentradas em \path{Fonte/interface/model_service.py}. Essa separação reduz o acoplamento entre os componentes visuais e científicos: os elementos da tela recolhem parâmetros e apresentam tabelas ou gráficos, enquanto o serviço aplica as regras temporais e chama as implementações dos modelos.
+
+\subsection{Validação Temporal e Preservação dos Resultados Oficiais}
+
+Antes de iniciar um treinamento, a camada de serviço verifica se há ao menos um modelo e um horizonte selecionados, se as datas pertencem à cobertura da base, se o período de treinamento antecede o de avaliação e se existe separação suficiente para o maior horizonte. A última condição impede que a data de origem de uma previsão de teste seja anterior ao encerramento do treino. Também são exigidos, por decisão operacional da interface, pelo menos 180 dias de treinamento e sete dias de avaliação.
+
+Os resultados oficiais apresentados nesta monografia são somente lidos pela interface. Uma execução iniciada pelo usuário é armazenada em um diretório próprio, identificado pela data, hora e um sufixo único, contendo \path{configuracao.json}, \path{metricas.csv} e \path{previsoes.csv}. Assim, testes interativos não substituem silenciosamente os arquivos usados nas tabelas e figuras do estudo. A exportação em CSV também permite examinar os valores fora da aplicação.
+
+As tarefas completas de análise e treinamento disponíveis na página de execução são definidas em uma lista fechada. O usuário escolhe uma operação cadastrada, e não um caminho ou comando arbitrário. Esse mecanismo limita a interface aos scripts previstos no projeto, torna explícito o procedimento iniciado e apresenta na própria tela as mensagens produzidas durante a execução.
+
+\subsection{Modelos Disponíveis e Limites de Uso}
+
+XGBoost, Bi-LSTM e Bi-GRU reutilizam as implementações avaliadas no estudo. A interface também oferece um ARIMAX experimental, implementado com a representação de espaço de estados do Statsmodels \cite{seabold2010statsmodels}. Essa opção foi incluída para exploração e não integra a comparação principal nem as conclusões sobre os três modelos. Além disso, as covariáveis usadas por essa opção são observadas na data de origem. Uma aplicação operacional exigiria substituí-las por previsões meteorológicas efetivamente disponíveis no instante da decisão.
+
+A aplicação é um protótipo local voltado à exploração histórica, à demonstração e à reprodutibilidade. Ela carrega a base previamente processada e não coleta automaticamente dados novos da ANEEL ou do INMET. Também não constitui um sistema de alerta implantado, não executa previsões em tempo real e não elimina a necessidade de validação prospectiva antes de qualquer uso operacional.
+
+\subsection{Verificação da Interface}
+
+A verificação automatizada cobre a disponibilidade do conjunto de dados e dos artefatos de referência, a abertura das seis páginas, a rejeição de períodos sobrepostos ou causalmente inválidos, uma execução curta real do XGBoost, a criação isolada dos três arquivos de saída e a recusa de uma tarefa não cadastrada. Esses testes complementam as invariantes do fluxo científico e verificam especificamente a camada acrescentada para interação com o usuário.

@@ -44,6 +44,8 @@ Em relação aos objetivos específicos propostos na Seção~\ref{sec:objetivos}
     \item \textbf{Avaliação em diferentes horizontes:} Os três modelos foram avaliados para previsões de 1, 3, 7 e 14 dias, com as mesmas 352 datas-alvo em cada horizonte e comparação com a persistência. \textit{Objetivo cumprido.}
 \end{enumerate}
 
+Além dos objetivos propostos inicialmente, foi desenvolvida uma interface local como produto complementar. Ela reúne a inspeção da base, a consulta das previsões oficiais, a comparação multi-horizonte e a configuração de novos experimentos, mantendo separadas as execuções interativas e os artefatos usados nesta monografia.
+
 \section{Considerações Finais}
 
 No período de teste, os três modelos apresentaram resultados próximos. Para a previsão do dia seguinte, XGBoost, Bi-LSTM e Bi-GRU tiveram MAPE de 20,38\%, 19,87\% e 20,48\%, respectivamente, e MAEs observados menores que o da persistência. A análise de incerteza não indicou diferença conclusiva entre os MAEs dos três modelos. Para 3, 7 e 14 dias, a Bi-GRU teve os menores MAEs, enquanto a Bi-LSTM teve os menores RMSEs para 3 e 7 dias. Essas diferenças não comprovam que uma arquitetura seja sempre superior, pois os modelos usam representações distintas e ainda não foram avaliados de forma prospectiva.
@@ -51,6 +53,8 @@ No período de teste, os três modelos apresentaram resultados próximos. Para a
 A abordagem baseada no histórico de interrupções e no calendário apresentou MAE menor que o conjunto completo na análise de ablação do XGBoost. Nesse teste, acrescentar as variáveis meteorológicas disponíveis não melhorou a previsão. Esse resultado foi obtido após a observação do período de teste e, por isso, precisa ser confirmado com novos dados. Uma avaliação futura também deve usar informações meteorológicas com resolução e disponibilidade compatíveis com o momento real da previsão.
 
 A principal contribuição metodológica do trabalho é um processo de comparação que respeita a ordem temporal dos dados. Os modelos foram avaliados nas mesmas datas e comparados com a persistência. O estudo também incluiu previsões em diferentes horizontes, análise de incerteza, ablação de atributos e diagnóstico dos resíduos. Esse processo permite verificar como os dados foram preparados, como os modelos foram treinados e como os resultados foram obtidos.
+
+A interface facilita a demonstração e a reprodução do trabalho, mas não constitui um sistema de alerta implantado nem substitui a validação prospectiva.
 
 As conclusões estão limitadas aos 365 dias usados no teste. A reamostragem em blocos estima a variação dos erros dentro desse período, mas não representa outros anos, mudanças na rede elétrica ou novas condições meteorológicas. Além disso, alguns resultados mudaram com o tamanho dos blocos usados na análise de incerteza. Portanto, os valores apresentados descrevem o período avaliado e não garantem o mesmo desempenho no futuro.
 
@@ -80,4 +84,6 @@ Os resultados e as limitações do trabalho indicam as seguintes possibilidades 
     \item \textbf{Funções de perda:} Comparar funções de perda robustas e voltadas a quantis para lidar melhor com a variação dos erros e com os dias de maior número de interrupções.
 
     \item \textbf{Validação prospectiva:} Registrar previsões antes das datas-alvo em um novo período e acompanhar erro, autocorrelação dos resíduos, mudança de distribuição e necessidade de recalibração.
+
+    \item \textbf{Evolução da interface:} Automatizar a atualização das fontes, integrar previsões meteorológicas disponíveis na origem, registrar versões dos modelos e avaliar a aplicação com usuários. Uma eventual implantação também exigiria autenticação, monitoramento e integração controlada com os sistemas da distribuidora.
 \end{enumerate}

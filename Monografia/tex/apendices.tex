@@ -43,4 +43,11 @@ Em complemento aos módulos descritos acima, o diretório \texttt{Fonte/src/} co
     \item \texttt{05\_correlacoes\_unificadas.py}: cálculo e visualização canônicos das correlações de Pearson nas escalas diária, semanal e mensal.
 \end{itemize}
 
+\section{Interface Interativa}
+O módulo \path{Fonte/interface/app.py} implementa as seis páginas da aplicação Streamlit: visão geral, previsão direta, treinamento de modelos, comparação multi-horizonte, execução de análises e informações sobre o projeto. A apresentação consulta os arquivos tabulares já produzidos pelo fluxo científico e exibe métricas, séries temporais e comparações mensais.
+
+O módulo \path{Fonte/interface/model_service.py} concentra o carregamento e a validação da base, a separação por data-alvo, a chamada dos modelos e a geração dos artefatos de cada experimento. As execuções iniciadas pela interface são gravadas em diretórios independentes sob \path{Fonte/results/interface}, com arquivos de configuração, métricas e previsões. A mesma camada mantém uma lista fechada dos scripts que podem ser iniciados pela aplicação.
+
+O arquivo \path{iniciar_interface.bat} oferece um iniciador para Windows. Em Linux, a aplicação pode ser iniciada na raiz do projeto com \path{python -m streamlit run Fonte/interface/app.py}. O arquivo \path{Fonte/interface/README.md} registra o procedimento e as limitações metodológicas do protótipo. Os testes específicos da interface verificam suas páginas, as regras temporais, uma execução curta do XGBoost, a persistência isolada dos resultados e a rejeição de tarefas não cadastradas.
+
 Os códigos-fonte descritos neste apêndice estão disponíveis publicamente para consulta e execução no repositório do projeto.
