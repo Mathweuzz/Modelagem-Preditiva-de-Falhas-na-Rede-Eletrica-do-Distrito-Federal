@@ -56,6 +56,8 @@ st.markdown(
         padding: 0.9rem 1rem;
         box-shadow: 0 4px 14px rgba(17, 37, 61, 0.06);
     }
+    [data-testid="stMetricValue"] { font-size: 1.8rem; }
+    [data-testid="stToolbar"] { display: none; }
     .hero {
         background: linear-gradient(120deg, #11253d 0%, #1d6f9f 100%);
         border-radius: 18px;
