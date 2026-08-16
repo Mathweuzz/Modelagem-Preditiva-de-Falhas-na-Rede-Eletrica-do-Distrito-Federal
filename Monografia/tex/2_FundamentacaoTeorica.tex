@@ -1,5 +1,77 @@
 Este capítulo apresenta os fundamentos teóricos que sustentam a intersecção entre o aprendizado profundo (\textit{Deep Learning}) e a previsão de falhas na rede elétrica. Inicia-se pela contextualização do sistema elétrico brasileiro e da regulação vigente, avança-se pela decomposição matemática de séries temporais e pela física atmosférica subjacente, e culmina-se na formalização das arquiteturas de Redes Neurais Recorrentes (LSTM e GRU) e das técnicas de regularização empregadas.
 
+\section{Inteligência Artificial, Aprendizado de Máquina e Aprendizado Profundo}\label{sec:ia_ml_dl}
+
+Os termos Inteligência Artificial, Aprendizado de Máquina e Aprendizado Profundo são relacionados, mas não são sinônimos. A Inteligência Artificial constitui o campo mais amplo dedicado à construção de sistemas capazes de realizar tarefas associadas à percepção, ao raciocínio, à previsão, ao planejamento e à tomada de decisões. Esse campo inclui abordagens baseadas em regras, busca, representação de conhecimento, otimização e aprendizado a partir de dados \cite{russell2021artificial}. A norma ISO/IEC 22989:2022 consolida terminologia e conceitos para permitir uma comunicação consistente sobre esses sistemas \cite{isoiec22989}.
+
+O Aprendizado de Máquina é uma das abordagens da Inteligência Artificial. Seu foco está em algoritmos cujo comportamento é ajustado com base em exemplos ou experiência, em vez de ser inteiramente especificado por regras escritas para cada situação. Na formulação de Mitchell, um problema de aprendizado relaciona uma classe de tarefas, uma medida de desempenho e uma experiência da qual o programa pode melhorar \cite{mitchell1997machine}. Jordan e Mitchell situam a área na interseção entre ciência da computação e estatística e destacam seu papel central tanto na Inteligência Artificial quanto na ciência de dados \cite{jordan2015machine}.
+
+O Aprendizado Profundo é uma família de métodos de Aprendizado de Máquina baseada em modelos com múltiplas camadas de transformação. Essas camadas aprendem representações sucessivas dos dados, nas quais padrões mais simples podem ser combinados em estruturas mais abstratas \cite{goodfellow2016deep,lecun2015deep}. O termo ``profundo'' descreve a composição em camadas e não um nível de inteligência, autonomia ou compreensão do sistema. Também não significa que toda rede neural seja profunda: arquiteturas com uma única camada intermediária são usualmente classificadas como rasas.
+
+A Figura~\ref{fig:hierarquia_ia_ml_dl} apresenta a organização conceitual adotada nesta monografia. A inclusão é hierárquica: o Aprendizado Profundo pertence ao Aprendizado de Máquina, que, por sua vez, integra o campo mais amplo da Inteligência Artificial. Existem, entretanto, métodos de Inteligência Artificial que não aprendem com dados e métodos de Aprendizado de Máquina que não utilizam redes neurais profundas.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    caixa/.style={rounded corners=5pt, thick},
+    rotulo/.style={font=\bfseries\small},
+    descricao/.style={font=\footnotesize, align=center},
+    exemplo/.style={rounded corners=3pt, draw=black!35, fill=white,
+                    font=\footnotesize, align=center, inner sep=5pt}
+]
+\draw[caixa, draw=blue!65!black, fill=blue!4] (0,0) rectangle (13.4,6.0);
+\node[rotulo, anchor=west, text=blue!65!black] at (0.35,5.62)
+    {Inteligência Artificial};
+\node[descricao, text width=2.75cm] at (1.75,3.40)
+    {Também inclui métodos baseados em regras, busca e planejamento};
+
+\draw[caixa, draw=teal!65!black, fill=teal!6] (3.35,0.65) rectangle (12.85,4.95);
+\node[rotulo, anchor=west, text=teal!65!black] at (3.70,4.57)
+    {Aprendizado de Máquina};
+\node[exemplo, text width=2.85cm] at (5.25,2.60)
+    {\textbf{XGBoost}\\[2pt]aprendizado com\\dados tabulares};
+
+\draw[caixa, draw=orange!75!black, fill=orange!9] (7.15,1.20) rectangle (12.25,3.95);
+\node[rotulo, anchor=west, text=orange!75!black] at (7.50,3.57)
+    {Aprendizado Profundo};
+\node[descricao, text width=4.15cm] at (9.70,2.45)
+    {\textbf{Bi-LSTM e Bi-GRU}\\[2pt]redes recorrentes\\multicamadas};
+\end{tikzpicture}
+\caption{Relação hierárquica entre Inteligência Artificial, Aprendizado de Máquina e Aprendizado Profundo, com o enquadramento dos modelos deste trabalho.}
+\small{Fonte: Elaborado pelos autores com base em \cite{goodfellow2016deep,russell2021artificial,isoiec22989} (2026).}
+\label{fig:hierarquia_ia_ml_dl}
+\end{figure}
+
+\subsection{Paradigma de Aprendizado Adotado no Trabalho}
+
+O Aprendizado de Máquina pode ser organizado em diferentes paradigmas. No aprendizado supervisionado, cada exemplo de treinamento associa variáveis de entrada a uma saída conhecida; no não supervisionado, o algoritmo busca estruturas sem receber um alvo para cada observação; no aprendizado por reforço, um agente ajusta seu comportamento a partir das consequências de suas ações \cite{russell2021artificial,mitchell1997machine}. Esta monografia utiliza aprendizado supervisionado de regressão, pois os modelos recebem atributos disponíveis até uma data de origem e aprendem a estimar uma contagem numérica de interrupções em uma data futura.
+
+Para uma base de pares $\mathcal{D}=\{(\mathbf{x}_i,y_i)\}_{i=1}^{n}$, o treinamento supervisionado procura uma função parametrizada $f_{\theta}$ que produza $\widehat{y}_i=f_{\theta}(\mathbf{x}_i)$ com erro reduzido nas observações de treinamento e capacidade de generalização para datas não usadas no ajuste. A separação cronológica entre treino e teste, detalhada no Capítulo~\ref{3_Metodologia}, verifica essa generalização em um intervalo futuro e impede que o desempenho seja medido nos mesmos exemplos usados para ajustar $\theta$.
+
+A Tabela~\ref{tab:distincao_ia_ml_dl} separa os conceitos e mostra como eles se conectam aos componentes do estudo.
+
+\begin{table}[H]
+\caption{Distinção entre os conceitos e sua aplicação nesta monografia}
+\label{tab:distincao_ia_ml_dl}
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{p{3.2cm} X X}
+\toprule
+\textbf{Conceito} & \textbf{Característica distintiva} & \textbf{Aplicação no trabalho} \\
+\midrule
+Inteligência Artificial & Campo amplo que reúne métodos para percepção, raciocínio, aprendizado, previsão e decisão. Nem toda abordagem depende de treinamento com dados. & Contexto geral no qual se insere a construção de sistemas preditivos. \\
+Aprendizado de Máquina & Algoritmos ajustam seu comportamento a partir de exemplos e de uma medida de desempenho. & XGBoost, Bi-LSTM e Bi-GRU aprendem uma relação supervisionada entre entradas históricas e uma contagem futura. \\
+Aprendizado Profundo & Subconjunto do aprendizado de máquina baseado em múltiplas camadas que transformam e representam os dados. & Bi-LSTM e Bi-GRU usam camadas recorrentes bidirecionais e camadas densas treinadas por retropropagação. \\
+Referência sem aprendizado & Regra definida previamente, sem ajuste de parâmetros a partir do conjunto de treinamento. & A persistência repete o último valor observado e funciona como comparação operacional, não como modelo aprendido. \\
+\bottomrule
+\end{tabularx}
+\normalsize
+\end{center}
+\small{Fonte: Elaborado pelos autores com base em \cite{lecun2015deep,jordan2015machine,mitchell1997machine} (2026).}
+\end{table}
+
+O XGBoost e as redes recorrentes respondem à mesma tarefa supervisionada, mas aprendem de maneiras diferentes. O XGBoost constrói um conjunto aditivo de árvores e depende de uma representação tabular explícita. As redes Bi-LSTM e Bi-GRU ajustam transformações recorrentes e densas capazes de produzir representações internas da sequência. Ainda assim, neste estudo, as redes também recebem atributos temporais previamente construídos. Portanto, empregar Aprendizado Profundo não elimina automaticamente a engenharia de atributos nem garante desempenho superior. A comparação empírica deve permanecer baseada nas mesmas datas-alvo, métricas e condições de avaliação.
+
 \section{O Sistema Elétrico Brasileiro e a Regulação de Distribuição}\label{sec:sistema_eletrico}
 
 O Sistema Interligado Nacional (SIN) constitui a espinha dorsal do setor elétrico brasileiro, conectando as usinas geradoras aos centros consumidores através de uma malha de transmissão em alta tensão (230 kV a 765 kV) operada pelo Operador Nacional do Sistema Elétrico (ONS). A partir das subestações de fronteira, a energia é rebaixada progressivamente para os níveis de subtransmissão (69--138 kV) e distribuição (13,8 kV), sendo esta última etapa de responsabilidade das concessionárias locais reguladas pela ANEEL \cite{aneel2023prodist}.
