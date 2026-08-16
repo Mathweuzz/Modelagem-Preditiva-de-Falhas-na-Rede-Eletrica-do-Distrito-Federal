@@ -1,4 +1,4 @@
-Este capítulo discute os resultados obtidos à luz da literatura existente, interpreta as implicações práticas dos achados, analisa as limitações do estudo e contextualiza o desempenho dos modelos em relação aos objetivos propostos na Introdução.
+Este capítulo analisa os resultados obtidos à luz da literatura existente, interpreta suas implicações práticas, examina as limitações do estudo e contextualiza o desempenho dos modelos em relação aos objetivos propostos na Introdução.
 
 \section{Interpretação dos Resultados Preditivos}
 
@@ -188,7 +188,7 @@ Memória necessária & $\sim$50 MB & $\sim$200 MB & $\sim$180 MB \\
 \end{tabular}
 \normalsize
 \end{center}
-\small{Fonte: Estimado pelos autores com base nos experimentos realizados (2026).}
+\small{Fonte: Estimado pelos autores com base nos experimentos realizados na Configuração 2 (Tabela~\ref{tab:hardware}), em 2026.}
 \end{table}
 
 O XGBoost apresenta vantagem operacional nos critérios medidos: treina em menos de 2 minutos em CPU convencional, não requer GPU, e realiza inferências em tempo desprezível ($<1$ ms por dia previsto). As redes recorrentes, por outro lado, demandam de 20 a 25 minutos de treinamento para 150 épocas (em CPU), com benefício de aceleração via GPU. Embora os tempos de inferência das RNNs sejam aceitáveis para previsões diárias ($\sim$5 ms), a necessidade de retrainamento periódico torna seu custo computacional observado maior no ciclo de vida do modelo.
