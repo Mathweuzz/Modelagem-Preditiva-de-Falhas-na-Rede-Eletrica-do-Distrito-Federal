@@ -109,7 +109,7 @@ Diagramas de fluxo (pipeline de dados, arquitetura experimental) — todos **Tik
 
 - **INMET** — https://portal.inmet.gov.br/dadoshistoricos (estação automática A001 / Brasília)
 - **ANEEL** — Relatórios PRODIST, indicadores de continuidade da Neoenergia Brasília
-- **CCEE/SAMP** — consumo mensal por classe consumidora no DF
+- **ANEEL/SAMP** — consumo mensal por classe consumidora no DF
 
 ---
 

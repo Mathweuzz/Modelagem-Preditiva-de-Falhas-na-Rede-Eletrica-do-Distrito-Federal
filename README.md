@@ -34,7 +34,7 @@ O trabalho desenvolve e avalia modelos preditivos para estimar o número diário
 
 ## Metodologia
 
-1. **Dados integrados**: INMET (meteorologia), ANEEL (interrupções) e SAMP/CCEE (consumo energético), totalizando 3.073 dias brutos e 3.066 dias após engenharia de atributos (lacunas temporais tratadas por interpolação linear).
+1. **Dados integrados**: INMET (meteorologia), ANEEL (interrupções) e SAMP/ANEEL (consumo energético), totalizando 3.073 dias brutos e 3.066 dias após engenharia de atributos (lacunas temporais tratadas por interpolação linear).
 
 2. **Engenharia de atributos**: pipeline com 40 features derivadas — defasagens de 1, 2, 3 e 7 dias, médias móveis exponenciais (spans 3, 7 e 14 dias), desvio-padrão móvel e codificações harmônicas cíclicas de calendário.
 

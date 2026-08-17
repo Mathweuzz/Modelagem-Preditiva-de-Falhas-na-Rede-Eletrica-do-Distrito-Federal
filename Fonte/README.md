@@ -68,7 +68,7 @@ O processamento possui três estágios:
 1. **Coleta** (não automatizada neste pacote — fontes oficiais):
    - **INMET** — Instituto Nacional de Meteorologia: estação automática A001 (Brasília), com dados horários de temperatura, precipitação, vento médio, vento máximo e rajada máxima (2017-01-01 a 2025-05-31).
    - **ANEEL** — Agência Nacional de Energia Elétrica: relatórios de continuidade do PRODIST, indicadores de interrupção da concessionária Neoenergia Brasília.
-   - **SAMP/CCEE** — consumo mensal de energia no DF.
+   - **SAMP/ANEEL** — consumo mensal de energia no DF.
 2. **Consolidação diária** (`Fonte/src/build_base_from_standardized.py`): seleção exclusiva da estação A001, validação da unicidade por data/hora, agregação horária → diária com estatística circular para a direção do vento e união com a contagem diária de interrupções únicas.
 3. **Engenharia de atributos** (`Fonte/src/03_feature_engineering.py`): a partir de `base_diaria_interrupcoes_clima_vento.csv`, gera `dataset_engenharia_features.csv` adicionando:
    - Direção do vento: componentes unitárias `vento_dir_sin` e `vento_dir_cos`, renormalizadas após eventual interpolação
