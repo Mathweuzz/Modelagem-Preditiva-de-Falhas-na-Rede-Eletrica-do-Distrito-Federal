@@ -427,13 +427,13 @@ Orientador: Prof. Jan Mendonça Corrêa}
 
   \source{Elaboração dos autores, Figura 4.5.}
   \note{%
-    Apresentador: Mateus. Tempo-alvo: 1 minuto e 15 segundos.
+    Apresentador: Mateus. Tempo-alvo: 55 segundos.
     Assumir a fala a partir daqui. Mostrar o decaimento da ACF e a evidência para o lookback.
     [Sources] Monografia, Seção 4.2 e Figura 4.5.
   }
 \end{frame}
 
-\begin{frame}{As associações aparecem mais nas escalas agregadas}{Correlação com interrupções}
+\begin{frame}{A agregação revela associações mais fortes}{Correlação com interrupções}
   \begin{columns}[T,onlytextwidth]
     \begin{column}{0.70\textwidth}
       \includegraphics[width=\textwidth]{correlacoes_escala_temporal.png}
@@ -457,7 +457,7 @@ Orientador: Prof. Jan Mendonça Corrêa}
 
   \source{INMET e ANEEL; elaboração dos autores, Figura 4.8 e Tabela 4.1.}
   \note{% 
-    Apresentador: Mateus. Tempo-alvo: 1 minuto e 30 segundos.
+    Apresentador: Mateus. Tempo-alvo: 1 minuto.
     Explicar que a agregação suaviza variações e enfatiza tendências compartilhadas. Reforçar que correlação não prova causalidade nem efeito cumulativo.
     [Sources] Monografia, Seção 4.3 e Tabela 4.1.
   }
@@ -466,7 +466,7 @@ Orientador: Prof. Jan Mendonça Corrêa}
 
 \section{Desempenho preditivo}
 
-\begin{frame}{Os três modelos ficam praticamente empatados}{Resultados para $h=1$}
+\begin{frame}{Os três modelos empatam em $h=1$}{Resultados para $h=1$}
   \begin{columns}[T,onlytextwidth]
     \begin{column}{0.62\textwidth}
       \resizebox{\linewidth}{!}{%
@@ -495,7 +495,7 @@ Orientador: Prof. Jan Mendonça Corrêa}
 
   \source{Elaboração dos autores; 365 dias de teste; Monografia, Tabela 4.2.}
   \note{% 
-    Apresentador: Mateus. Tempo-alvo: 1 minuto e 30 segundos.
+    Apresentador: Mateus. Tempo-alvo: 1 minuto e 15 segundos.
     Evitar declarar vencedor absoluto: XGBoost tem menor MAE; Bi-LSTM, menor MAPE; Bi-GRU, menor RMSE e maior R2. Explicar que os MAEs são muito próximos.
     [Sources] Monografia, Tabela 4.2.
   }
@@ -537,7 +537,7 @@ Orientador: Prof. Jan Mendonça Corrêa}
 
   \source{Monografia, Seção 4.7.1 e Tabelas 4.4--4.5.}
   \note{% 
-    Apresentador: Mateus. Tempo-alvo: 1 minuto e 20 segundos.
+    Apresentador: Mateus. Tempo-alvo: 1 minuto.
     Explicar que o bootstrap preserva dependência semanal ao reamostrar blocos. O ponto principal é não vender uma superioridade que o intervalo não sustenta.
     [Sources] Monografia, Seção 4.7.1 e Tabelas 4.4--4.5.
   }
@@ -556,69 +556,13 @@ Orientador: Prof. Jan Mendonça Corrêa}
 
   \source{Elaboração dos autores, Figura 4.20.}
   \note{%
-    Apresentador: Mateus. Tempo-alvo: 1 minuto e 10 segundos.
+    Apresentador: Mateus. Tempo-alvo: 55 segundos.
     Apontar os picos de outubro, janeiro e março e a compressão para a média.
     [Sources] Monografia, Seção 4.4.2 e Figura 4.20.
   }
 \end{frame}
 
-\begin{frame}{O erro cresce nos dias de maior volume}{Heteroscedasticidade e magnitude do alvo}
-  \begin{columns}[T,onlytextwidth]
-    \begin{column}{0.57\textwidth}
-      \includegraphics[width=\textwidth]{scatter_heteroscedasticity.png}
-    \end{column}
-    \begin{column}{0.39\textwidth}
-      \textbf{\large Menor MAE por faixa}
-      \vspace{0.6em}
-
-      \modelwinner{Baixo ($<200$)}{43,3}{XGBoost}
-      \modelwinner{Intermediário (200--400)}{48,4}{Bi-LSTM}
-      \modelwinner{Alto ($>400$)}{133,7}{Bi-GRU}
-
-      \vspace{0.6em}
-      \small
-      Previsões pontuais devem evoluir para intervalos de incerteza.
-
-      \scriptsize Recortes descritivos dos autores; não são categorias oficiais da ANEEL.
-    \end{column}
-  \end{columns}
-
-  \source{Elaboração dos autores, Tabela 4.3 e Figura 4.27.}
-  \note{%
-    Apresentador: Mateus. Tempo-alvo: 1 minuto e 20 segundos.
-    Destacar que o erro cresce muito nos dias de maior volume, exatamente os mais importantes operacionalmente. Explicar que os limites são recortes descritivos dos autores.
-    [Sources] Monografia, Seções 4.4.4 e 4.5.
-  }
-\end{frame}
-
-\begin{frame}{O histórico domina o curto prazo}{Importância no XGBoost}
-  \begin{columns}[T,onlytextwidth]
-    \begin{column}{0.69\textwidth}
-      \includegraphics[width=\textwidth]{feature_importance_xgboost.png}
-    \end{column}
-    \begin{column}{0.28\textwidth}
-      \textbf{\large Principais sinais}
-      \begin{itemize}
-        \item Interrupções em $t$.
-        \item Lag de 1 dia.
-        \item Sazonalidade.
-        \item Variáveis climáticas selecionadas.
-      \end{itemize}
-
-      \small
-      Importância preditiva não implica causalidade.
-    \end{column}
-  \end{columns}
-
-  \source{Elaboração dos autores, Figura 4.32.}
-  \note{% 
-    Apresentador: Mateus. Tempo-alvo: 1 minuto e 15 segundos.
-    Mostrar como o estado recente da rede domina a previsão do XGBoost. Preparar a transição para a ablação, que testa grupos de atributos.
-    [Sources] Monografia, Seção 4.10 e Figura 4.32.
-  }
-\end{frame}
-
-\begin{frame}{Clima não trouxe ganho incremental em $h=1$}{Ablação pós-hoc do XGBoost}
+\begin{frame}{Clima não melhorou o XGBoost em $h=1$}{Ablação pós-hoc do XGBoost}
   \begin{columns}[T,onlytextwidth]
     \begin{column}{0.55\textwidth}
       \centering
@@ -652,7 +596,7 @@ Orientador: Prof. Jan Mendonça Corrêa}
 
   \source{Monografia, Seção 4.7.2 e Tabela 4.6.}
   \note{% 
-    Apresentador: Mateus. Tempo-alvo: 1 minuto e 30 segundos.
+    Apresentador: Mateus. Tempo-alvo: 1 minuto e 20 segundos.
     Este é um dos resultados novos mais importantes. Separar associação climática de utilidade incremental na previsão diária. Não vender o modelo de 54,26 como modelo final, porque é ablação pós-hoc.
     [Sources] Monografia, Seção 4.7.2 e Tabela 4.6.
   }
@@ -676,56 +620,9 @@ Orientador: Prof. Jan Mendonça Corrêa}
 
   \source{Elaboração dos autores; 352 datas-alvo comuns; XGBoost reutiliza os hiperparâmetros de $h=1$.}
   \note{%
-    Apresentador: Mateus. Tempo-alvo: 1 minuto e 40 segundos.
+    Apresentador: Mateus. Tempo-alvo: 1 minuto e 25 segundos.
     Este é o principal resultado comparativo. Explicar que cada ponto vem de um modelo treinado diretamente para aquele horizonte e que os três ficam abaixo da persistência em MAE nos horizontes 3, 7 e 14.
     [Sources] Monografia, Seção 4.12 e Figura 4.37; arquivo de métricas multi-horizonte.
-  }
-\end{frame}
-
-\begin{frame}{Erros aumentam na transição chuvosa}{Variação mensal do MAE}
-  \centering
-  \includegraphics[width=0.78\textwidth]{previsao_multihorizonte_mae_mensal.png}
-
-  \vspace{-0.5em}
-  \small
-  Setembro e outubro de 2024 formam a janela mais crítica; junho e julho permanecem entre os meses mais estáveis.
-
-  \source{Elaboração dos autores, Figura 4.41.}
-  \note{%
-    Apresentador: Mateus. Tempo-alvo: 1 minuto e 15 segundos.
-    Explicar que a liderança anual varia ao longo dos meses e que os maiores erros coincidem com a transição para a estação chuvosa.
-    [Sources] Monografia, Seção 4.12.1 e Figura 4.41; métricas mensais multi-horizonte.
-  }
-\end{frame}
-
-\begin{frame}{Não existe um único modelo vencedor}{Escolha guiada pela operação}
-  \resizebox{0.98\textwidth}{!}{%
-    \begin{tabular}{>{\bfseries}p{2.0cm} p{2.6cm} p{5.0cm}}
-      \toprule
-      Horizonte & Modelo indicado & Uso operacional \\
-      \midrule
-      1 dia & XGBoost, Bi-LSTM ou Bi-GRU &
-      Escolha conforme MAE, MAPE ou penalização de grandes erros. \\
-      \addlinespace
-      3 dias & Bi-GRU ou Bi-LSTM &
-      Bi-GRU tem menor MAE; Bi-LSTM, menor RMSE. \\
-      \addlinespace
-      7 e 14 dias & Bi-GRU / Bi-LSTM &
-      Bi-GRU lidera em MAE; Bi-LSTM em RMSE para 7 dias. \\
-      \bottomrule
-    \end{tabular}%
-  }
-
-  \vspace{0.9em}
-  \begin{block}{Estratégia recomendada}
-    Combinar modelos por horizonte e retrainar periodicamente para acompanhar mudanças na série.
-  \end{block}
-
-  \source{Monografia, Seções 5.3 e 5.4.}
-  \note{%
-    Apresentador: Mateus. Tempo-alvo: 1 minuto e 20 segundos.
-    Traduzir o gráfico anterior em decisão. Ressaltar que a escolha depende do horizonte e do custo computacional.
-    [Sources] Monografia, Seções 5.3, 5.4 e 5.10.
   }
 \end{frame}
 
@@ -758,9 +655,38 @@ Orientador: Prof. Jan Mendonça Corrêa}
 
   \source{Monografia, Seções 5.8, 5.13 e 6.4.}
   \note{% 
-    Apresentador: Mateus. Tempo-alvo: 1 minuto e 20 segundos.
+    Apresentador: Mateus. Tempo-alvo: 1 minuto e 5 segundos.
     Mostrar domínio crítico do trabalho: não extrapolar causalidade nem generalização nacional. Enfatizar que há incerteza das métricas, mas ainda não intervalo preditivo para cada dia.
     [Sources] Monografia, Limitações e Trabalhos Futuros.
+  }
+\end{frame}
+
+\begin{frame}{A interface reúne dados e experimentos}{Protótipo local em Streamlit}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.62\textwidth}
+      \includegraphics[width=\textwidth]{../Monografia/img/interface_visao_geral.png}
+    \end{column}
+    \begin{column}{0.34\textwidth}
+      \textbf{\large Seis páginas}
+      \small
+      \begin{itemize}
+        \item consultar a base e os resultados oficiais;
+        \item configurar treinamentos e comparar horizontes;
+        \item validar datas e isolar novas execuções.
+      \end{itemize}
+    \end{column}
+  \end{columns}
+
+  \vspace{0.15em}
+  \begin{block}{Limite de uso}
+    \small A interface facilita demonstração e reprodutibilidade; não é um sistema em produção nem executa previsões em tempo real.
+  \end{block}
+
+  \source{Elaboração dos autores; Monografia, Seções 3.16, 4.13 e 5.8.}
+  \note{%
+    Apresentador: Mateus. Tempo-alvo: 1 minuto.
+    Explicar que a interface organiza seis páginas e reutiliza os mesmos dados, modelos e resultados do estudo. Destacar que execuções interativas ficam isoladas dos artefatos oficiais. Encerrar delimitando o protótipo como local e acadêmico.
+    [Sources] Monografia, Seções 3.16, 4.13 e 5.8.
   }
 \end{frame}
 
@@ -780,7 +706,7 @@ Orientador: Prof. Jan Mendonça Corrêa}
 
   \source{Monografia, Seções 5.9 e 6.4.}
   \note{%
-    Apresentador: Mateus. Tempo-alvo: 1 minuto.
+    Apresentador: Mateus. Tempo-alvo: 50 segundos.
     Apresentar um caminho incremental, sem prometer automação autônoma da operação.
     [Sources] Monografia, Implicações Práticas e Considerações Finais.
   }
@@ -804,7 +730,7 @@ Orientador: Prof. Jan Mendonça Corrêa}
 
   \source{Monografia, Capítulo 6.}
   \note{% 
-    Apresentador: Mateus. Tempo-alvo: 1 minuto e 25 segundos.
+    Apresentador: Mateus. Tempo-alvo: 1 minuto e 20 segundos.
     Retomar a pergunta do início e responder de forma direta, sem vender causalidade nem superioridade estatística onde o bootstrap não sustenta.
     [Sources] Monografia, Capítulo 6.
   }
@@ -856,7 +782,7 @@ Orientador: Prof. Jan Mendonça Corrêa}
   }
 \end{frame}
 
-\begin{frame}[noframenumbering]{Os resíduos ainda preservam dependência temporal}{Reserva: diagnóstico residual}
+\begin{frame}[noframenumbering]{Os resíduos mantêm dependência temporal}{Reserva: diagnóstico residual}
   \centering
   \begin{tabular}{lrrr}
     \toprule
@@ -977,7 +903,7 @@ Orientador: Prof. Jan Mendonça Corrêa}
   }
 \end{frame}
 
-\begin{frame}[noframenumbering]{A Bi-GRU registra o menor MAE em $h=3$, $h=7$ e $h=14$}{Reserva: série multi-horizonte}
+\begin{frame}[noframenumbering]{Bi-GRU lidera em 3, 7 e 14 dias}{Reserva: série multi-horizonte}
   \centering
   \includegraphics[height=0.72\textheight]{previsao_multihorizonte_temporal_bigru.png}
 
@@ -988,7 +914,7 @@ Orientador: Prof. Jan Mendonça Corrêa}
   }
 \end{frame}
 
-\begin{frame}[noframenumbering]{O pipeline foi preparado para reprodutibilidade}{Reserva: dados, código e referências}
+\begin{frame}[noframenumbering]{O pipeline preserva a reprodutibilidade}{Reserva: dados, código e referências}
   \small
   \textbf{Repositório do projeto}\\
   {\scriptsize\url{https://github.com/Mathweuzz/Modelagem-Preditiva-de-Falhas-na-Rede-Eletrica-do-Distrito-Federal}}
