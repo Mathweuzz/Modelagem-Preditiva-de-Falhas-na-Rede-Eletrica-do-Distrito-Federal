@@ -4,6 +4,7 @@
 
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
+\usepackage{lmodern}
 \usepackage{helvet}
 \usepackage{booktabs}
 \usepackage{array}
@@ -78,12 +79,12 @@ Orientador: Prof. Jan Mendonça Corrêa}
 
 \section{Problema e objetivo}
 
-\begin{frame}{Podemos antecipar as interrupções?}{Pergunta de pesquisa}
+\begin{frame}{Objetivo do trabalho}{Predição diária e multi-horizonte}
   \vspace{0.45em}
   \begin{block}{}
     \centering
     \Large
-    Dados públicos conseguem prever a contagem diária de interrupções na rede de distribuição do DF?
+    Desenvolver e avaliar modelos para estimar a contagem diária de interrupções com início registrado no Distrito Federal.
   \end{block}
 
   \vspace{0.6em}
@@ -100,7 +101,7 @@ Orientador: Prof. Jan Mendonça Corrêa}
   \source{Monografia, Seções 1.2 e 1.3.}
   \note{% 
     Apresentador: Giovanni. Tempo-alvo: 1 minuto.
-    Abrir com a pergunta central e definir o alvo com cuidado: contagem diária de identificadores únicos de interrupção. Reforçar que não há filtragem climática por fator gerador.
+    Apresentar o objetivo principal e definir o alvo com cuidado: contagem diária de identificadores únicos de interrupção. Reforçar que não há filtragem climática por fator gerador.
     [Sources] Monografia, Seções 1.2 e 1.3.
   }
 \end{frame}
@@ -213,7 +214,7 @@ Orientador: Prof. Jan Mendonça Corrêa}
   \source{Monografia, Seção 1.4.}
   \note{% 
     Apresentador: Giovanni. Tempo-alvo: 1 minuto e 20 segundos.
-    Apresentar as contribuições como respostas concretas à pergunta de pesquisa. Dar destaque às novas contribuições: robustez estatística e reprodutibilidade.
+    Apresentar as contribuições como entregas concretas dos objetivos. Dar destaque à robustez estatística e à reprodutibilidade.
     [Sources] Monografia, Seção 1.4.
   }
 \end{frame}
@@ -253,52 +254,68 @@ Orientador: Prof. Jan Mendonça Corrêa}
 \end{frame}
 
 
-\begin{frame}{O pipeline integra dados e gera previsões}{Processamento}
-  \centering
-  \begin{tikzpicture}[
-    node distance=0.25cm,
-    box/.style={
-      rectangle, rounded corners, draw=UnBBlue, thick,
-      fill=SoftBlue, text width=1.35cm, minimum height=1.0cm,
-      inner sep=1.5pt, align=center, font=\scriptsize
-    },
-    final/.style={
-      rectangle, rounded corners, draw=UnBGreen, thick,
-      fill=SoftGreen, text width=1.35cm, minimum height=1.0cm,
-      inner sep=1.5pt, align=center, font=\scriptsize
-    },
-    arrow/.style={-{Latex[length=2.2mm]}, thick, draw=UnBGreen}
-  ]
-    \node[box] (sources) {INMET\\ANEEL};
-    \node[box, right=of sources] (daily) {Agregação\\diária};
-    \node[box, right=of daily] (merge) {Deduplicação e\\integração};
-    \node[box, right=of merge] (features) {40 atributos\\temporais};
-    \node[box, right=of features] (models) {XGBoost\\Bi-LSTM\\Bi-GRU};
-    \node[final, right=of models] (forecast) {Previsão\\$h=1,3,7,14$};
+\begin{frame}{O pipeline integra os dados antes da previsão}{Figura 3.5 da monografia}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.55\textwidth}
+      \centering
+      \resizebox{!}{0.61\textheight}{%
+        \begin{tikzpicture}[
+          node distance=0.48cm,
+          block/.style={
+            rectangle, rounded corners, draw=UnBBlue, thick,
+            fill=SoftBlue, text width=2.65cm, minimum height=0.72cm,
+            inner sep=2pt, align=center, font=\scriptsize
+          },
+          final/.style={
+            rectangle, rounded corners, draw=UnBGreen, thick,
+            fill=SoftGreen, text width=2.65cm, minimum height=0.72cm,
+            inner sep=2pt, align=center, font=\scriptsize
+          },
+          line/.style={-{Latex[length=2mm]}, thick, draw=UnBGreen}
+        ]
+          \node[block] (inmet) {Dados climáticos\\(INMET)};
+          \node[block, right=1.15cm of inmet] (aneel) {Dados de interrupção\\(ANEEL)};
+          \node[block, below=of inmet] (agg1) {Validação e\\agregação diária};
+          \node[block, below=of aneel] (agg2) {Datas válidas e\\identificadores únicos};
+          \node[block, below=0.55cm of $(agg1)!0.5!(agg2)$] (merge) {União das bases\\por data};
+          \node[block, below=of merge] (nan) {Tratamento de lacunas\\meteorológicas};
+          \node[block, below=of nan] (features) {Engenharia de atributos\\40 preditores};
+          \node[final, below=of features] (final) {Dataset final\\3.066 observações};
 
-    \draw[arrow] (sources) -- (daily);
-    \draw[arrow] (daily) -- (merge);
-    \draw[arrow] (merge) -- (features);
-    \draw[arrow] (features) -- (models);
-    \draw[arrow] (models) -- (forecast);
-  \end{tikzpicture}
+          \draw[line] (inmet) -- (agg1);
+          \draw[line] (aneel) -- (agg2);
+          \draw[line] (agg1) |- (merge);
+          \draw[line] (agg2) |- (merge);
+          \draw[line] (merge) -- (nan);
+          \draw[line] (nan) -- (features);
+          \draw[line] (features) -- (final);
+        \end{tikzpicture}%
+      }
+    \end{column}
+    \begin{column}{0.41\textwidth}
+      \small
+      \textbf{\large Continuidade experimental}
+      \begin{enumerate}
+        \item separação cronológica;
+        \item treinamento de XGBoost, Bi-LSTM e Bi-GRU;
+        \item avaliação nas mesmas datas-alvo;
+        \item horizontes de 1, 3, 7 e 14 dias.
+      \end{enumerate}
 
-  \vspace{1.1em}
-  \begin{itemize}
-    \item Somatório para chuva e interrupções; médias para temperatura e vento.
-    \item Direção do vento tratada como variável circular: seno e cosseno.
-    \item Alvo não interpolado; lacunas meteorológicas tratadas antes da engenharia de atributos.
-    \item Extremos reais foram preservados, pois são justamente os cenários críticos.
-  \end{itemize}
+      \vspace{0.25em}
+      \begin{block}{Escopo}
+        O SAMP permanece fora do pipeline preditivo diário e é usado apenas na análise exploratória mensal.
+      \end{block}
+    \end{column}
+  \end{columns}
 
-  \source{Monografia, Seções 3.4, 3.6 e 3.7.}
-  \note{% 
+  \source{Adaptado da Monografia, Figura 3.5 e Seções 3.4--3.14.}
+  \note{%
     Apresentador: Giovanni. Tempo-alvo: 1 minuto e 20 segundos.
-    Percorrer o fluxo da esquerda para a direita. Explicar que a mudança central é a reconstrução auditável do alvo, sem filtrar fatores geradores.
-    [Sources] Monografia, Seções 3.4, 3.6 e 3.7.
+    Percorrer a Figura 3.5 da monografia: INMET e ANEEL são validados e agregados separadamente, unidos por data, passam pelo tratamento das lacunas meteorológicas e pela engenharia de atributos. Em seguida, explicar a separação temporal, o treinamento e a avaliação multi-horizonte. Reforçar que o SAMP permanece em trilha exploratória separada.
+    [Sources] Monografia, Figura 3.5 e Seções 3.4--3.14.
   }
 \end{frame}
-
 
 \begin{frame}{Atributos codificam memória e sazonalidade}{40 atributos derivados}
   \begin{columns}[T,onlytextwidth]
@@ -649,8 +666,8 @@ Orientador: Prof. Jan Mendonça Corrêa}
   \end{columns}
 
   \vspace{0.8em}
-  \begin{block}{Próximos passos}
-    Validar prospectivamente a ablação, incorporar dados espaciais e climáticos mais ricos e estimar incerteza preditiva.
+  \begin{block}{Escopo das conclusões}
+    Os resultados descrevem o período e o DF avaliados; não demonstram causalidade climática nem garantem o mesmo desempenho em novos dados.
   \end{block}
 
   \source{Monografia, Seções 5.8, 5.13 e 6.4.}
@@ -714,25 +731,43 @@ Orientador: Prof. Jan Mendonça Corrêa}
 
 \section{Conclusão}
 
-\begin{frame}{A melhor arquitetura depende do horizonte}{Conclusões}
-  \begin{enumerate}
-    \item Há associação entre clima e interrupções, sobretudo em escalas agregadas, sem inferência causal.
-    \item Em $h=1$, os três modelos têm MAEs próximos e não são separados pelo bootstrap.
-    \item Histórico + calendário domina a previsão curta; clima não trouxe ganho incremental no teste.
-    \item Em $h=3$, $h=7$ e $h=14$, a Bi-GRU registra o menor MAE observado.
-    \item Extremos e autocorrelação residual continuam sendo os principais desafios.
-  \end{enumerate}
+\begin{frame}{Os objetivos do trabalho foram atingidos}{Objetivo e evidência}
+  \small
+  \begin{description}
+    \item[Base integrada e alvo] INMET + ANEEL em 3.073 dias brutos; 3.066 observações finais e alvo reconstruído por identificadores únicos.
+    \item[Atributos e protocolo] 40 preditores de clima, calendário e memória, com separação cronológica e avaliação fora da amostra.
+    \item[Comparação controlada] XGBoost, Bi-LSTM, Bi-GRU e persistência avaliados nas mesmas datas-alvo e métricas.
+    \item[Robustez e interpretação] Bootstrap em blocos, contrastes pareados, ablação e análise residual, sem transformar associação climática em causalidade.
+    \item[Multi-horizonte] Avaliação direta em 1, 3, 7 e 14 dias; a arquitetura com menor erro observado muda conforme horizonte e métrica.
+  \end{description}
 
-  \vspace{0.6em}
-  \begin{block}{Resposta à pergunta de pesquisa}
-    Sim, é possível antecipar interrupções com dados públicos, mas a escolha do modelo depende do horizonte, da métrica e da validação prospectiva.
+  \begin{block}{Síntese}
+    Os sete objetivos específicos foram cumpridos; a validação prospectiva continua necessária antes de uso operacional.
   \end{block}
 
-  \source{Monografia, Capítulo 6.}
-  \note{% 
-    Apresentador: Mateus. Tempo-alvo: 1 minuto e 20 segundos.
-    Retomar a pergunta do início e responder de forma direta, sem vender causalidade nem superioridade estatística onde o bootstrap não sustenta.
-    [Sources] Monografia, Capítulo 6.
+  \source{Monografia, Seções 6.1--6.3.}
+  \note{%
+    Apresentador: Mateus. Tempo-alvo: 1 minuto e 15 segundos.
+    Relacionar cada objetivo à evidência produzida, sem repetir a tabela completa de métricas. Destacar que os objetivos específicos foram cumpridos e que nenhum resultado autoriza declarar um vencedor universal ou causalidade climática.
+    [Sources] Monografia, Seções 6.1--6.3.
+  }
+\end{frame}
+
+\begin{frame}{Trabalhos futuros}{Próximas etapas de pesquisa}
+  \small
+  \begin{description}
+    \item[Validação prospectiva] Registrar previsões antes das datas-alvo e confirmar a ordenação dos modelos e a ablação em dados novos.
+    \item[Maior resolução] Incorporar dados horários, múltiplas estações e melhor representação espacial dos microclimas do DF.
+    \item[Infraestrutura] Incluir topologia, idade e condição dos ativos, manutenção e vegetação próxima aos condutores.
+    \item[Incerteza explícita] Produzir quantis e intervalos preditivos, com avaliação de calibração e atenção aos extremos.
+    \item[Novas estratégias] Comparar ensembles e Transformers sob o mesmo protocolo temporal e orçamento de ajuste.
+  \end{description}
+
+  \source{Monografia, Seção 6.4.}
+  \note{%
+    Apresentador: Mateus. Tempo-alvo: 50 segundos.
+    Apresentar os cinco caminhos de continuidade em ritmo breve. Priorizar a validação prospectiva e a comunicação de incerteza; não abrir uma nova seção longa.
+    [Sources] Monografia, Seção 6.4.
   }
 \end{frame}
 
@@ -749,7 +784,7 @@ Orientador: Prof. Jan Mendonça Corrêa}
   }
   \note{%
     Apresentadores: ambos.
-    Agradecer à banca e abrir para perguntas.
+    Dizer: “Obrigado pela atenção. Estamos à disposição para perguntas e comentários.”
     [Sources] Não se aplica.
   }
 \end{frame}}
