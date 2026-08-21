@@ -6,6 +6,7 @@
 *.toc
 *.lof
 *.lot
+*.loq
 *.out
 *.fls
 *.fdb_latexmk

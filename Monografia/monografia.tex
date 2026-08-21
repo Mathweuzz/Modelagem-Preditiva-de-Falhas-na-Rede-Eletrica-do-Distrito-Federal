@@ -13,6 +13,12 @@
 \usepackage{pdflscape}
 
 \usepackage{float}% para posicionamento fixo [H] de tabelas e figuras
+\newcommand{\quadroname}{Quadro}%
+\floatstyle{plaintop}% mantém a legenda dos quadros acima do conteúdo
+\newfloat{quadro}{htbp}{loq}[chapter]% ambiente e numeração próprios
+\floatname{quadro}{\quadroname}%
+\floatstyle{plain}% preserva o estilo padrão de eventuais novos floats
+\newcommand{\listofquadros}{\listof{quadro}{Lista de Quadros}}%
 \usepackage{pdfpages}% incluir PDFs, usado no apêndice
 \usepackage{booktabs}% para tabelas profissionais com \toprule e \midrule
 \usepackage{longtable}% para tabelas extensas que quebram página

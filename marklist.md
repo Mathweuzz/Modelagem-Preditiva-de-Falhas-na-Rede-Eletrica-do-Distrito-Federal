@@ -6,7 +6,7 @@ Fonte dos comentários: `/home/mateus/Downloads/2026_GiovanniMinariZanetti_Mateu
 - [x] 2. **Página 2 do PDF — identificação da banca:** incorporar o comentário “Henrique” ao nome do professor, verificando a forma completa “Prof. Dr. Wilson Henrique Veneziano”.
 - [x] 3. **Página 30 do PDF (página 6 do texto) — citação nominal:** atender ao comentário “sobrenome” no trecho “Trabalhos de revisão, como [5]”, mencionando Gonçalves et al. no corpo do texto.
 - [x] 4. **Página 32 do PDF (página 8 do texto) — fim da introdução:** acrescentar a transição “O próximo capítulo aborda a fundamentação teórica.”
-- [ ] 5. **Página 35 do PDF (página 11) — Tabela 2.1:** converter em quadro a “Distinção entre os conceitos e sua aplicação nesta monografia”.
+- [x] 5. **Página 35 do PDF (página 11) — Tabela 2.1:** converter em quadro a “Distinção entre os conceitos e sua aplicação nesta monografia”.
 - [ ] 6. **Página 54 do PDF (página 30) — Tabela 2.3:** converter em quadro as “Implicações estatísticas da natureza das interrupções”.
 - [ ] 7. **Página 59 do PDF (página 35) — Tabela 2.4:** converter em quadro as “Principais formas de mudança temporal no contexto da distribuição elétrica”.
 - [ ] 8. **Página 61 do PDF (página 37) — Tabela 2.5:** converter em quadro a “Comparação entre estratégias de previsão multi-horizonte”.

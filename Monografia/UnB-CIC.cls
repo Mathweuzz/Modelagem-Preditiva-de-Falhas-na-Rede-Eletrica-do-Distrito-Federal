@@ -902,6 +902,7 @@
 	\tableofcontents%
 	\iftotalfigures\listoffigures\fi%
 	\iftotaltables\listoftables\fi%
+	\@ifundefined{listofquadros}{}{\listofquadros}%
 	\@listofacronyms%
 
 	\textual%

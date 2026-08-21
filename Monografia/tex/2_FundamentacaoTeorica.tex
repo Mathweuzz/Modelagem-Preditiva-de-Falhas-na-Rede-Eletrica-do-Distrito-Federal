@@ -48,11 +48,11 @@ O Aprendizado de Máquina pode ser organizado em diferentes paradigmas. No apren
 
 Para uma base de pares $\mathcal{D}=\{(\mathbf{x}_i,y_i)\}_{i=1}^{n}$, o treinamento supervisionado procura uma função parametrizada $f_{\theta}$ que produza $\widehat{y}_i=f_{\theta}(\mathbf{x}_i)$ com erro reduzido nas observações de treinamento e capacidade de generalização para datas não usadas no ajuste. A separação cronológica entre treino e teste, detalhada no Capítulo~\ref{3_Metodologia}, verifica essa generalização em um intervalo futuro e impede que o desempenho seja medido nos mesmos exemplos usados para ajustar $\theta$.
 
-A Tabela~\ref{tab:distincao_ia_ml_dl} separa os conceitos e mostra como eles se conectam aos componentes do estudo.
+O Quadro~\ref{qua:distincao_ia_ml_dl} separa os conceitos e mostra como eles se conectam aos componentes do estudo.
 
-\begin{table}[H]
+\begin{quadro}[H]
 \caption{Distinção entre os conceitos e sua aplicação nesta monografia}
-\label{tab:distincao_ia_ml_dl}
+\label{qua:distincao_ia_ml_dl}
 \begin{center}
 \small
 \begin{tabularx}{\textwidth}{p{3.2cm} X X}
@@ -68,7 +68,7 @@ Referência sem aprendizado & Regra definida previamente, sem ajuste de parâmet
 \normalsize
 \end{center}
 \small{Fonte: Elaborado pelos autores com base em \cite{lecun2015deep,jordan2015machine,mitchell1997machine} (2026).}
-\end{table}
+\end{quadro}
 
 O XGBoost e as redes recorrentes respondem à mesma tarefa supervisionada, mas aprendem de maneiras diferentes. O XGBoost constrói um conjunto aditivo de árvores e depende de uma representação tabular explícita. As redes Bi-LSTM e Bi-GRU ajustam transformações recorrentes e densas capazes de produzir representações internas da sequência. Ainda assim, neste estudo, as redes também recebem atributos temporais previamente construídos. Portanto, empregar Aprendizado Profundo não elimina automaticamente a engenharia de atributos nem garante desempenho superior. A comparação empírica deve permanecer baseada nas mesmas datas-alvo, métricas e condições de avaliação.
 
