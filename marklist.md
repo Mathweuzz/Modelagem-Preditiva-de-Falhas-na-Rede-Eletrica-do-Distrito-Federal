@@ -8,7 +8,7 @@ Fonte dos comentários: `/home/mateus/Downloads/2026_GiovanniMinariZanetti_Mateu
 - [x] 4. **Página 32 do PDF (página 8 do texto) — fim da introdução:** acrescentar a transição “O próximo capítulo aborda a fundamentação teórica.”
 - [x] 5. **Página 35 do PDF (página 11) — Tabela 2.1:** converter em quadro a “Distinção entre os conceitos e sua aplicação nesta monografia”.
 - [x] 6. **Página 54 do PDF (página 30) — Tabela 2.3:** converter em quadro as “Implicações estatísticas da natureza das interrupções”.
-- [ ] 7. **Página 59 do PDF (página 35) — Tabela 2.4:** converter em quadro as “Principais formas de mudança temporal no contexto da distribuição elétrica”.
+- [x] 7. **Página 59 do PDF (página 35) — Tabela 2.4:** converter em quadro as “Principais formas de mudança temporal no contexto da distribuição elétrica”.
 - [ ] 8. **Página 61 do PDF (página 37) — Tabela 2.5:** converter em quadro a “Comparação entre estratégias de previsão multi-horizonte”.
 - [ ] 9. **Página 68 do PDF (página 44) — Tabela 2.6:** converter em quadro os “Vieses indutivos de arquiteturas para séries temporais”.
 - [ ] 10. **Página 73 do PDF (página 49) — Tabela 2.7:** converter em quadro as “Camadas de uma utilização responsável das previsões”.
