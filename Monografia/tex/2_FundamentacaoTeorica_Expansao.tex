@@ -544,9 +544,9 @@ Limiares de alerta precisam ser definidos com custos e capacidade real. Um esque
 
 O monitoramento deve incluir também a qualidade do dado. Uma previsão pode falhar porque o padrão mudou, porque uma estação meteorológica parou de reportar ou porque o esquema de uma fonte foi alterado. Registrar versão do modelo, intervalo de treinamento, origem de cada dado e instante da previsão permite reconstruir a decisão. Em ambientes regulados, essa rastreabilidade é parte da confiabilidade do sistema.
 
-\begin{table}[H]
+\begin{quadro}[H]
 \caption{Camadas de uma utilização responsável das previsões}
-\label{tab:camadas_decisao}
+\label{qua:camadas_decisao}
 \centering
 \small
 \begin{tabular}{p{3.2cm} p{5.0cm} p{5.3cm}}
@@ -564,6 +564,6 @@ Monitoramento & O sistema continua válido após implantação? & Resíduos, mud
 \normalsize
 \par\smallskip
 {\small Fonte: Elaborado pelos autores (2026), com base em \cite{rudin2019stop, lundberg2017unified, kabir2024datastreams}.\par}
-\end{table}
+\end{quadro}
 
 Em síntese, a previsão de interrupções é um problema simultaneamente temporal, probabilístico, espacial e decisório. Os modelos comparados nesta monografia cobrem uma parte bem delimitada desse espaço: previsão pontual diária, baseada em histórico agregado e covariáveis climáticas e energéticas, sob separação temporal. As extensões discutidas neste capítulo mostram como incorporar incerteza, adaptação, topologia e explicação sem confundi-las com capacidades já demonstradas. Essa delimitação fortalece a leitura dos resultados e estabelece caminhos verificáveis para trabalhos posteriores.
