@@ -295,13 +295,15 @@ Se a segunda ou a terceira substituição falhar, o algoritmo percorre em ordem 
 
 A suíte automatizada não busca apenas defeitos de programação; ela codifica decisões do estudo. Há testes para agregações físicas, reconstrução meteorológica, protocolo temporal, modelos, métricas por volume e atomicidade. Uma alteração que viole essas condições deve falhar antes de atualizar os resultados oficiais.
 
+\begingroup
+\renewcommand{\LTcaptype}{quadro}
 \begin{longtable}{p{4.2cm} p{9.3cm}}
-\caption{Invariantes verificadas pela suíte automatizada}\label{tab:invariantes_testes}\\
+\caption{Invariantes verificadas pela suíte automatizada}\label{qua:invariantes_testes}\\
 \toprule
 \textbf{Grupo} & \textbf{Comportamentos verificados} \\
 \midrule
 \endfirsthead
-\multicolumn{2}{c}{\tablename\ \thetable{}: Continuação}\\
+\multicolumn{2}{c}{\quadroname\ \thequadro{}: Continuação}\\
 \toprule
 \textbf{Grupo} & \textbf{Comportamentos verificados} \\
 \midrule
@@ -315,6 +317,7 @@ Robustez & Blocos preservam observações consecutivas; reamostragem é reprodut
 Atomicidade & Área temporária começa sem saídas antigas; promoção bem-sucedida substitui todos os diretórios; falha parcial restaura todos; arquivos ausentes ou vazios são recusados; somente PNGs são sincronizados. \\
 \bottomrule
 \end{longtable}
+\endgroup
 
 Esses testes não garantem ausência de qualquer erro científico. Eles verificam propriedades explícitas que poderiam regredir durante manutenção. A validade das fontes, a adequação do recorte e a interpretação dos resultados continuam exigindo análise humana.
 
