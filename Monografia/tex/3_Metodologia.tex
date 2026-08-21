@@ -240,7 +240,7 @@ Para a direção do vento, a média aritmética não é adequada à transição 
 As componentes foram mantidas como atributos dos modelos, evitando a descontinuidade numérica dos graus.
 
 \subsection{Médias Móveis na Análise Exploratória e na Engenharia de Atributos}
-A Média Móvel Simples (SMA) foi utilizada na análise exploratória para visualização de tendências (gráficos de séries temporais). No \textit{pipeline} final de engenharia de atributos, optou-se pela \textbf{Média Móvel Exponencial} (EMA) como \textit{feature} de entrada dos modelos, por atribuir maior peso às observações mais recentes. Aplicaram-se janelas de 3, 7 e 14 dias para as variáveis de precipitação, temperatura e rajada de vento, conforme detalhado na Tabela~\ref{tab:longtable_features}.
+A Média Móvel Simples (SMA) foi utilizada na análise exploratória para visualização de tendências (gráficos de séries temporais). No \textit{pipeline} final de engenharia de atributos, optou-se pela \textbf{Média Móvel Exponencial} (EMA) como \textit{feature} de entrada dos modelos, por atribuir maior peso às observações mais recentes. Aplicaram-se janelas de 3, 7 e 14 dias para as variáveis de precipitação, temperatura e rajada de vento, conforme detalhado no Quadro~\ref{qua:longtable_features}.
 
 \subsection{Desvio Padrão em Janela Deslizante}
 Para capturar a \textbf{variabilidade} recente das séries climáticas, calculou-se o desvio padrão em janela deslizante de 7 dias para precipitação, temperatura e rajada de vento. Essa medida complementa as EMAs ao indicar \textit{instabilidade}. Dias com desvio padrão elevado sinalizam transições climáticas abruptas, que tendem a provocar mais interrupções.
@@ -256,12 +256,14 @@ As variáveis \texttt{dia\_semana} e \texttt{dia\_ano} foram mantidas como intei
 \subsection{Matriz Extensiva de Engenharia de Atributos (Feature Engineering)}
 O processo de engenharia de atributos expandiu as sete variáveis preditoras de base integradas ao alvo diário para um conjunto de \textbf{40 \textit{features} de entrada} mais a variável alvo, totalizando 41 colunas no \textit{dataset} final. As categorias de atributos incluem: variáveis base meteorológicas e eólicas, codificações temporais (inteiras e cíclicas), defasagens de 1, 2, 3 e 7 dias, médias móveis exponenciais (EMA) de 3, 7 e 14 dias, e desvios padrão em janela deslizante de 7 dias.
 
-A Tabela~\ref{tab:longtable_features} apresenta o dicionário completo de todos os atributos, conforme extraídos do arquivo \texttt{dataset\_engenharia\_features.csv} utilizado na modelagem.
+O Quadro~\ref{qua:longtable_features} apresenta o dicionário completo de todos os atributos, conforme extraídos do arquivo \texttt{dataset\_engenharia\_features.csv} utilizado na modelagem.
 
 \begin{center}
 \footnotesize
+\begingroup
+\renewcommand{\LTcaptype}{quadro}
 \begin{longtable}{p{6cm} p{1.2cm} p{5.8cm}}
-\caption{Dicionário Completo de Atributos (40 Features + Target)} \label{tab:longtable_features} \\
+\caption{Dicionário Completo de Atributos (40 Features + Target)} \label{qua:longtable_features} \\
 
 \toprule
 \textbf{Nome do Atributo} & \textbf{Tipo} & \textbf{Descrição} \\
@@ -269,7 +271,7 @@ A Tabela~\ref{tab:longtable_features} apresenta o dicionário completo de todos 
 \endfirsthead
 
 \multicolumn{3}{c}%
-{{\bfseries \tablename\ \thetable{}: Continuação da página anterior}} \\
+{{\bfseries \quadroname\ \thequadro{}: Continuação da página anterior}} \\
 \toprule
 \textbf{Nome do Atributo} & \textbf{Tipo} & \textbf{Descrição} \\
 \midrule
@@ -340,6 +342,7 @@ A Tabela~\ref{tab:longtable_features} apresenta o dicionário completo de todos 
 \textbf{temperatura\_media\_std\_7d} & \textit{Float} & Variabilidade térmica semanal. Indica mudanças bruscas de temperatura. \\
 \textbf{vento\_rajada\_max\_ms\_std\_7d} & \textit{Float} & Variabilidade das rajadas na semana. Indica instabilidade eólica. \\
 \end{longtable}
+\endgroup
 \small{Fonte: Elaborado pelos autores a partir dos dados do INMET e da ANEEL (2026).}
 \normalsize
 \end{center}
