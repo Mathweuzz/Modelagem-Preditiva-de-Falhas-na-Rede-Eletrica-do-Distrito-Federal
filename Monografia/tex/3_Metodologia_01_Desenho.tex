@@ -57,12 +57,12 @@ O encadeamento foi implementado de forma que cada transformação produzisse um 
 
 \subsection{Dimensões do Problema e Escopo das Inferências}
 
-A Tabela~\ref{tab:unidades_escopo_metodologico} explicita as dimensões que poderiam ser confundidas durante a leitura. O recorte espacial é o Distrito Federal, mas a meteorologia é representada por uma única estação automática. O alvo abrange os registros atribuídos à distribuidora local, mas a base não contém a topologia de cada alimentador nem a localização exata de cada ocorrência. Consequentemente, as previsões são agregadas para o território estudado e não podem ser convertidas diretamente em risco por bairro, circuito ou equipamento.
+O Quadro~\ref{qua:unidades_escopo_metodologico} explicita as dimensões que poderiam ser confundidas durante a leitura. O recorte espacial é o Distrito Federal, mas a meteorologia é representada por uma única estação automática. O alvo abrange os registros atribuídos à distribuidora local, mas a base não contém a topologia de cada alimentador nem a localização exata de cada ocorrência. Consequentemente, as previsões são agregadas para o território estudado e não podem ser convertidas diretamente em risco por bairro, circuito ou equipamento.
 
-\begin{table}[H]
+\begin{quadro}[H]
 \centering
 \caption{Unidades, granularidades e limites operacionais do estudo}
-\label{tab:unidades_escopo_metodologico}
+\label{qua:unidades_escopo_metodologico}
 \small
 \begin{tabularx}{\textwidth}{p{3.3cm} X X}
 \toprule
@@ -77,7 +77,7 @@ Inferência & Desempenho preditivo fora da amostra & Correlações climáticas n
 \bottomrule
 \end{tabularx}
 \small{Fonte: Elaborado pelos autores (2026).}
-\end{table}
+\end{quadro}
 
 O estudo compara algoritmos sob um conjunto de dados comum, mas não pretende provar que um modelo seja universalmente superior. As conclusões de desempenho se limitam ao período de teste, ao recorte geográfico, às fontes e às configurações documentadas. Também não se interpreta a importância de uma variável de árvore como efeito causal: ela expressa apenas quanto o preditor foi utilizado pelo modelo no contexto das demais variáveis.
 

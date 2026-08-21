@@ -12,7 +12,7 @@ Fonte dos comentários: `/home/mateus/Downloads/2026_GiovanniMinariZanetti_Mateu
 - [x] 8. **Página 61 do PDF (página 37) — Tabela 2.5:** converter em quadro a “Comparação entre estratégias de previsão multi-horizonte”.
 - [x] 9. **Página 68 do PDF (página 44) — Tabela 2.6:** converter em quadro os “Vieses indutivos de arquiteturas para séries temporais”.
 - [x] 10. **Página 73 do PDF (página 49) — Tabela 2.7:** converter em quadro as “Camadas de uma utilização responsável das previsões”.
-- [ ] 11. **Página 79 do PDF (página 55) — Tabela 3.1:** converter em quadro as “Unidades, granularidades e limites operacionais do estudo”.
+- [x] 11. **Página 79 do PDF (página 55) — Tabela 3.1:** converter em quadro as “Unidades, granularidades e limites operacionais do estudo”.
 - [ ] 12. **Página 81 do PDF (página 57) — Tabela 3.2:** converter em quadro a “Relação entre objetivos, operações e evidências”.
 - [ ] 13. **Página 84 do PDF (página 60) — Tabela 3.3:** converter em quadro o “Dicionário de Dados Meteorológicos”.
 - [ ] 14. **Página 85 do PDF (página 61) — Tabela 3.4:** converter em quadro o “Dicionário Oficial de Metadados”.
