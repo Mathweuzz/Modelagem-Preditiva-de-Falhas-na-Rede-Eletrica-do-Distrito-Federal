@@ -424,9 +424,9 @@ O iTransformer inverte a organização usual: cada variável, representada por s
 
 O Temporal Fusion Transformer (TFT) combina recorrência local, atenção de longo alcance, seleção de variáveis e quantis para previsão multi-horizonte \cite{lim2021temporal}. Sua estrutura separa entradas estáticas, covariáveis conhecidas no futuro e variáveis observadas, distinção especialmente relevante no domínio meteorológico. O calendário é conhecido; previsões do tempo são estimadas; interrupções futuras permanecem desconhecidas. Organizar explicitamente essas classes ajuda a preservar a fronteira de disponibilidade discutida na Seção~\ref{sec:fund_multi_horizonte}.
 
-\begin{table}[H]
+\begin{quadro}[H]
 \caption{Vieses indutivos de arquiteturas para séries temporais}
-\label{tab:arquiteturas_series}
+\label{qua:arquiteturas_series}
 \centering
 \small
 \begin{tabular}{p{2.8cm} p{4.0cm} p{4.0cm} p{3.5cm}}
@@ -443,7 +443,7 @@ TFT & Recorrência, atenção, seleção e quantis & Múltiplos horizontes e tip
 \normalsize
 \par\smallskip
 {\small Fonte: Elaborado pelos autores (2026), com base em \cite{lim2021temporal, nie2023patchtst, liu2024itransformer}.\par}
-\end{table}
+\end{quadro}
 
 \subsection{Complexidade, Tamanho Amostral e Interpretação}
 
