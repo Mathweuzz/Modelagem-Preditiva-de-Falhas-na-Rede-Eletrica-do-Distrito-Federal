@@ -59,13 +59,13 @@ Todos os dados foram disponibilizados pelas autarquias públicas no formato \tex
 
 \subsection{Dicionário de Dados Estatais e Relevância Regulatória}
 
-Para documentar as variáveis utilizadas na modelagem, organizou-se um dicionário de dados descrevendo cada atributo, seu tipo e sua relevância para o problema. A Tabela~\ref{tab:dic_inmet} apresenta as variáveis meteorológicas extraídas do portal INMET.
+Para documentar as variáveis utilizadas na modelagem, organizou-se um dicionário de dados descrevendo cada atributo, seu tipo e sua relevância para o problema. O Quadro~\ref{qua:dic_inmet} apresenta as variáveis meteorológicas extraídas do portal INMET.
 
 Optou-se por incluir cinco atributos eólicos: velocidade média, velocidade máxima, rajada máxima e as duas componentes unitárias (seno e cosseno) da direção média circular. Essa decisão é compatível com a literatura física sobre carregamento mecânico da infraestrutura: rajadas instantâneas podem impor esforços superiores aos representados pela velocidade média contínua. As defasagens e EMAs foram calculadas sobre a \textbf{rajada máxima} (\texttt{vento\_rajada\_max\_ms}) por sua relevância física e por sua associação exploratória com as interrupções. A precipitação acumulada complementa essa caracterização meteorológica, sem que essas variáveis isoladamente identifiquem a causa de cada ocorrência.
 
-\begin{table}[H]
+\begin{quadro}[H]
 \caption{Dicionário de Dados Meteorológicos (INMET - Arquivos A001 Históricos)}
-\label{tab:dic_inmet}
+\label{qua:dic_inmet}
 \begin{center}
 \small
 \begin{tabular}{p{5.5cm} p{1.8cm} p{6cm}}
@@ -83,7 +83,7 @@ Optou-se por incluir cinco atributos eólicos: velocidade média, velocidade má
 \normalsize
 \end{center}
 \small{Fonte: INMET (2025). Colunas nominais extraídas do portal de Dados Históricos.}
-\end{table}
+\end{quadro}
 
 A Tabela~\ref{tab:dic_aneel} descreve os campos da base de interrupções da ANEEL e do balanço energético SAMP relacionados, respectivamente, à construção da variável \textit{target} e à análise exploratória mensal do consumo. Os relatórios de interrupções são produzidos pelas concessionárias em cumprimento às exigências regulatórias do PRODIST \cite{aneel2023prodist}. O alvo corresponde ao total diário de identificadores \texttt{NumOrdemInterrupcao} distintos no período analisado, \textbf{sem filtro por causa}. O campo \texttt{FatGeradorInterrupcao} existe na fonte, mas não foi usado para excluir ocorrências; por isso, os modelos estimam o volume total de interrupções e as associações climáticas são descritivas, não uma classificação causal. Os dados de consumo do SAMP (\texttt{VlrEnergia}, em kWh) foram agregados mensalmente como \texttt{consumo\_total\_kwh} e empregados somente nas análises correlacionais, não como entrada dos modelos preditivos.
 
