@@ -61,9 +61,9 @@ em que $e=y-\hat{y}$ e $\delta$ controla o ponto a partir do qual a penalizaçã
 
 Outra possibilidade é aumentar a representação dos regimes raros. Zhao et al. propuseram, em 2024, uma estrutura baseada em LSTM e autoencoder variacional para ampliar exemplos meteorológicos pouco frequentes e produzir previsões granulares de interrupções com vários dias de antecedência \cite{zhao2024variational}. Em 2025, Rastgoo et al. combinaram geração adversarial e uma arquitetura Informer para tratar o desbalanceamento associado a desligamentos extremos \cite{rastgoo2025extreme}. Dados sintéticos, contudo, não criam evidência física ausente: eles aproximam uma distribuição aprendida a partir dos registros disponíveis. Se os poucos extremos históricos forem pouco representativos, o gerador pode apenas reproduzir ou suavizar esse viés. Consequentemente, aumento de dados deve ser acompanhado por validação temporal em eventos reais que não participaram do ajuste.
 
-\begin{table}[H]
+\begin{quadro}[H]
 \caption{Implicações estatísticas da natureza das interrupções}
-\label{tab:implicacoes_contagem}
+\label{qua:implicacoes_contagem}
 \centering
 \small
 \begin{tabular}{p{3.5cm} p{5.0cm} p{5.0cm}}
@@ -80,7 +80,7 @@ Regimes heterogêneos & Uma relação média pode ocultar mecanismos distintos &
 \normalsize
 \par\smallskip
 {\small Fonte: Elaborado pelos autores (2026), com base em \cite{arora2023probabilistic, zhao2024variational, rastgoo2025extreme}.\par}
-\end{table}
+\end{quadro}
 
 \section{Confiabilidade, Risco e Resiliência de Redes de Distribuição}\label{sec:risco_resiliencia}
 
