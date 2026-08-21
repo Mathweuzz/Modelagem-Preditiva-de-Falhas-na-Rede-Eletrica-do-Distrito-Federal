@@ -16,7 +16,7 @@ Fonte dos comentários: `/home/mateus/Downloads/2026_GiovanniMinariZanetti_Mateu
 - [x] 12. **Página 81 do PDF (página 57) — Tabela 3.2:** converter em quadro a “Relação entre objetivos, operações e evidências”.
 - [x] 13. **Página 84 do PDF (página 60) — Tabela 3.3:** converter em quadro o “Dicionário de Dados Meteorológicos”.
 - [x] 14. **Página 85 do PDF (página 61) — Tabela 3.4:** converter em quadro o “Dicionário Oficial de Metadados”.
-- [ ] 15. **Página 86 do PDF (página 62) — Tabela 3.5:** converter em quadro as “Camadas da linhagem de dados”.
+- [x] 15. **Página 86 do PDF (página 62) — Tabela 3.5:** converter em quadro as “Camadas da linhagem de dados”.
 - [ ] 16. **Página 97 do PDF (página 73) — Tabela 3.9:** converter em quadro o “Dicionário Completo de Atributos”.
 - [ ] 17. **Página 128 do PDF (página 104) — Tabela 3.20:** converter em quadro as “Invariantes verificadas pela suíte automatizada”.
 - [x] 18. **Página 133 do PDF (página 109) — fim da metodologia:** acrescentar a transição “O próximo capítulo aborda os resultados obtidos.”

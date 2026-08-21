@@ -8,10 +8,10 @@ O manifesto registra o período, o arquivo consolidado de interrupções, os nov
 
 Foram distinguidas quatro camadas. A camada \textit{bruta} corresponde ao material obtido dos portais; a camada \textit{padronizada} mantém o conteúdo selecionado com esquema uniforme; a camada \textit{consolidada} estabelece uma linha diária; e a camada \textit{analítica} adiciona atributos derivados e organiza entradas e alvos. Essa separação evita que uma rotina de treinamento passe a executar silenciosamente decisões de limpeza que deveriam ser documentadas na ingestão.
 
-\begin{table}[H]
+\begin{quadro}[H]
 \centering
 \caption{Camadas da linhagem de dados}
-\label{tab:camadas_linhagem}
+\label{qua:camadas_linhagem}
 \small
 \begin{tabularx}{\textwidth}{p{2.7cm} p{3.6cm} X}
 \toprule
@@ -25,7 +25,7 @@ Resultados & Previsões, métricas e figuras & Registrar as saídas sem substitu
 \bottomrule
 \end{tabularx}
 \small{Fonte: Elaborado pelos autores (2026).}
-\end{table}
+\end{quadro}
 
 As camadas não foram tratadas como versões intercambiáveis. O arquivo consolidado ainda contém a variável de completude horária \texttt{n\_registros}; a base analítica a remove, pois ela não é uma condição meteorológica disponível de maneira prospectiva. Já a contagem de interrupções permanece na base analítica porque, depois do deslocamento do alvo, o valor em $t$ é histórico em relação a $t+h$.
 
