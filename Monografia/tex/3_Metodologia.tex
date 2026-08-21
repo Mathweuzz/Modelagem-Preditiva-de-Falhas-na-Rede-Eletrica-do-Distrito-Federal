@@ -85,11 +85,11 @@ Optou-se por incluir cinco atributos eólicos: velocidade média, velocidade má
 \small{Fonte: INMET (2025). Colunas nominais extraídas do portal de Dados Históricos.}
 \end{quadro}
 
-A Tabela~\ref{tab:dic_aneel} descreve os campos da base de interrupções da ANEEL e do balanço energético SAMP relacionados, respectivamente, à construção da variável \textit{target} e à análise exploratória mensal do consumo. Os relatórios de interrupções são produzidos pelas concessionárias em cumprimento às exigências regulatórias do PRODIST \cite{aneel2023prodist}. O alvo corresponde ao total diário de identificadores \texttt{NumOrdemInterrupcao} distintos no período analisado, \textbf{sem filtro por causa}. O campo \texttt{FatGeradorInterrupcao} existe na fonte, mas não foi usado para excluir ocorrências; por isso, os modelos estimam o volume total de interrupções e as associações climáticas são descritivas, não uma classificação causal. Os dados de consumo do SAMP (\texttt{VlrEnergia}, em kWh) foram agregados mensalmente como \texttt{consumo\_total\_kwh} e empregados somente nas análises correlacionais, não como entrada dos modelos preditivos.
+O Quadro~\ref{qua:dic_aneel} descreve os campos da base de interrupções da ANEEL e do balanço energético SAMP relacionados, respectivamente, à construção da variável \textit{target} e à análise exploratória mensal do consumo. Os relatórios de interrupções são produzidos pelas concessionárias em cumprimento às exigências regulatórias do PRODIST \cite{aneel2023prodist}. O alvo corresponde ao total diário de identificadores \texttt{NumOrdemInterrupcao} distintos no período analisado, \textbf{sem filtro por causa}. O campo \texttt{FatGeradorInterrupcao} existe na fonte, mas não foi usado para excluir ocorrências; por isso, os modelos estimam o volume total de interrupções e as associações climáticas são descritivas, não uma classificação causal. Os dados de consumo do SAMP (\texttt{VlrEnergia}, em kWh) foram agregados mensalmente como \texttt{consumo\_total\_kwh} e empregados somente nas análises correlacionais, não como entrada dos modelos preditivos.
 
-\begin{table}[H]
+\begin{quadro}[H]
 \caption{Dicionário Oficial de Metadados (Pilar ANEEL e SAMP Balanço)}
-\label{tab:dic_aneel}
+\label{qua:dic_aneel}
 \begin{center}
 \small
 \begin{tabular}{p{4.5cm} p{2.2cm} p{6cm}}
@@ -105,7 +105,7 @@ A Tabela~\ref{tab:dic_aneel} descreve os campos da base de interrupções da ANE
 \normalsize
 \end{center}
 \small{Fonte: Dicionário de Metadados de Dados Abertos - ANEEL (2025).}
-\end{table}
+\end{quadro}
 
 \input{tex/3_Metodologia_02_Dados}
 
