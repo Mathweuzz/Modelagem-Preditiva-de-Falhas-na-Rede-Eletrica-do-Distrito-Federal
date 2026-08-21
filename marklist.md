@@ -22,4 +22,4 @@ Fonte dos comentários: `/home/mateus/Downloads/2026_GiovanniMinariZanetti_Mateu
 - [x] 18. **Página 133 do PDF (página 109) — fim da metodologia:** acrescentar a transição “O próximo capítulo aborda os resultados obtidos.”
 - [x] 19. **Página 181 do PDF (página 157) — fim dos resultados:** acrescentar a transição “O próximo capítulo aborda a análise dos resultados.”
 - [x] 20. **Página 196 do PDF (página 172) — fim da discussão:** acrescentar a transição corrigida “O próximo capítulo apresenta as conclusões deste trabalho.”
-- [ ] 21. **Página 197 do PDF (página 173) — início da conclusão:** iniciar o capítulo relembrando o objetivo do trabalho e a metodologia empregada.
+- [x] 21. **Página 197 do PDF (página 173) — início da conclusão:** iniciar o capítulo relembrando o objetivo do trabalho e a metodologia empregada.

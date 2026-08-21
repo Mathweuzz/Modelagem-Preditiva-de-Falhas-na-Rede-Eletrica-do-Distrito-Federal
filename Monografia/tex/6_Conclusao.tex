@@ -1,8 +1,10 @@
-Este capítulo reúne os principais resultados, verifica o cumprimento dos objetivos e apresenta as limitações do estudo e as possibilidades de continuidade da pesquisa.
+Este trabalho teve como objetivo desenvolver e avaliar modelos preditivos capazes de estimar a contagem diária de interrupções de energia elétrica com início registrado no Distrito Federal, combinando o histórico das ocorrências, atributos de calendário e variáveis meteorológicas. Para alcançar esse objetivo, foram integrados registros da ANEEL e do INMET entre janeiro de 2017 e maio de 2025, submetidos a agregação diária, pré-processamento e engenharia de atributos. XGBoost, Bi-LSTM e Bi-GRU foram então comparados sob separação cronológica comum, na avaliação principal de um dia à frente e na análise complementar dos horizontes diretos de 1, 3, 7 e 14 dias, com persistência como referência e análises adicionais de incerteza, ablação e resíduos.
+
+Com base nesse percurso metodológico, este capítulo sintetiza os principais resultados, verifica o cumprimento dos objetivos e apresenta as limitações do estudo e as possibilidades de continuidade da pesquisa.
 
 \section{Síntese dos Resultados}
 
-Este trabalho desenvolveu e avaliou modelos para prever o número diário de interrupções de energia elétrica no Distrito Federal. A base reuniu registros da ANEEL e dados meteorológicos do INMET entre janeiro de 2017 e maio de 2025. O período contém 3.073 dias consecutivos, dos quais 3.066 permaneceram após a engenharia de atributos. Os dados de consumo energético do SAMP foram usados apenas na análise exploratória mensal e não entraram nos modelos.
+A base integrada contém 3.073 dias consecutivos, dos quais 3.066 permaneceram após a engenharia de atributos. Os dados de consumo energético do SAMP foram usados apenas na análise exploratória mensal e não entraram nos modelos.
 
 Os principais resultados são:
 
